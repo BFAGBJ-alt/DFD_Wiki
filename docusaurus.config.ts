@@ -41,7 +41,7 @@ const config: Config = {
       {
         docs: {
           sidebarPath: './sidebars.ts',
-          editUrl: 'https://github.com/BFAGBJ-alt/DFD_Wiki/edit/main/docs/',
+          editUrl: 'https://github.com/BFAGBJ-alt/DFD_Wiki/edit/main/',
         },
         blog: false,
         theme: {
