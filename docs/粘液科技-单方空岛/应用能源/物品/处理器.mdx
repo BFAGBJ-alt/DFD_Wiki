@@ -1,0 +1,147 @@
+---
+sidebar_position: 0
+contributors:
+ - BFAGBJ
+---
+import RecipeViewer from '@site/src/components/RecipeViewer';
+import Columns from '@site/src/components/Columns';
+import ItemIcon from '@site/src/components/ItemIcon';
+
+## 逻辑处理器
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s printed_logic_processor
+```
+
+### 用途
+
+用于制造各类AE机器与元件。
+
+### 合成配方
+
+需要：压印器
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'me_inscriber',
+  time: 20,
+  energy: 2048,
+  pattern: [
+    'SRC',
+    '   ',
+    '   ',
+  ],
+  materials: {
+    S: {id: 'printed_silicon'},
+    R: {id: 'redstone'},
+    C: {id: 'printed_logic_circuit'},
+  },
+  result: {id: 'printed_logic_processor'},
+}} />
+
+</div>
+
+<div>
+
+<ItemIcon item="printed_logic_processor" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## 运算处理器
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s printed_calculation_processor
+```
+
+### 用途
+
+用于制造各类AE机器与元件。
+
+### 合成配方
+
+需要：压印器
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'me_inscriber',
+  time: 20,
+  energy: 2048,
+  pattern: [
+    'SRC',
+    '   ',
+    '   ',
+  ],
+  materials: {
+    S: {id: 'printed_silicon'},
+    R: {id: 'redstone'},
+    C: {id: 'printed_calculation_circuit'},
+  },
+  result: {id: 'printed_calculation_processor'},
+}} />
+
+</div>
+
+<div>
+
+<ItemIcon item="printed_calculation_processor" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## 工程处理器
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s engineering_processor
+```
+
+### 用途
+
+用于制造各类AE机器与元件。
+
+### 合成配方
+
+需要：压印器
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'me_inscriber',
+  time: 20,
+  energy: 2048,
+  pattern: [
+    'SRC',
+    '   ',
+    '   ',
+  ],
+  materials: {
+    S: {id: 'printed_silicon'},
+    R: {id: 'redstone'},
+    C: {id: 'printed_engineering_circuit'},
+  },
+  result: {id: 'engineering_processor'},
+}} />
+
+</div>
+
+<div>
+
+<ItemIcon item="engineering_processor" size={100} />
+
+</div>
+
+</Columns>

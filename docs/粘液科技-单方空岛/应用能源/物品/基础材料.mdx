@@ -1,0 +1,399 @@
+---
+sidebar_position: 0
+contributors:
+ - BFAGBJ
+---
+import RecipeViewer from '@site/src/components/RecipeViewer';
+import Columns from '@site/src/components/Columns';
+import ItemIcon from '@site/src/components/ItemIcon';
+
+基础材料主要由**矿物粉碎机**（SlimeFun 机器）和**充能器**获得。充能器每秒消耗 256J，配方耗电按时间计算（如 2s = 512J）。
+
+矿石/石英在矿物粉碎机中粉碎为粉的比例均为 1:1。
+
+## 下界石英粉
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s quartz_dust
+```
+
+### 用途
+
+可在充能器中继续升级为赛特斯石英粉。
+
+### 合成配方
+
+需要：矿物粉碎机
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'ore_crusher',
+  pattern: [
+    'Q  ',
+    '   ',
+    '   ',
+  ],
+  materials: {
+    Q: {id: 'quartz'},
+  },
+  result: {id: 'quartz_dust'},
+}} />
+
+</div>
+
+<div>
+
+<ItemIcon item="quartz_dust" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## 赛特斯石英粉
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s certus_quartz_dust
+```
+
+### 用途
+
+用于制造AE材料，也可继续升级为福鲁伊克斯粉。
+
+### 合成配方
+
+需要：矿物粉碎机
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'ore_crusher',
+  pattern: [
+    'S  ',
+    '   ',
+    '   ',
+  ],
+  materials: {
+    S: {id: 'crystal_certus_quartz'},
+  },
+  result: {id: 'certus_quartz_dust'},
+}} />
+
+需要：充能器
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'me_charger',
+  time: 1,
+  energy: 256,
+  pattern: [
+    'Q  ',
+    '   ',
+    '   ',
+  ],
+  materials: {
+    Q: {id: 'quartz_dust'},
+  },
+  result: {id: 'certus_quartz_dust'},
+}} />
+
+</div>
+
+<div>
+
+<ItemIcon item="certus_quartz_dust" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## 福鲁伊克斯粉
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s fluix_dust
+```
+
+### 用途
+
+用于制造AE材料，也可继续升级为陨石粉。
+
+### 合成配方
+
+需要：矿物粉碎机
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'ore_crusher',
+  pattern: [
+    'F  ',
+    '   ',
+    '   ',
+  ],
+  materials: {
+    F: {id: 'fluix_crystal'},
+  },
+  result: {id: 'fluix_dust'},
+}} />
+
+需要：充能器
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'me_charger',
+  time: 1,
+  energy: 256,
+  pattern: [
+    'S  ',
+    '   ',
+    '   ',
+  ],
+  materials: {
+    S: {id: 'certus_quartz_dust'},
+  },
+  result: {id: 'fluix_dust'},
+}} />
+
+</div>
+
+<div>
+
+<ItemIcon item="fluix_dust" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## 陨石粉
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s sky_stone_dust
+```
+
+### 用途
+
+用于合成ME控制器等AE机器。
+
+### 合成配方
+
+需要：充能器
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'me_charger',
+  time: 1,
+  energy: 256,
+  pattern: [
+    'F  ',
+    '   ',
+    '   ',
+  ],
+  materials: {
+    F: {id: 'fluix_dust'},
+  },
+  result: {id: 'sky_stone_dust'},
+}} />
+
+</div>
+
+<div>
+
+<ItemIcon item="sky_stone_dust" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## 赛特斯石英
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s crystal_certus_quartz
+```
+
+### 用途
+
+用于制造板材、处理器等AE材料。
+
+### 合成配方
+
+需要：充能器
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'me_charger',
+  time: 2,
+  energy: 512,
+  pattern: [
+    'Q  ',
+    '   ',
+    '   ',
+  ],
+  materials: {
+    Q: {id: 'quartz'},
+  },
+  result: {id: 'crystal_certus_quartz'},
+}} />
+
+</div>
+
+<div>
+
+<ItemIcon item="crystal_certus_quartz" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## 充能赛特斯石英
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s charged_crystal_certus_quartz
+```
+
+### 用途
+
+用于制造福鲁伊克斯水晶。
+
+### 合成配方
+
+需要：充能器
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'me_charger',
+  time: 2,
+  energy: 512,
+  pattern: [
+    'S  ',
+    '   ',
+    '   ',
+  ],
+  materials: {
+    S: {id: 'crystal_certus_quartz'},
+  },
+  result: {id: 'charged_crystal_certus_quartz'},
+}} />
+
+</div>
+
+<div>
+
+<ItemIcon item="charged_crystal_certus_quartz" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## 福鲁伊克斯水晶
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s fluix_crystal
+```
+
+### 用途
+
+用于制造AE机器与元件。
+
+### 合成配方
+
+需要：充能器
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'me_charger',
+  time: 3,
+  energy: 768,
+  pattern: [
+    'C  ',
+    '   ',
+    '   ',
+  ],
+  materials: {
+    C: {id: 'charged_crystal_certus_quartz'},
+  },
+  result: {id: 'fluix_crystal'},
+}} />
+
+</div>
+
+<div>
+
+<ItemIcon item="fluix_crystal" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## 石英玻璃
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s quartz_glass
+```
+
+### 用途
+
+用于制造AE机器与元件。
+
+### 合成配方
+
+需要：增强型工作台
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'QGQ',
+    'GQG',
+    'QGQ',
+  ],
+  materials: {
+    Q: {id: 'quartz_dust'},
+    G: {id: 'glass'},
+  },
+  result: {id: 'quartz_glass', count: 4},
+}} />
+
+</div>
+
+<div>
+
+<ItemIcon item="quartz_glass" size={100} />
+
+</div>
+
+</Columns>

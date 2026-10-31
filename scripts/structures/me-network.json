@@ -1,0 +1,22 @@
+{
+  "name": "me-network",
+  "palette": {
+    "controller": {"block": "furnace", "color": "#9b59b6", "label": "ME 控制器", "link": "/docs/粘液科技-单方空岛/应用能源/基础ME网络的搭建"},
+    "drive": {"block": "dispenser", "color": "#e74c3c", "label": "ME 驱动器"},
+    "iface": {"block": "dropper", "color": "#3498db", "label": "ME 接口"},
+    "terminal": {"block": "crafting_table", "color": "#2ecc71", "label": "合成终端", "link": "/docs/粘液科技-单方空岛/应用能源/基础ME网络的搭建"},
+    "energy": {"block": "redstone_block", "color": "#f1c40f", "label": "能源接收器"},
+    "cable": {"block": "glass", "color": "#95a5a6", "label": "玻璃线缆"},
+    "p2p": {"block": "gold_block", "color": "#e67e22", "label": "P2P 通道"}
+  },
+  "blocks": [
+    {"x": 0, "y": 0, "z": 0, "type": "controller"},
+    {"x": 1, "y": 0, "z": 0, "type": "drive"},
+    {"x": -1, "y": 0, "z": 0, "type": "iface"},
+    {"x": 0, "y": 0, "z": 1, "type": "terminal"},
+    {"x": 0, "y": 0, "z": -1, "type": "energy"},
+    {"x": 1, "y": 0, "z": 1, "type": "cable"},
+    {"x": -1, "y": 0, "z": 1, "type": "cable"},
+    {"x": 0, "y": 1, "z": 0, "type": "p2p"}
+  ]
+}

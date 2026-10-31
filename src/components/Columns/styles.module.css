@@ -1,0 +1,37 @@
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  margin: 1rem 0;
+}
+
+.rowNowrap {
+  flex-wrap: nowrap;
+}
+
+.left {
+  flex-grow: 0;
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+.right {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* 窄屏堆叠 */
+@media (max-width: 768px) {
+  .row:not(.rowNowrap) {
+    flex-direction: column;
+  }
+
+  .row:not(.rowNowrap) .left {
+    flex-basis: auto !important;
+    width: 100%;
+  }
+
+  .row:not(.rowNowrap) .right {
+    width: 100%;
+  }
+}

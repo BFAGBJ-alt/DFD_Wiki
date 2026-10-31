@@ -1,0 +1,162 @@
+---
+sidebar_position: 0
+contributors:
+ - BFAGBJ
+---
+import StructureViewer from '@site/src/components/StructureViewer';
+import RecipeViewer from '@site/src/components/RecipeViewer';
+import Columns from '@site/src/components/Columns';
+import BlockDisplay from '@site/src/components/BlockDisplay';
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s me_charger
+```
+
+### 用途
+
+用于制造赛特斯石英以及其他AE材料。
+
+### 合成配方
+
+需要：增强型工作台
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'IFI',
+    'I  ',
+    'IFI',
+  ],
+  materials: {
+    I: {id: 'iron_ingot'},
+    F: {id: 'ferrosilicon'},
+  },
+  result: {id: 'me_charger'},
+}} />
+
+</div>
+
+<div>
+
+<BlockDisplay item="me_charger" size={100} />
+
+</div>
+
+</Columns>
+
+### 该机器可用配方
+
+该机器可存储2048J，工作时每秒消耗256J。
+
+#### 赛特斯石英粉
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'me_charger',
+  time: 1,
+  energy: 256,
+  pattern: [
+    'Q  ',
+    '   ',
+    '   ',
+  ],
+  materials: {
+    Q: {id: 'quartz_dust'},
+  },
+  result: {id: 'certus_quartz_dust'},
+}} />
+
+#### 福鲁伊克斯粉
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'me_charger',
+  time: 1,
+  energy: 256,
+  pattern: [
+    'S  ',
+    '   ',
+    '   ',
+  ],
+  materials: {
+    S: {id: 'certus_quartz_dust'},
+  },
+  result: {id: 'fluix_dust'},
+}} />
+
+#### 陨石粉
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'me_charger',
+  time: 1,
+  energy: 256,
+  pattern: [
+    'F  ',
+    '   ',
+    '   ',
+  ],
+  materials: {
+    F: {id: 'fluix_dust'},
+  },
+  result: {id: 'sky_stone_dust'},
+}} />
+
+#### 赛特斯石英
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'me_charger',
+  time: 2,
+  energy: 512,
+  pattern: [
+    'Q  ',
+    '   ',
+    '   ',
+  ],
+  materials: {
+    Q: {id: 'quartz'},
+  },
+  result: {id: 'crystal_certus_quartz'},
+}} />
+
+#### 充能赛特斯石英
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'me_charger',
+  time: 2,
+  energy: 512,
+  pattern: [
+    'S  ',
+    '   ',
+    '   ',
+  ],
+  materials: {
+    S: {id: 'crystal_certus_quartz'},
+  },
+  result: {id: 'charged_crystal_certus_quartz'},
+}} />
+
+#### 福鲁伊克斯水晶
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'me_charger',
+  time: 3,
+  energy: 768,
+  pattern: [
+    'C  ',
+    '   ',
+    '   ',
+  ],
+  materials: {
+    C: {id: 'charged_crystal_certus_quartz'},
+  },
+  result: {id: 'fluix_crystal'},
+}} />
+

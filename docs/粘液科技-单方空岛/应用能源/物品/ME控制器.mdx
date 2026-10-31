@@ -1,0 +1,49 @@
+---
+sidebar_position: 0
+contributors:
+ - BFAGBJ
+---
+import StructureViewer from '@site/src/components/StructureViewer';
+import RecipeViewer from '@site/src/components/RecipeViewer';
+import Columns from '@site/src/components/Columns';
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s me_controller
+```
+
+### 用途
+
+AE网络的核心，一个AE网络里不允许存在多个ME控制器。
+
+### 合成配方
+
+需要：增强型工作台
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'DMD',
+    'MCM',
+    'DMD',
+  ],
+  materials: {
+    D: {id: 'sky_stone_dust'},
+    M: {id: 'fluix_crystal'},
+    C: {id: 'engineering_processor'},
+  },
+  result: {id: 'me_controller'},
+}} />
+
+</div>
+
+<div>
+
+<StructureViewer item="me_controller" size={100} />
+
+</div>
+
+</Columns>

@@ -1,0 +1,19 @@
+/* 移动端：桌面 TOC 隐藏时，在页脚显示贡献者 */
+.contributors {
+  display: none;
+  margin: 2.5rem 0 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--ifm-color-emphasis-300);
+  color: var(--ifm-color-emphasis-700);
+  font-size: 0.85rem;
+}
+
+.contributors a {
+  color: inherit;
+}
+
+@media (max-width: 996px) {
+  .contributors {
+    display: block;
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "label": "应用能源 - 物品",
+  "position": 999,
+  "link": {
+    "type": "generated-index",
+    "description": "应用能源物品的帮助物品列表"
+  }
+}

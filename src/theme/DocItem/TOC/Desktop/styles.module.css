@@ -1,0 +1,75 @@
+/* 与官方 TOC 相同的 sticky 行为，保证整栏（目录+贡献者）跟随滚动 */
+.stickyContainer {
+  max-height: calc(100vh - (var(--ifm-navbar-height) + 2rem));
+  overflow-y: auto;
+  position: sticky;
+  top: calc(var(--ifm-navbar-height) + 1rem);
+}
+
+/* TOC 组件自带 sticky，这里去掉避免嵌套 sticky 失效 */
+.tocReset {
+  position: static !important;
+  max-height: none !important;
+  overflow-y: visible !important;
+}
+
+.contributors {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--ifm-color-emphasis-300);
+  font-size: 0.85rem;
+}
+
+.title {
+  margin-bottom: 0.5rem;
+  color: var(--ifm-color-emphasis-700);
+  font-weight: 600;
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.list li {
+  margin: 0.4rem 0;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.item:hover {
+  color: var(--ifm-color-primary);
+  text-decoration: none;
+}
+
+.avatar {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--ifm-color-emphasis-200);
+  color: var(--ifm-color-emphasis-700);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.name {
+  min-width: 0;
+}

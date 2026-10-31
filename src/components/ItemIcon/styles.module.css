@@ -1,0 +1,39 @@
+.box {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+}
+
+.img {
+  display: block;
+  image-rendering: pixelated;
+  object-fit: contain;
+}
+
+.placeholder {
+  display: block;
+  border-radius: 3px;
+  background: var(--ifm-color-emphasis-300);
+}
+
+.link {
+  text-decoration: none;
+}
+
+.link:hover .img {
+  filter: brightness(1.1);
+}
+
+.count {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+  text-shadow: 0 0 3px rgba(0, 0, 0, 0.9);
+  pointer-events: none;
+}

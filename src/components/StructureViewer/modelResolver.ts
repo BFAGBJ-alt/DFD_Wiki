@@ -1,0 +1,217 @@
+// 解析原版 Minecraft block model JSON（含 parent 继承链与 "#ref" 材质引用），
+// 输出渲染用的四边形（quad）列表：支持立方体与 elements 自定义形状/局部 UV，
+// 也支持多个模型组合（如雕纹书架 + 6 个槽位状态模型）。
+
+export type Face = 'down' | 'up' | 'north' | 'south' | 'west' | 'east';
+export type FaceMap = Partial<Record<Face, string>>;
+
+export type Quad = {
+  face: Face;
+  /** 元素范围（0..16，MC 方块局部坐标） */
+  from: [number, number, number];
+  to: [number, number, number];
+  /** 贴图区域 u1,v1,u2,v2（0..16，v 向下） */
+  uv: [number, number, number, number];
+  /** 贴图 URL */
+  texture: string;
+  /** 面贴图旋转角度（MC 的 face.rotation，贴图顺时针转，0/90/180/270） */
+  uvRotation?: number;
+  /** 元素旋转（如讲台倾斜的顶板） */
+  rotation?: {
+    angle: number;
+    axis: 'x' | 'y' | 'z';
+    origin?: [number, number, number];
+  };
+};
+
+type ModelElement = {
+  from?: [number, number, number];
+  to?: [number, number, number];
+  rotation?: {
+    angle: number;
+    axis: 'x' | 'y' | 'z';
+    origin?: [number, number, number];
+  };
+  faces?: Partial<
+    Record<
+      Face,
+      {
+        texture?: string;
+        uv?: [number, number, number, number];
+        rotation?: number;
+      }
+    >
+  >;
+};
+
+type ModelJson = {
+  parent?: string;
+  textures?: Record<string, string>;
+  elements?: ModelElement[];
+};
+
+const FACES: Face[] = ['down', 'up', 'north', 'south', 'west', 'east'];
+
+const modelCache = new Map<string, Promise<ModelJson | null>>();
+const quadCache = new Map<string, Promise<Quad[]>>();
+
+// "minecraft:block/furnace" / "block/furnace" -> "furnace"
+function normalizeId(ref: string): string {
+  return ref.replace(/^minecraft:/, '').replace(/^block\//, '');
+}
+
+// block 字段支持："furnace" | ["a","b"] | "a,b"（多模型组合）
+function normalizeIds(block: string | string[]): string[] {
+  const ids = Array.isArray(block) ? block : block.split(',');
+  return ids.map((s) => s.trim()).filter(Boolean);
+}
+
+function loadModel(base: string, id: string): Promise<ModelJson | null> {
+  const key = `${base}:${id}`;
+  let p = modelCache.get(key);
+  if (!p) {
+    p = fetch(`${base}/${id}.json`)
+      .then((r) => (r.ok ? (r.json() as Promise<ModelJson>) : null))
+      .catch(() => null);
+    modelCache.set(key, p);
+  }
+  return p;
+}
+
+// 沿 parent 链收集模型（子 -> 父）
+async function loadChain(base: string, id: string): Promise<ModelJson[]> {
+  const chain: ModelJson[] = [];
+  let cur: string | null = id;
+  for (let depth = 0; depth < 10 && cur; depth++) {
+    const model = await loadModel(base, cur);
+    if (!model) break;
+    chain.push(model);
+    cur = model.parent ? normalizeId(model.parent) : null;
+  }
+  return chain;
+}
+
+// 解析 "#front" 这类间接引用，直到拿到真实材质路径
+function resolveRef(
+  textures: Record<string, string>,
+  key: string,
+  depth = 0,
+): string | undefined {
+  if (depth > 10) return undefined;
+  const v = textures[key];
+  if (!v) return undefined;
+  if (v.startsWith('#')) return resolveRef(textures, v.slice(1), depth + 1);
+  return v;
+}
+
+// MC 默认 uv：未显式给出时按面从元素范围推导
+function defaultUv(
+  face: Face,
+  from: [number, number, number],
+  to: [number, number, number],
+): [number, number, number, number] {
+  switch (face) {
+    case 'north':
+      return [from[0], 16 - to[1], to[0], 16 - from[1]];
+    case 'south':
+      return [16 - to[0], 16 - to[1], 16 - from[0], 16 - from[1]];
+    case 'west':
+      return [from[2], 16 - to[1], to[2], 16 - from[1]];
+    case 'east':
+      return [16 - to[2], 16 - to[1], 16 - from[2], 16 - from[1]];
+    case 'up':
+    case 'down':
+      return [from[0], from[2], to[0], to[2]];
+  }
+}
+
+/**
+ * 面贴图旋转：MC 的 face.rotation 表示贴图顺时针旋转，
+ * 所以面角点要采样的 uv 要反向（逆时针）转同样的角度。
+ * uv 为贴图区域 u1,v1,u2,v2（v 向下）。
+ */
+export function rotateFaceUv(
+  u: number,
+  v: number,
+  uv: [number, number, number, number],
+  angle?: number,
+): [number, number] {
+  if (!angle) return [u, v];
+  const rad = (angle * Math.PI) / 180;
+  const cos = Math.cos(rad);
+  const sin = Math.sin(rad);
+  const cu = (uv[0] + uv[2]) / 2;
+  const cv = (uv[1] + uv[3]) / 2;
+  const du = u - cu;
+  const dv = v - cv;
+  return [cu + du * cos + dv * sin, cv - du * sin + dv * cos];
+}
+
+// 单个 model id -> quads
+async function resolveModelQuads(base: string, id: string): Promise<Quad[]> {
+  const chain = await loadChain(base, id);
+  if (chain.length === 0) return [];
+  // textures 合并：父先子后，子覆盖父
+  const textures = [...chain]
+    .reverse()
+    .reduce<Record<string, string>>(
+      (acc, m) => ({...acc, ...(m.textures ?? {})}),
+      {},
+    );
+  // elements：取链上最靠近子级、定义了 elements 的模型
+  const elements = chain.find((m) => m.elements?.length)?.elements ?? [];
+
+  const quads: Quad[] = [];
+  for (const el of elements) {
+    const from = el.from ?? [0, 0, 0];
+    const to = el.to ?? [16, 16, 16];
+    for (const face of FACES) {
+      const def = el.faces?.[face];
+      if (!def?.texture) continue;
+      const ref = def.texture.startsWith('#')
+        ? resolveRef(textures, def.texture.slice(1))
+        : def.texture;
+      if (!ref) continue;
+      quads.push({
+        face,
+        from,
+        to,
+        uv: def.uv ?? defaultUv(face, from, to),
+        texture: `${base}/${normalizeId(ref)}.png`,
+        uvRotation: def.rotation,
+        rotation: el.rotation,
+      });
+    }
+  }
+  return quads;
+}
+
+/** 解析方块（可组合多个 model id）为 quad 列表。 */
+export function resolveBlockQuads(
+  block: string | string[],
+  base: string,
+): Promise<Quad[]> {
+  const ids = normalizeIds(block);
+  const key = `${base}:${ids.join(',')}`;
+  let p = quadCache.get(key);
+  if (!p) {
+    p = Promise.all(ids.map((id) => resolveModelQuads(base, id))).then(
+      (lists) => lists.flat(),
+    );
+    quadCache.set(key, p);
+  }
+  return p;
+}
+
+/** 取每面代表贴图（移动端静态展示用；组合模型时取各面首个 quad）。 */
+export async function resolveBlockFaces(
+  block: string | string[],
+  base: string,
+): Promise<FaceMap> {
+  const quads = await resolveBlockQuads(block, base);
+  const faces: FaceMap = {};
+  for (const q of quads) {
+    faces[q.face] ??= q.texture;
+  }
+  return faces;
+}

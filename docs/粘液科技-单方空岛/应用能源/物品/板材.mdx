@@ -1,0 +1,192 @@
+---
+sidebar_position: 0
+contributors:
+ - BFAGBJ
+---
+import StructureViewer from '@site/src/components/StructureViewer';
+import RecipeViewer from '@site/src/components/RecipeViewer';
+import Columns from '@site/src/components/Columns';
+import BlockDisplay from '@site/src/components/BlockDisplay';
+import ItemIcon from '@site/src/components/ItemIcon';
+
+## 硅板
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s printed_silicon
+```
+
+### 用途
+
+用于制造其他的板材和处理器。
+
+### 合成配方
+
+需要：压印器
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'me_inscriber',
+  time: 5,
+  energy: 640,
+  pattern: [
+    'SI ',
+    '   ',
+    '   ',
+  ],
+  materials: {
+    I: {id: 'iron_ingot'},
+    S: {id: 'silicon'},
+  },
+  result: {id: 'printed_silicon'},
+}} />
+
+</div>
+
+<div>
+
+<ItemIcon item="printed_silicon" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## 逻辑电路板
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s printed_logic_circuit
+```
+
+### 用途
+
+用于制造逻辑处理器。
+
+### 合成配方
+
+需要：压印器
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'me_inscriber',
+  time: 10,
+  energy: 1280,
+  pattern: [
+    'SG ',
+    '   ',
+    '   ',
+  ],
+  materials: {
+    G: {id: 'gold_ingot'},
+    S: {id: 'printed_silicon'},
+  },
+  result: {id: 'printed_logic_circuit'},
+}} />
+
+</div>
+
+<div>
+
+<ItemIcon item="printed_logic_circuit" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## 运算电路板
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s printed_calculation_circuit
+```
+
+### 用途
+
+用于制造运算处理器。
+
+### 合成配方
+
+需要：压印器
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'me_inscriber',
+  time: 10,
+  energy: 1280,
+  pattern: [
+    'SQ ',
+    '   ',
+    '   ',
+  ],
+  materials: {
+    Q: {id: 'charged_crystal_certus_quartz'},
+    S: {id: 'printed_silicon'},
+  },
+  result: {id: 'printed_calculation_circuit'},
+}} />
+
+</div>
+
+<div>
+
+<ItemIcon item="printed_calculation_circuit" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## 工程电路板
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s printed_engineering_circuit
+```
+
+### 用途
+
+用于制造工程处理器。
+
+### 合成配方
+
+需要：压印器
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'me_inscriber',
+  time: 10,
+  energy: 1280,
+  pattern: [
+    'SD ',
+    '   ',
+    '   ',
+  ],
+  materials: {
+    D: {id: 'diamond'},
+    S: {id: 'printed_silicon'},
+  },
+  result: {id: 'printed_engineering_circuit'},
+}} />
+
+</div>
+
+<div>
+
+<ItemIcon item="printed_engineering_circuit" size={100} />
+
+</div>
+
+</Columns>

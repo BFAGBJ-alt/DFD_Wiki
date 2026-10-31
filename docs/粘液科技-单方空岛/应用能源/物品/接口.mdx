@@ -1,0 +1,99 @@
+---
+sidebar_position: 0
+contributors:
+ - BFAGBJ
+---
+import RecipeViewer from '@site/src/components/RecipeViewer';
+import Columns from '@site/src/components/Columns';
+import BlockDisplay from '@site/src/components/BlockDisplay';
+
+## ME接口
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s me_interface
+```
+
+### 用途
+
+输入输出物品，用于放置样板。
+
+### 合成配方
+
+需要：增强型工作台
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'IGI',
+    'A F',
+    'IGI',
+  ],
+  materials: {
+    I: {id: 'iron_ingot'},
+    G: {id: 'glass'},
+    A: {id: 'annihilation_core'},
+    F: {id: 'formation_core'},
+  },
+  result: {id: 'me_interface'},
+}} />
+
+</div>
+
+<div>
+
+<BlockDisplay item="me_interface" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## ME样板接口
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s me_pattern_interface
+```
+
+### 用途
+
+相较ME接口去掉了物品IO，换来了6倍的样板放置区域。
+
+### 合成配方
+
+需要：增强型工作台
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'IGI',
+    'AMF',
+    'IGI',
+  ],
+  materials: {
+    I: {id: 'iron_ingot'},
+    G: {id: 'glass'},
+    A: {id: 'annihilation_core'},
+    M: {id: 'me_interface'},
+    F: {id: 'formation_core'},
+  },
+  result: {id: 'me_pattern_interface'},
+}} />
+
+</div>
+
+<div>
+
+<BlockDisplay item="me_pattern_interface" size={100} />
+
+</div>
+
+</Columns>

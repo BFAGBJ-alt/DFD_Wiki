@@ -1,0 +1,12 @@
+{
+  "name": "me-network",
+  "palette": {
+    "controller": {"item": "me_controller"},
+    "drive": {"item": "me_drive"}
+  },
+  "blocks": [
+    {"x": 0, "y": 0, "z": 0, "type": "controller"},
+    {"x": 1, "y": 0, "z": 0, "type": "drive"},
+    {"x": -1, "y": 0, "z": 0, "item": "me_terminal"}
+  ]
+}

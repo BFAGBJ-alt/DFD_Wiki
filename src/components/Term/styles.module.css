@@ -1,0 +1,47 @@
+.term {
+  position: relative;
+  display: inline-block;
+  cursor: help;
+  border-bottom: 1px dashed var(--ifm-color-emphasis-500);
+}
+
+.tooltip {
+  visibility: hidden;
+  opacity: 0;
+  position: absolute;
+  z-index: 100;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  min-width: 140px;
+  max-width: 260px;
+  padding: 0.4rem 0.65rem;
+  border-radius: 6px;
+  background: var(--ifm-color-emphasis-900);
+  color: var(--ifm-color-emphasis-0);
+  font-size: 0.8rem;
+  font-weight: normal;
+  line-height: 1.45;
+  text-align: center;
+  white-space: pre-line;
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+}
+
+/* 小三角箭头 */
+.tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: var(--ifm-color-emphasis-900);
+}
+
+.term:hover .tooltip,
+.term:focus-within .tooltip {
+  visibility: visible;
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}

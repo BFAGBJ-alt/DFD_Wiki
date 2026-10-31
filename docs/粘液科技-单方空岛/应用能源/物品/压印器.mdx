@@ -1,0 +1,190 @@
+---
+sidebar_position: 0
+contributors:
+ - BFAGBJ
+---
+import StructureViewer from '@site/src/components/StructureViewer';
+import RecipeViewer from '@site/src/components/RecipeViewer';
+import Columns from '@site/src/components/Columns';
+import BlockDisplay from '@site/src/components/BlockDisplay';
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s me_inscriber
+```
+
+### 用途
+
+用于压制电路板和处理器。
+
+### 合成配方
+
+需要：增强型工作台
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'ISI',
+    'F I  ',
+    'ISI',
+  ],
+  materials: {
+    I: {id: 'iron_ingot'},
+    F: {id: 'fluix_crystal'},
+    S: {id: 'sticky_piston'},
+  },
+  result: {id: 'me_inscriber'},
+}} />
+
+</div>
+
+<div>
+
+<BlockDisplay item="me_inscriber" size={100} />
+
+</div>
+
+</Columns>
+
+### 该机器可用配方
+
+该机器可存储1024J，工作时每秒消耗128J。
+
+#### 硅板
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'me_inscriber',
+  time: 5,
+  energy: 640,
+  pattern: [
+    'SI ',
+    '   ',
+    '   ',
+  ],
+  materials: {
+    I: {id: 'iron_ingot'},
+    S: {id: 'silicon'},
+  },
+  result: {id: 'printed_silicon'},
+}} />
+
+#### 逻辑电路板
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'me_inscriber',
+  time: 10,
+  energy: 1280,
+  pattern: [
+    'SG ',
+    '   ',
+    '   ',
+  ],
+  materials: {
+    G: {id: 'gold_ingot'},
+    S: {id: 'printed_silicon'},
+  },
+  result: {id: 'printed_logic_circuit'},
+}} />
+
+#### 运算电路板
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'me_inscriber',
+  time: 10,
+  energy: 1280,
+  pattern: [
+    'SQ ',
+    '   ',
+    '   ',
+  ],
+  materials: {
+    Q: {id: 'charged_crystal_certus_quartz'},
+    S: {id: 'printed_silicon'},
+  },
+  result: {id: 'printed_calculation_circuit'},
+}} />
+
+#### 工程电路板
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'me_inscriber',
+  time: 10,
+  energy: 1280,
+  pattern: [
+    'SD ',
+    '   ',
+    '   ',
+  ],
+  materials: {
+    D: {id: 'diamond'},
+    S: {id: 'printed_silicon'},
+  },
+  result: {id: 'printed_engineering_circuit'},
+}} />
+
+#### 逻辑处理器
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'me_inscriber',
+  time: 20,
+  energy: 2048,
+  pattern: [
+    'SRC',
+    '   ',
+    '   ',
+  ],
+  materials: {
+    S: {id: 'printed_silicon'},
+    R: {id: 'redstone'},
+    C: {id: 'printed_logic_circuit'},
+  },
+  result: {id: 'printed_logic_processor'},
+}} />
+
+#### 运算处理器
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'me_inscriber',
+  time: 20,
+  energy: 2048,
+  pattern: [
+    'SRC',
+    '   ',
+    '   ',
+  ],
+  materials: {
+    S: {id: 'printed_silicon'},
+    R: {id: 'redstone'},
+    C: {id: 'printed_calculation_circuit'},
+  },
+  result: {id: 'printed_calculation_processor'},
+}} />
+
+#### 工程处理器
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'me_inscriber',
+  time: 20,
+  energy: 2048,
+  pattern: [
+    'SRC',
+    '   ',
+    '   ',
+  ],
+  materials: {
+    S: {id: 'printed_silicon'},
+    R: {id: 'redstone'},
+    C: {id: 'printed_engineering_circuit'},
+  },
+  result: {id: 'engineering_processor'},
+}} />

@@ -1,0 +1,98 @@
+---
+sidebar_position: 0
+contributors:
+ - BFAGBJ
+---
+import RecipeViewer from '@site/src/components/RecipeViewer';
+import Columns from '@site/src/components/Columns';
+import ItemIcon from '@site/src/components/ItemIcon';
+
+两种核心都用于制作进阶ME机器。
+
+## 破坏核心
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s annihilation_core
+```
+
+### 用途
+
+用于制作进阶ME机器。
+
+### 合成配方
+
+需要：增强型工作台
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'QFL',
+    '   ',
+    '   ',
+  ],
+  materials: {
+    Q: {id: 'quartz'},
+    F: {id: 'fluix_dust'},
+    L: {id: 'printed_logic_processor'},
+  },
+  result: {id: 'annihilation_core'},
+}} />
+
+</div>
+
+<div>
+
+<ItemIcon item="annihilation_core" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## 成型核心
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s formation_core
+```
+
+### 用途
+
+用于制作进阶ME机器。
+
+### 合成配方
+
+需要：增强型工作台
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'SFL',
+    '   ',
+    '   ',
+  ],
+  materials: {
+    S: {id: 'crystal_certus_quartz'},
+    F: {id: 'fluix_dust'},
+    L: {id: 'printed_logic_processor'},
+  },
+  result: {id: 'formation_core'},
+}} />
+
+</div>
+
+<div>
+
+<ItemIcon item="formation_core" size={100} />
+
+</div>
+
+</Columns>

@@ -1,0 +1,50 @@
+---
+sidebar_position: 0
+contributors:
+ - BFAGBJ
+---
+import StructureViewer from '@site/src/components/StructureViewer';
+import RecipeViewer from '@site/src/components/RecipeViewer';
+import Columns from '@site/src/components/Columns';
+
+<Columns left={75}>
+
+<div>
+
+```text
+/sf give @s me_drive
+```
+
+### 用途
+
+用于存放磁盘。
+
+### 合成配方
+
+需要：增强型工作台
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'ICI',
+    'G G',
+    'ICI',
+  ],
+  materials: {
+    I: {id: 'iron_ingot'},
+    G: {id: 'me_glass_cable'},
+    C: {id: 'engineering_processor'},
+  },
+  result: {id: 'me_drive'},
+}} />
+
+</div>
+
+<div>
+
+<StructureViewer item="me_drive" size={100} />
+
+</div>
+
+</Columns>

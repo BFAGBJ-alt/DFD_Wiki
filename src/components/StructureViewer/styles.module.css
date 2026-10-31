@@ -1,0 +1,95 @@
+.box {
+  margin: 1rem 0;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--ifm-background-surface-color);
+}
+
+.canvas {
+  height: 480px;
+  cursor: grab;
+}
+
+.canvas:active {
+  cursor: grabbing;
+}
+
+.canvasPlaceholder {
+  height: 480px;
+  background: var(--ifm-color-emphasis-100);
+}
+
+.gif {
+  display: block;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+/* 移动端单一方块静态展示 */
+.single {
+  display: flex;
+  justify-content: center;
+  margin: 1rem 0;
+}
+
+.singleLink {
+  display: contents;
+}
+
+.singleImg {
+  display: block;
+  width: 128px;
+  height: 128px;
+  image-rendering: pixelated;
+  border-radius: 4px;
+}
+
+.singleLabel {
+  display: block;
+  text-align: center;
+  margin-top: 0.4rem;
+  font-size: 0.9rem;
+}
+
+.legend {
+  list-style: none;
+  padding: 0.75rem 1rem;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  border-top: 1px solid var(--ifm-color-emphasis-300);
+  font-size: 0.9rem;
+}
+
+.hint {
+  margin: 0;
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+  color: var(--ifm-color-emphasis-600);
+  border-top: 1px solid var(--ifm-color-emphasis-200);
+}
+
+/* 3D 场景内悬停标签（drei Html 注入） */
+.labelWrap {
+  pointer-events: none;
+}
+
+.label {
+  white-space: nowrap;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.78);
+  color: #fff;
+  font-size: 13px;
+  line-height: 1.4;
+  pointer-events: none;
+  transform: translateY(-8px);
+}
+
+.labelArrow {
+  margin-left: 0.3em;
+  opacity: 0.85;
+}

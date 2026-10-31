@@ -1,37 +1,24 @@
+---
+sidebar_position: 999
+---
+
+
 import ContributorCard from '@site/src/components/ContributorCard';
 import styles from '@site/src/components/ContributorCard/styles.module.css';
-
+import {contributors} from '@site/src/data/contributors';
 
 > 本条目收录为本wiki做出了贡献的人
 >
 > 这是他们游戏内的id，遇到问题可以直接问他们！
 
 <div className={styles.grid}>
-  <ContributorCard
-    name="BFAGBJ"
-    description={"本wiki的创建者\n编写了游戏中基础的帮助文档\n但大部分时间在学校内QAQ"}
-    href="https://github.com/BFAGBJ-alt"
-    avatar="/img/contributors/BFAGBJ.png"
-  />
-  <ContributorCard
-    name="Deepseek v4.1 flash"
-    description={"啥子鱼\n被熊猫压榨，编写游戏内的帮助。\n游戏内你肯定是没法找她求助了("}
-    href="https://www.deepseek.com/"
-    avatar="/img/contributors/deepseek.jpg"
-  />
-  <ContributorCard
-    name="msaw4 - 熊猫"
-    description={"缘落之梦的管理\n提供了金币相关内容"}
-    avatar="/img/contributors/masw.jpg"
-  />
-  <ContributorCard
-    name="gzs1596eg"
-    description={"粘液老玩家\n提供了SlimeAE部分问题的解决方案"}
-    avatar="/img/contributors/gzs1596eg.jpg"
-  />
-  <ContributorCard
-    name="缘落之梦百科"
-    description={"官方百科"}
-    avatar="/img/contributors/ylzm.jpg"
-  />
+  {Object.entries(contributors).map(([name, profile]) => (
+    <ContributorCard
+      key={name}
+      name={name}
+      description={profile.description}
+      href={profile.href}
+      avatar={profile.avatar}
+    />
+  ))}
 </div>
