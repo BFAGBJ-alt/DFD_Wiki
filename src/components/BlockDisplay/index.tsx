@@ -274,6 +274,7 @@ export default function BlockDisplay({
           A[1] - m10 * pA[0] - m11 * pA[1],
         ];
         const shade = FACE_SHADE[q.face as Face] ?? 1;
+        const [texW, texH] = q.texSize ?? [16, 16];
         return (
           <g
             key={id}
@@ -281,8 +282,8 @@ export default function BlockDisplay({
             clipPath={`url(#${id})`}>
             <image
               href={q.texture}
-              width={16}
-              height={16 * (frames[q.texture] ?? 1)}
+              width={texW}
+              height={texH * (frames[q.texture] ?? 1)}
               preserveAspectRatio="none"
               transform={`matrix(${m.join(' ')})`}
             />

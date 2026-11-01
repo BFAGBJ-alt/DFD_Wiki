@@ -202,6 +202,7 @@ function resolveQuads(blockId) {
       .reverse()
       .reduce((acc, m) => ({...acc, ...(m.textures || {})}), {});
     const elements = chain.find((m) => m.elements?.length)?.elements || [];
+    const before = quads.length;
     for (const el of elements) {
       const from = el.from || [0, 0, 0];
       const to = el.to || [16, 16, 16];
@@ -221,6 +222,55 @@ function resolveQuads(blockId) {
           uvRotation: def.rotation,
           rotation: el.rotation,
         });
+      }
+    }
+    // 方块实体（无 elements）的兜底几何：箱子用实体贴图，其余用 particle 立方体
+    if (quads.length === before) {
+      const box = (from, to, texOffs, texture, texSize) => {
+        const [x1, y1, z1] = from;
+        const [x2, y2, z2] = to;
+        const w = x2 - x1;
+        const h = y2 - y1;
+        const d = z2 - z1;
+        const [u, v] = texOffs;
+        const rects = {
+          up: [u + d, v, u + d + w, v + d],
+          down: [u + d + w, v, u + d + 2 * w, v + d],
+          east: [u, v + d, u + d, v + d + h],
+          north: [u + d, v + d, u + d + w, v + d + h],
+          west: [u + d + w, v + d, u + d + w + d, v + d + h],
+          south: [u + 2 * d + w, v + d, u + 2 * d + 2 * w, v + d + h],
+        };
+        return FACES.map((face) => ({
+          face,
+          from,
+          to,
+          uv: rects[face],
+          texture,
+          texSize,
+        }));
+      };
+      if (id === 'chest' || id === 'ender_chest') {
+        const file = id === 'ender_chest' ? 'ender' : 'normal';
+        const tex = path.join(MODEL_DIR, '..', 'entity', 'chest', `${file}.png`);
+        quads.push(
+          ...box([1, 0, 1], [15, 10, 15], [0, 19], tex, [64, 64]),
+          ...box([1, 9, 1], [15, 14, 15], [0, 0], tex, [64, 64]),
+          ...box([7, 6, 0], [9, 10, 1], [0, 0], tex, [64, 64]),
+        );
+      } else {
+        const particle = resolveRef(textures, 'particle');
+        if (particle) {
+          quads.push(
+            ...box(
+              [0, 0, 0],
+              [16, 16, 16],
+              [0, 0],
+              path.join(MODEL_DIR, `${normalizeId(particle)}.png`),
+              [16, 16],
+            ),
+          );
+        }
       }
     }
   }
@@ -329,6 +379,7 @@ function renderFrame(blocks, angle, view) {
       const tex = loadTexture(q.texture);
       const corners = quadCorners(q);
       const [u1, v1, u2, v2] = q.uv;
+      const [texW, texH] = q.texSize || [16, 16];
       const cu = (u1 + u2) / 2;
       const cv = (v1 + v2) / 2;
       const rad = ((q.uvRotation || 0) * Math.PI) / 180;
@@ -338,7 +389,10 @@ function renderFrame(blocks, angle, view) {
       const rotUv = (u, v) => {
         const du = u - cu;
         const dv = v - cv;
-        return [(cu + du * cos + dv * sin) / 16, (cv - du * sin + dv * cos) / 16];
+        return [
+          (cu + du * cos + dv * sin) / texW,
+          (cv - du * sin + dv * cos) / texH,
+        ];
       };
       const uvs = [
         rotUv(u1, v1),

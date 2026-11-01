@@ -74,12 +74,12 @@ export const items: Record<string, ItemDef> = {
     texture: '/img/Minecraft/item/blue_dye.png',
     link: '/docs/粘液科技-单方空岛/应用能源/物品/板材#工程电路板',
   },
-  'printed_logic_processor': {
+  'logic_processor': {
     name: '逻辑处理器',
     texture: '/img/Minecraft/item/dune_armor_trim_smithing_template.png',
     link: '/docs/粘液科技-单方空岛/应用能源/物品/处理器#逻辑处理器',
   },
-  'printed_calculation_processor': {
+  'calculation_processor': {
     name: '运算处理器',
     texture: '/img/Minecraft/item/tide_armor_trim_smithing_template.png',
     link: '/docs/粘液科技-单方空岛/应用能源/物品/处理器#运算处理器',

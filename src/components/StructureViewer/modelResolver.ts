@@ -14,6 +14,8 @@ export type Quad = {
   uv: [number, number, number, number];
   /** 贴图 URL */
   texture: string;
+  /** 贴图像素尺寸（默认 16×16；实体贴图如箱子是 64×64） */
+  texSize?: [number, number];
   /** 面贴图旋转角度（MC 的 face.rotation，贴图顺时针转，0/90/180/270） */
   uvRotation?: number;
   /** 元素旋转（如讲台倾斜的顶板） */
@@ -147,6 +149,72 @@ export function rotateFaceUv(
   return [cu + du * cos + dv * sin, cv - du * sin + dv * cos];
 }
 
+// 方块实体（箱子、告示牌等）没有 elements，只给一个 particle 贴图。
+// 箱子按原版 ModelChest 的 UV 布局用实体贴图还原；其余用 particle 画成立方体。
+function fallbackQuads(
+  base: string,
+  id: string,
+  textures: Record<string, string>,
+): Quad[] {
+  // 一个长方体按 MC 的 box UV 展开成 6 个面
+  const box = (
+    from: [number, number, number],
+    to: [number, number, number],
+    texOffs: [number, number],
+    texture: string,
+    texSize: [number, number],
+  ): Quad[] => {
+    const [x1, y1, z1] = from;
+    const [x2, y2, z2] = to;
+    const w = x2 - x1;
+    const h = y2 - y1;
+    const d = z2 - z1;
+    const [u, v] = texOffs;
+    const rects: Record<string, [number, number, number, number]> = {
+      up: [u + d, v, u + d + w, v + d],
+      down: [u + d + w, v, u + d + 2 * w, v + d],
+      east: [u, v + d, u + d, v + d + h],
+      north: [u + d, v + d, u + d + w, v + d + h],
+      west: [u + d + w, v + d, u + d + w + d, v + d + h],
+      south: [u + 2 * d + w, v + d, u + 2 * d + 2 * w, v + d + h],
+    };
+    return FACES.map((face) => ({
+      face,
+      from,
+      to,
+      uv: rects[face],
+      texture,
+      texSize,
+    }));
+  };
+
+  if (id === 'chest' || id === 'ender_chest') {
+    // 箱子是实体贴图，64×64，原版 ModelChest 的三个 box：
+    // bottom texOffs(0,19)、lid texOffs(0,0)、lock texOffs(0,0)
+    const file = id === 'ender_chest' ? 'ender' : 'normal';
+    const tex = `${base.replace(/\/block$/, '')}/entity/chest/${file}.png`;
+    return [
+      // 箱体 [1,0,1]-[15,10,15]，14×10×14
+      ...box([1, 0, 1], [15, 10, 15], [0, 19], tex, [64, 64]),
+      // 箱盖 [1,9,1]-[15,14,15]，14×5×14
+      ...box([1, 9, 1], [15, 14, 15], [0, 0], tex, [64, 64]),
+      // 锁扣，放在朝向观察者的北面 [7,6,0]-[9,10,1]，2×4×1
+      ...box([7, 6, 0], [9, 10, 1], [0, 0], tex, [64, 64]),
+    ];
+  }
+
+  // 其余方块实体：用 particle 贴图画满一个方块
+  const particle = resolveRef(textures, 'particle');
+  if (!particle) return [];
+  return box(
+    [0, 0, 0],
+    [16, 16, 16],
+    [0, 0],
+    `${base}/${normalizeId(particle)}.png`,
+    [16, 16],
+  );
+}
+
 // 单个 model id -> quads
 async function resolveModelQuads(base: string, id: string): Promise<Quad[]> {
   const chain = await loadChain(base, id);
@@ -183,6 +251,7 @@ async function resolveModelQuads(base: string, id: string): Promise<Quad[]> {
       });
     }
   }
+  if (quads.length === 0) return fallbackQuads(base, id, textures);
   return quads;
 }
 

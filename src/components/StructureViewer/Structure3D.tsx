@@ -133,12 +133,13 @@ function buildQuadGeometry(q: Quad): THREE.BufferGeometry {
     new THREE.Float32BufferAttribute(corners.flat(), 3),
   );
   // MC uv 的 v 向下，three 的 v 向上；面旋转按 MC 的 face.rotation 处理
+  const [texW, texH] = q.texSize ?? [16, 16];
   geo.setAttribute(
     'uv',
     new THREE.Float32BufferAttribute(
       uvs
         .map(([u, v]) => rotateFaceUv(u, v, q.uv, q.uvRotation))
-        .map(([u, v]) => [u / 16, 1 - v / 16])
+        .map(([u, v]) => [u / texW, 1 - v / texH])
         .flat(),
       2,
     ),

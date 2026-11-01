@@ -83,6 +83,6 @@ export const items: Record<string, ItemDef> = {
     name: '碳化电容',
     texture: '/img/Minecraft/SlimeFun/assets/slimefun/textures/slimefun/energy/carbonado_edged_capacitor.png',
   },
-  'network_controller': {name: '网络控制器'},
+  'network_controller': {name: '网络控制器', block: 'black_stained_glass'},
   'me_energy_cell': {name: '能源元件', block: 'amethyst_block'},
 };
