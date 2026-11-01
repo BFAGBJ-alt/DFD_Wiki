@@ -35,6 +35,7 @@ export default function Slot({item}: {item?: ResolvedStack}): ReactNode {
       ) : (
         <div className={styles.placeholder} />
       )}
+      {item.glint && <span className="mc-glint" />}
       {item.count && item.count > 1 && (
         <span className={styles.count}>{item.count}</span>
       )}

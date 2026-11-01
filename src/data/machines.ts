@@ -11,6 +11,8 @@ export type MachineDef = {
   block?: string | string[];
   /** 点击跳转的 wiki 链接 */
   link?: string;
+  /** 是否显示附魔光效 */
+  glint?: boolean;
 };
 
 export const machines: Record<string, MachineDef> = {

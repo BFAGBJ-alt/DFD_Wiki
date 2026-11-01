@@ -1,0 +1,743 @@
+---
+sidebar_position: 0
+contributors:
+ - BFAGBJ
+---
+import RecipeViewer from '@site/src/components/RecipeViewer';
+import Columns from '@site/src/components/Columns';
+import BlockDisplay from '@site/src/components/BlockDisplay';
+
+方块型的总线，有很多功能强大的种类，但是不能像模组一样和线缆在同一格。
+
+## ME输入总线
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s me_import_bus
+```
+
+### 用途
+
+抽取指定容器内的物品，**不支持原版容器**。
+
+### 合成配方
+
+需要：增强型工作台
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    ' A ',
+    'ISI',
+    '   ',
+  ],
+  materials: {
+    I: {id: 'iron_ingot'},
+    S: {id: 'sticky_piston'},
+    A: {id: 'annihilation_core'},
+  },
+  result: {id: 'me_import_bus'},
+}} />
+
+</div>
+
+<div>
+
+<BlockDisplay item="me_import_bus" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## ME原版输入总线
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s me_vanilla_import_bus
+```
+
+### 用途
+
+从原版容器内抽取物品。
+
+### 合成配方
+
+需要：增强型工作台
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    ' H ',
+    'IBI',
+    '   ',
+  ],
+  materials: {
+    I: {id: 'iron_ingot'},
+    H: {id: 'hopper'},
+    B: {id: 'me_import_bus'},
+  },
+  result: {id: 'me_vanilla_import_bus'},
+}} />
+
+
+</div>
+
+<div>
+
+<BlockDisplay item="me_vanilla_import_bus" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## ME高级输入总线
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s me_advanced_import_bus
+```
+
+### 用途
+
+可选择多个方向进行输入，**不支持原版容器**。
+
+### 合成配方
+
+需要：增强型工作台
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'BAB',
+    'ISI',
+    'BAB',
+  ],
+  materials: {
+    B: {id: 'me_import_bus'},
+    I: {id: 'iron_ingot'},
+    A: {id: 'annihilation_core'},
+    S: {id: 'sticky_piston'},
+  },
+  result: {id: 'me_advanced_import_bus'},
+}} />
+
+</div>
+
+<div>
+
+<BlockDisplay item="me_advanced_import_bus" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## ME高级原版输入总线
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s me_advanced_vanilla_import_bus
+```
+
+### 用途
+
+可选择多个方向进行输入，**支持原版容器**。
+
+### 合成配方
+
+需要：增强型工作台
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    ' H ',
+    'IBI',
+    '   ',
+  ],
+  materials: {
+    I: {id: 'iron_ingot'},
+    H: {id: 'hopper'},
+    B: {id: 'me_advanced_import_bus'},
+  },
+  result: {id: 'me_advanced_vanilla_import_bus'},
+}} />
+
+</div>
+
+<div>
+
+<BlockDisplay item="me_advanced_vanilla_import_bus" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## ME链式输入总线
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s me_chained_import_bus
+```
+
+### 用途
+
+工作方向为选择的方向，检测范围 1-64 格（可配置）。
+
+严格链式连接：路径中有阻断或非机器方块时，阻断点之后的容器将失效；**不支持原版容器**。
+
+### 合成配方
+
+需要：增强型工作台
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'BLB',
+    'BMB',
+    'BLB',
+  ],
+  materials: {
+    B: {id: 'me_import_bus'},
+    L: {id: 'printed_logic_processor'},
+    M: {id: 'me_interface'},
+  },
+  result: {id: 'me_chained_import_bus'},
+}} />
+
+</div>
+
+<div>
+
+<BlockDisplay item="me_chained_import_bus" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## ME输出总线
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s me_export_bus
+```
+
+### 用途
+
+输出指定的物品到指定的容器中，**不支持原版物品**。
+
+这和网络的推送器不一样，网络的推送器会尝试一次性推送64个，而如果你只在总线中标记了x个，那么就只会推送x个物品。
+
+（如果你没加加速卡的情况下）
+
+### 合成配方
+
+需要：增强型工作台
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'IFI',
+    ' S ',
+    '   ',
+  ],
+  materials: {
+    I: {id: 'iron_ingot'},
+    S: {id: 'sticky_piston'},
+    F: {id: 'formation_core'},
+  },
+  result: {id: 'me_export_bus'},
+}} />
+
+</div>
+
+<div>
+
+<BlockDisplay item="me_export_bus" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## ME原版输出总线
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s me_vanilla_export_bus
+```
+
+### 用途
+
+将指定物品输出到原版容器，**支持原版容器**。
+
+### 合成配方
+
+需要：增强型工作台
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    '   ',
+    'IBI',
+    ' H ',
+  ],
+  materials: {
+    H: {id: 'hopper'},
+    I: {id: 'iron_ingot'},
+    B: {id: 'me_export_bus'},
+  },
+  result: {id: 'me_vanilla_export_bus'},
+}} />
+
+</div>
+
+<div>
+
+<BlockDisplay item="me_vanilla_export_bus" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## ME高级输出总线
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s me_advanced_export_bus
+```
+
+### 用途
+
+可选择多个方向进行输出，**不支持原版容器**。
+
+### 合成配方
+
+需要：增强型工作台
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'IFI',
+    'ESE',
+    'EFE',
+  ],
+  materials: {
+    I: {id: 'iron_ingot'},
+    F: {id: 'formation_core'},
+    S: {id: 'sticky_piston'},
+    E: {id: 'me_export_bus'},
+  },
+  result: {id: 'me_advanced_export_bus'},
+}} />
+
+</div>
+
+<div>
+
+<BlockDisplay item="me_advanced_export_bus" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## ME高级原版输出总线
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s me_advanced_vanilla_export_bus
+```
+
+### 用途
+
+可选择多个方向进行输出，**支持原版容器**。
+
+### 合成配方
+
+需要：增强型工作台
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    '   ',
+    'IBI',
+    ' H ',
+  ],
+  materials: {
+    H: {id: 'hopper'},
+    I: {id: 'iron_ingot'},
+    B: {id: 'me_advanced_export_bus'},
+  },
+  result: {id: 'me_advanced_vanilla_export_bus'},
+}} />
+
+</div>
+
+<div>
+
+<BlockDisplay item="me_advanced_vanilla_export_bus" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## ME链式输出总线
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s me_chained_export_bus
+```
+
+### 用途
+
+工作方向为选择的方向，检测范围 1-64 格（可配置）。
+
+严格链式连接：路径中有阻断或非机器方块时，阻断点之后的容器将失效；**不支持原版容器**。
+
+### 合成配方
+
+需要：增强型工作台
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'ELE',
+    'EME',
+    'ELE',
+  ],
+  materials: {
+    E: {id: 'me_export_bus'},
+    L: {id: 'printed_logic_processor'},
+    M: {id: 'me_interface'},
+  },
+  result: {id: 'me_chained_export_bus'},
+}} />
+
+</div>
+
+<div>
+
+<BlockDisplay item="me_chained_export_bus" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## ME输入输出总线
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s me_ie_bus
+```
+
+### 用途
+
+同时拥有输入总线和输出总线的功能，**不支持原版物品**。
+
+### 合成配方
+
+需要：增强型工作台
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'ILE',
+    '   ',
+    '   ',
+  ],
+  materials: {
+    I: {id: 'me_import_bus'},
+    L: {id: 'printed_logic_processor'},
+    E: {id: 'me_export_bus'},
+  },
+  result: {id: 'me_ie_bus'},
+}} />
+
+</div>
+
+<div>
+
+<BlockDisplay item="me_ie_bus" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## ME原版输入输出总线
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s me_vanilla_ie_bus
+```
+
+### 用途
+
+同时拥有输入与输出功能，**支持原版容器**。
+
+### 合成配方
+
+需要：增强型工作台
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'ILE',
+    '   ',
+    '   ',
+  ],
+  materials: {
+    I: {id: 'me_vanilla_import_bus'},
+    L: {id: 'printed_logic_processor'},
+    E: {id: 'me_vanilla_export_bus'},
+  },
+  result: {id: 'me_vanilla_ie_bus'},
+}} />
+
+</div>
+
+<div>
+
+<BlockDisplay item="me_vanilla_ie_bus" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## ME高级输入输出总线
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s me_advanced_ie_bus
+```
+
+### 用途
+
+可选择多个方向进行输入输出，**不支持原版容器**。
+
+### 合成配方
+
+需要：增强型工作台
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'ALA',
+    'AMA',
+    'ALA',
+  ],
+  materials: {
+    A: {id: 'me_advanced_import_bus'},
+    L: {id: 'printed_logic_processor'},
+    E: {id: 'me_advanced_export_bus'},
+    M: {id: 'me_ie_bus'},
+  },
+  result: {id: 'me_advanced_ie_bus'},
+}} />
+
+</div>
+
+<div>
+
+<BlockDisplay item="me_advanced_ie_bus" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## ME高级原版输入输出总线
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s me_advanced_vanilla_ie_bus
+```
+
+### 用途
+
+可选择多个方向进行输入输出，**支持原版容器**。
+
+### 合成配方
+
+需要：增强型工作台
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'ALA',
+    'AMA',
+    'ALA',
+  ],
+  materials: {
+    A: {id: 'me_advanced_vanilla_import_bus'},
+    L: {id: 'printed_logic_processor'},
+    E: {id: 'me_advanced_vanilla_export_bus'},
+    M: {id: 'me_vanilla_ie_bus'},
+  },
+  result: {id: 'me_advanced_vanilla_ie_bus'},
+}} />
+
+</div>
+
+<div>
+
+<BlockDisplay item="me_advanced_vanilla_ie_bus" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## ME链式输入输出总线
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s me_chained_ie_bus
+```
+
+### 用途
+
+工作方向为选择的方向，检测范围 1-64 格（可配置）。
+
+严格链式连接：路径中有阻断或非机器方块时，阻断点之后的容器将失效；**不支持原版容器**。
+
+### 合成配方
+
+需要：增强型工作台
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'ELE',
+    'EME',
+    'ELE',
+  ],
+  materials: {
+    E: {id: 'me_ie_bus'},
+    L: {id: 'printed_logic_processor'},
+    M: {id: 'me_interface'},
+  },
+  result: {id: 'me_chained_ie_bus'},
+}} />
+
+</div>
+
+<div>
+
+<BlockDisplay item="me_chained_ie_bus" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## ME存储总线
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s me_storage_bus
+```
+
+### 用途
+
+将方块的存储接入AE网络，支持蓬松桶、无尽存储单元、网络量子存储与网络抽屉，**不支持原版容器**。
+
+### 合成配方
+
+需要：增强型工作台
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'IMP',
+    '   ',
+    '   ',
+  ],
+  materials: {
+    I: {id: 'me_interface'},
+    M: {id: 'sticky_piston'},
+    P: {id: 'piston'},
+  },
+  result: {id: 'me_storage_bus'},
+}} />
+
+</div>
+
+<div>
+
+<BlockDisplay item="me_storage_bus" size={100} />
+
+</div>
+
+</Columns>

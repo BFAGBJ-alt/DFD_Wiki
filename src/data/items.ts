@@ -13,6 +13,8 @@ export type ItemDef = {
   color?: string;
   /** wiki 链接，标记后方块可点击跳转 */
   link?: string;
+  /** 是否显示附魔光效（游戏内带光效的机器/物品） */
+  glint?: boolean;
 };
 
 // 在这里登记常用物品 / 方块。后续按需补充。
@@ -40,7 +42,7 @@ export const items: Record<string, ItemDef> = {
     ],
     link: '/docs/粘液科技-单方空岛/应用能源/物品/ME驱动器',
   },
-  'me_interface': {name: 'ME 接口', block: 'target'},
+  'me_interface': {name: 'ME 接口', block: 'target', link: '/docs/粘液科技-单方空岛/应用能源/物品/接口#me接口'},
   'fluix_crystal': {
     name: '福鲁伊克斯水晶',
     texture: '/img/Minecraft/block/amethyst_cluster.png',
@@ -66,7 +68,7 @@ export const items: Record<string, ItemDef> = {
     texture: '/img/Minecraft/SlimeFun/assets/slimefun/textures/slimefun/resources/ingots/ferrosilicon.png',
   },
   'me_charger': {name: '充能器', block: 'lectern', link: '/docs/粘液科技-单方空岛/应用能源/物品/充能器'},
-  'me_terminal': {name: 'ME终端', block: 'shroomlight', link: '/docs/粘液科技-单方空岛/应用能源/物品/ME终端#ME终端'},
+  'me_terminal': {name: 'ME终端', block: 'shroomlight', link: '/docs/粘液科技-单方空岛/应用能源/物品/ME终端#me终端'},
   'me_inscriber': {name: '压印器', block: 'lodestone', link: '/docs/粘液科技-单方空岛/应用能源/物品/压印器'},
   'quartz_dust': {
     name: '下界石英粉',
@@ -152,12 +154,94 @@ export const items: Record<string, ItemDef> = {
     link: '/docs/粘液科技-单方空岛/应用能源/物品/ME存储外壳',
   },
   'sticky_piston': {name: '粘性活塞', block: 'sticky_piston'},
+  'piston': {name: '活塞', block: 'piston'},
   'diamond': {name: '钻石'},
   'gold_ingot': {name: '金锭'},
   'me_pattern_interface': {name: 'ME 样板接口', block: 'target'},
   'quartz_glass': {name: '石英玻璃', block: 'glass'},
   'craft_table': {name: '工作台', block: 'crafting_table'},
   'me_crafting_terminal': {name: 'ME合成终端', block: 'crafting_table'},
+  'me_import_bus': {
+    name: 'ME输入总线',
+    block: 'lime_stained_glass',
+    link: '/docs/粘液科技-单方空岛/应用能源/物品/总线#me输入总线',
+  },
+  'me_export_bus': {
+    name: 'ME输出总线',
+    block: 'red_stained_glass',
+    link: '/docs/粘液科技-单方空岛/应用能源/物品/总线#me输出总线',
+  },
+  'me_ie_bus': {
+    name: 'ME输入输出总线',
+    block: 'yellow_stained_glass',
+    link: '/docs/粘液科技-单方空岛/应用能源/物品/总线#me输入输出总线',
+  },
+  'me_vanilla_import_bus': {
+    name: 'ME原版输入总线',
+    block: 'lime_stained_glass',
+    link: '/docs/粘液科技-单方空岛/应用能源/物品/总线#me原版输入总线',
+  },
+  'me_vanilla_export_bus': {
+    name: 'ME原版输出总线',
+    block: 'red_stained_glass',
+    link: '/docs/粘液科技-单方空岛/应用能源/物品/总线#me原版输出总线',
+  },
+  'me_vanilla_ie_bus': {
+    name: 'ME原版输入输出总线',
+    block: 'yellow_stained_glass',
+    link: '/docs/粘液科技-单方空岛/应用能源/物品/总线#me原版输入输出总线',
+  },
+  'me_advanced_import_bus': {
+    name: 'ME高级输入总线',
+    block: 'lime_stained_glass',
+    link: '/docs/粘液科技-单方空岛/应用能源/物品/总线#me高级输入总线',
+  },
+  'me_advanced_export_bus': {
+    name: 'ME高级输出总线',
+    block: 'red_stained_glass',
+    link: '/docs/粘液科技-单方空岛/应用能源/物品/总线#me高级输出总线',
+  },
+  'me_advanced_ie_bus': {
+    name: 'ME高级输入输出总线',
+    block: 'yellow_stained_glass',
+    link: '/docs/粘液科技-单方空岛/应用能源/物品/总线#me高级输入输出总线',
+  },
+  'me_advanced_vanilla_import_bus': {
+    name: 'ME高级原版输入总线',
+    block: 'lime_stained_glass',
+    link: '/docs/粘液科技-单方空岛/应用能源/物品/总线#me高级原版输入总线',
+  },
+  'me_advanced_vanilla_export_bus': {
+    name: 'ME高级原版输出总线',
+    block: 'red_stained_glass',
+    link: '/docs/粘液科技-单方空岛/应用能源/物品/总线#me高级原版输出总线',
+  },
+  'me_advanced_vanilla_ie_bus': {
+    name: 'ME高级原版输入输出总线',
+    block: 'yellow_stained_glass',
+    link: '/docs/粘液科技-单方空岛/应用能源/物品/总线#me高级原版输入输出总线',
+  },
+  'me_chained_import_bus': {
+    name: 'ME链式输入总线',
+    block: 'lime_stained_glass',
+    link: '/docs/粘液科技-单方空岛/应用能源/物品/总线#me链式输入总线',
+  },
+  'me_chained_export_bus': {
+    name: 'ME链式输出总线',
+    block: 'red_stained_glass',
+    link: '/docs/粘液科技-单方空岛/应用能源/物品/总线#me链式输出总线',
+  },
+  'me_chained_ie_bus': {
+    name: 'ME链式输入输出总线',
+    block: 'yellow_stained_glass',
+    link: '/docs/粘液科技-单方空岛/应用能源/物品/总线#me链式输入输出总线',
+  },
+  'me_storage_bus': {
+    name: 'ME存储总线',
+    block: 'white_stained_glass',
+    link: '/docs/粘液科技-单方空岛/应用能源/物品/总线#me存储总线',
+  },
+  'hopper': {name: '漏斗'},
 };
 
 export type ResolvedItem = {
@@ -166,6 +250,7 @@ export type ResolvedItem = {
   block?: string | string[];
   color?: string;
   link?: string;
+  glint?: boolean;
 };
 
 const ITEM_PNG_BASE = '/img/Minecraft/item';
@@ -181,5 +266,6 @@ export function resolveItem(id: string): ResolvedItem {
     block: def.block,
     color: def.color,
     link: def.link,
+    glint: def.glint,
   };
 }

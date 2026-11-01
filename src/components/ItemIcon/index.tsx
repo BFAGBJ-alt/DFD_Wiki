@@ -70,6 +70,7 @@ export default function ItemIcon({
       style={{width: size, height: size}}
       title={item.name}>
       {content}
+      {item.glint && <span className="mc-glint" />}
       {count != null && count > 1 && <span className={styles.count}>{count}</span>}
     </span>
   );

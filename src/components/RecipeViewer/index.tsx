@@ -56,6 +56,7 @@ function resolveMachine(m: ItemStack | string | undefined): ResolvedStack | unde
       texture,
       block: def.block,
       link: def.link,
+      glint: def.glint,
       fallbackTexture: fallback && fallback !== texture ? fallback : null,
     };
   }

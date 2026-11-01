@@ -25,13 +25,14 @@ import tkinter as tk
 from pathlib import Path
 from tkinter import filedialog, messagebox, simpledialog, ttk
 
-FIELD_ORDER = ["name", "block", "texture", "color", "link"]
+FIELD_ORDER = ["name", "block", "texture", "color", "link", "glint"]
 FIELD_LABELS = {
     "name": "名称",
     "block": "3D 模型",
     "texture": "贴图路径",
     "color": "颜色",
     "link": "wiki 链接",
+    "glint": "附魔光效",
 }
 
 DEFAULT_PATH = Path(__file__).resolve().parent.parent / "src" / "data" / "items.ts"
@@ -653,6 +654,16 @@ class ItemsEditor:
                 )
             self.vars[field] = var
 
+        glint_row = ttk.Frame(right)
+        glint_row.pack(fill="x", pady=4)
+        ttk.Label(glint_row, text=f"{FIELD_LABELS['glint']}:", width=10).pack(side="left")
+        self.glint_var = tk.BooleanVar(value=False)
+        ttk.Checkbutton(
+            glint_row,
+            text="显示附魔光效（仅 ItemIcon / 配方槽位）",
+            variable=self.glint_var,
+        ).pack(side="left")
+
         preview_row = ttk.Frame(right)
         preview_row.pack(fill="x", pady=(0, 4))
         ttk.Label(preview_row, text="预览:", width=10).pack(side="left")
@@ -738,6 +749,7 @@ class ItemsEditor:
         self.id_var.set("（未选择）")
         for var in self.vars.values():
             var.set("")
+        self.glint_var.set(False)
         self.block_text.delete("1.0", "end")
 
     def load_into_form(self, item_id):
@@ -745,6 +757,7 @@ class ItemsEditor:
         self.id_var.set(item_id)
         for field, var in self.vars.items():
             var.set(str(data.get(field, "")))
+        self.glint_var.set(bool(data.get("glint")))
         block = data.get("block", "")
         if isinstance(block, list):
             block = "\n".join(block)
@@ -846,6 +859,8 @@ class ItemsEditor:
         lines = [ln for ln in lines if ln]
         if lines:
             data["block"] = lines[0] if len(lines) == 1 else lines
+        if self.glint_var.get():
+            data["glint"] = True
         self.items[self.current_id] = data
 
     # ---------- 事件 ----------
