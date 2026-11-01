@@ -1,0 +1,98 @@
+---
+sidebar_position: 0
+contributors:
+ - BFAGBJ
+ - Claude
+---
+import RecipeViewer from '@site/src/components/RecipeViewer';
+import Columns from '@site/src/components/Columns';
+import ItemIcon from '@site/src/components/ItemIcon';
+
+用于连接AE设备的线缆。玻璃线缆与致密线缆功能相同，仅仅是外观不同。
+
+## ME玻璃线缆
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s me_glass_cable
+```
+
+### 用途
+
+用于连接AE设备。
+
+### 合成配方
+
+需要：增强型工作台
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'GFF',
+    '   ',
+    '   ',
+  ],
+  materials: {
+    G: {id: 'glass'},
+    F: {id: 'fluix_crystal'},
+  },
+  result: {id: 'me_glass_cable', count: 4},
+}} />
+
+</div>
+
+<div>
+
+<ItemIcon item="me_glass_cable" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## ME致密线缆
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s me_dense_cable
+```
+
+### 用途
+
+用于连接AE设备；和ME玻璃线缆相比仅仅是外观不同。
+
+### 合成配方
+
+需要：增强型工作台
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'ABC',
+    '   ',
+    '   ',
+  ],
+  materials: {
+    A: {id: 'energy_connector'},
+    B: {id: 'crystal_certus_quartz'},
+    C: {id: 'fluix_crystal'},
+  },
+  result: {id: 'me_dense_cable', count: 4},
+}} />
+
+</div>
+
+<div>
+
+<ItemIcon item="me_dense_cable" size={100} />
+
+</div>
+
+</Columns>

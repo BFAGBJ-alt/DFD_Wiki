@@ -1,0 +1,406 @@
+---
+sidebar_position: 0
+contributors:
+ - BFAGBJ
+ - Claude
+---
+import RecipeViewer from '@site/src/components/RecipeViewer';
+import Columns from '@site/src/components/Columns';
+import BlockDisplay from '@site/src/components/BlockDisplay';
+
+网络设备负责物品搬运、存储元件维护、红石信号与网络互联等辅助功能。
+
+## ME IO端口
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s me_io_port
+```
+
+### 用途
+
+将物品存储元件里的物品输入至ME网络，或将ME网络里的物品输出至物品元件。
+
+### 合成配方
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'AAA',
+    'BCB',
+    'DED',
+  ],
+  materials: {
+    A: {id: 'glass'},
+    B: {id: 'me_drive'},
+    C: {id: 'me_glass_cable'},
+    D: {id: 'iron_ingot'},
+    E: {id: 'printed_logic_processor'},
+  },
+  result: {id: 'me_io_port'},
+}} />
+
+</div>
+
+<div>
+
+<BlockDisplay item="me_io_port" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## ME元件工作台
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s me_cell_workbench
+```
+
+### 用途
+
+用于修改存储元件的黑名单 / 白名单等设置。
+
+### 合成配方
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'ABA',
+    'CDC',
+    'CCC',
+  ],
+  materials: {
+    A: {id: 'white_wool'},
+    B: {id: 'printed_logic_processor'},
+    C: {id: 'iron_ingot'},
+    D: {id: 'chest'},
+  },
+  result: {id: 'me_cell_workbench'},
+}} />
+
+</div>
+
+<div>
+
+<BlockDisplay item="me_cell_workbench" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## ME标准发信器
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s me_level_emitter
+```
+
+### 用途
+
+当AE网络中指定物品的数量大于设定值时发出红石信号。
+
+### 合成配方
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'ABC',
+    '   ',
+    '   ',
+  ],
+  materials: {
+    A: {id: 'me_interface'},
+    B: {id: 'redstone_card'},
+    C: {id: 'printed_calculation_processor'},
+  },
+  result: {id: 'me_level_emitter'},
+}} />
+
+</div>
+
+<div>
+
+<BlockDisplay item="me_level_emitter" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## 网络交换机
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s networks_expansion_switch
+```
+
+### 用途
+
+用于将AE网络和网络拓展（Networks）连接起来。
+
+### 合成配方
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'ABA',
+    'CDC',
+    'ABA',
+  ],
+  materials: {
+    A: {id: 'iron_ingot'},
+    B: {id: 'glass'},
+    C: {id: 'me_interface'},
+    D: {id: 'network_controller'},
+  },
+  result: {id: 'networks_expansion_switch'},
+}} />
+
+</div>
+
+<div>
+
+<BlockDisplay item="networks_expansion_switch" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## ME交换监控器
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s me_conversation_monitor
+```
+
+### 用途
+
+可以直接存取其显示的物品；锁定设定后左键取出物品、右键放回物品。
+
+### 合成配方
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'ABC',
+    '   ',
+    '   ',
+  ],
+  materials: {
+    A: {id: 'formation_core'},
+    B: {id: 'me_terminal'},
+    C: {id: 'annihilation_core'},
+  },
+  result: {id: 'me_conversation_monitor'},
+}} />
+
+</div>
+
+<div>
+
+<BlockDisplay item="me_conversation_monitor" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## ME清除器
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s me_cleaner
+```
+
+### 用途
+
+用于清除ME存储元件中多余的物品。
+
+### 合成配方
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    ' A ',
+    'BCB',
+    ' D ',
+  ],
+  materials: {
+    A: {id: 'me_interface'},
+    B: {id: 'iron_ingot'},
+    C: {id: 'portable_dustbin'},
+    D: {id: 'printed_logic_processor'},
+  },
+  result: {id: 'me_cleaner'},
+}} />
+
+</div>
+
+<div>
+
+<BlockDisplay item="me_cleaner" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## ME合成触发器
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s me_crafting_trigger
+```
+
+### 用途
+
+当AE中物品缺少时，自动下发合成任务。
+
+### 合成配方
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'ABA',
+    'CDC',
+    'AEA',
+  ],
+  materials: {
+    A: {id: 'craft_table'},
+    B: {id: 'me_interface'},
+    C: {id: 'iron_ingot'},
+    D: {id: 'me_craft_planning_terminal'},
+    E: {id: 'printed_logic_processor'},
+  },
+  result: {id: 'me_crafting_trigger'},
+}} />
+
+</div>
+
+<div>
+
+<BlockDisplay item="me_crafting_trigger" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## 能源接收器
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s me_energy_acceptor
+```
+
+### 用途
+
+目前尚未实装，暂无实际用途。
+
+### 合成配方
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'ABA',
+    'BCB',
+    'ABA',
+  ],
+  materials: {
+    A: {id: 'iron_ingot'},
+    B: {id: 'glass'},
+    C: {id: 'fluix_crystal'},
+  },
+  result: {id: 'me_energy_acceptor'},
+}} />
+
+</div>
+
+<div>
+
+<BlockDisplay item="me_energy_acceptor" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## ME材质转换机
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s me_reskin_machine
+```
+
+### 用途
+
+将SlimeAE机器的外观更换为其他材质，支持普通方块和头颅。
+
+### 合成配方
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'A A',
+    'BCD',
+    'AEA',
+  ],
+  materials: {
+    A: {id: 'quartz_glass'},
+    B: {id: 'formation_core'},
+    C: {id: 'smithing_table'},
+    D: {id: 'annihilation_core'},
+    E: {id: 'engineering_processor'},
+  },
+  result: {id: 'me_reskin_machine'},
+}} />
+
+</div>
+
+<div>
+
+<BlockDisplay item="me_reskin_machine" size={100} />
+
+</div>
+
+</Columns>
+

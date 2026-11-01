@@ -1,6 +1,6 @@
 import React, {type ReactNode} from 'react';
-import {items, resolveItem} from '@site/src/data/items';
-import {machines} from '@site/src/data/machines';
+import {items, resolveItem} from '@site/src/data/items/index';
+import {machines} from '@site/src/data/machines/index';
 import type {ItemStack, Recipe, ResolvedStack} from './types';
 import Slot from './Slot';
 import styles from './styles.module.css';

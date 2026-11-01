@@ -1,11 +1,11 @@
 import React, {useState, type ReactNode} from 'react';
 import Link from '@docusaurus/Link';
-import {resolveItem} from '@site/src/data/items';
+import {resolveItem} from '@site/src/data/items/index';
 import BlockDisplay from '../BlockDisplay';
 import styles from './styles.module.css';
 
 type ItemIconProps = {
-  /** src/data/items.ts 里登记的物品 id */
+  /** src/data/items 里登记的物品 id */
   id?: string;
   /** id 的别名，与 BlockDisplay 的写法保持一致 */
   item?: string;
@@ -70,6 +70,16 @@ export default function ItemIcon({
       style={{width: size, height: size}}
       title={item.name}>
       {content}
+      {item.overlay && !item.block && !failed && (
+        <img
+          src={item.overlay}
+          alt=""
+          aria-hidden="true"
+          width={size}
+          height={size}
+          className={styles.overlay}
+        />
+      )}
       {item.glint && <span className="mc-glint" />}
       {count != null && count > 1 && <span className={styles.count}>{count}</span>}
     </span>

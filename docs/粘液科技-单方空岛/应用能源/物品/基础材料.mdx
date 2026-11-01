@@ -2,10 +2,12 @@
 sidebar_position: 0
 contributors:
  - BFAGBJ
+ - Claude
 ---
 import RecipeViewer from '@site/src/components/RecipeViewer';
 import Columns from '@site/src/components/Columns';
 import ItemIcon from '@site/src/components/ItemIcon';
+import BlockDisplay from '@site/src/components/BlockDisplay';
 
 基础材料主要由**矿物粉碎机**（SlimeFun 机器）和**充能器**获得。充能器每秒消耗 256J，配方耗电按时间计算（如 2s = 512J）。
 
@@ -393,6 +395,35 @@ import ItemIcon from '@site/src/components/ItemIcon';
 <div>
 
 <ItemIcon item="quartz_glass" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## 赛特斯石英矿石
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s certus_quartz_ore
+```
+
+### 用途
+
+在世界中自然生成，用铁镐挖掘可获得 5 个赛特斯石英水晶。
+
+### 合成配方
+
+该矿石没有合成配方（源码配方类型为「世界自然生成」），只在世界生成时以矿脉形式出现。
+
+</div>
+
+<div>
+
+<BlockDisplay item="certus_quartz_ore" size={100} />
 
 </div>
 

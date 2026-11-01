@@ -2,7 +2,7 @@ import React, {Suspense, useEffect, useMemo, useState, type ReactNode} from 'rea
 import BrowserOnly from '@docusaurus/BrowserOnly';
 import Link from '@docusaurus/Link';
 import useBaseUrl from '@docusaurus/useBaseUrl';
-import {resolveItem} from '@site/src/data/items';
+import {resolveItem} from '@site/src/data/items/index';
 import {resolveStructure, type Structure} from './types';
 import {resolveBlockFaces} from './modelResolver';
 import styles from './styles.module.css';

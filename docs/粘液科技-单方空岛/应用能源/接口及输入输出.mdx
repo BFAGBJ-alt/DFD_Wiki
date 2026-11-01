@@ -1,0 +1,65 @@
+---
+sidebar_position: 3
+contributors:
+ - BFAGBJ
+---
+
+import Term from '@site/src/components/Term';
+import StructureViewer from '@site/src/components/StructureViewer';
+import BlockDisplay from '@site/src/components/BlockDisplay';
+import ItemIcon from '@site/src/components/ItemIcon';
+
+你已经建成一个最小的ME网络，但是如果只能存储物品，那么还不如网络附属。
+
+要做<Term tip="即使没有进行下单，也会时时刻刻合成">被动合成</Term>,你需要输入总线、输出总线。
+
+<div style={{display: 'flex', gap: 12, alignItems: 'center'}}>
+
+<ItemIcon item='me_import_bus' size={50} />
+<ItemIcon item='me_export_bus' size={50} />
+
+</div>
+或者更省事一点 用这个：<ItemIcon item='me_ie_bus' size={50} />
+
+用法很简单，将总线贴在机器旁边，并配置好方向和输出物，保证接入ME网络。如图：
+
+![界面](/img/dfkd/AE/ie_bus_hud.png)
+![摆法](/img/dfkd/AE/etc_iebus.png)
+
+然后你就会看到AE往机器内输入物品了。如果没有，检查一下你标记的物品是否在ME网络内有没有足够的材料。
+
+如果你网络中有这种材料，但不足，会导致AE把不足的材料也输出，这有可能导致部分机器被阻塞。因此，请确保自己被动生产的消耗品生产速度足够。
+
+通常，输入输出总线用的较少，对于大量直线堆叠的机器，我们一般使用链式输入总线。
+
+<ItemIcon item='me_chained_import_bus' size={50} />
+
+虽然描述中为严格链式连接，但实际你在路径上空着几格，也会抓取到物品，放心使用。
+
+要使用链式的功能 ，你需要在链式标记区域用你想要格数数量的物品点击一下，就设置好了。
+
+![链式](/img/dfkd/AE/chained.png)
+
+正常生产中，一般就是这样子：
+![示范](/img/dfkd/AE/etc_chained.png)
+
+注意分辨，只有名字中带着原版的才能操作原版容器，其他的总线只能操作粘液容器。
+
+在总线中，还有一个特殊的线，存储总线。
+<ItemIcon item='me_storage_bus' size={50} />
+
+作用就是连上其他附属的容器，最常用的就是动力的蓬松桶或者网络和其扩展的量子存储和抽屉：
+
+![存储举例](/img/dfkd/AE/storage_etc.png)
+
+当在总线中标记上存储方块时，就可以在终端中看到物品了:
+
+![存储物品](/img/dfkd/AE/storage_res.png)
+
+这么多总线，一个个标记显然不现实。这时候就要请出工具：内存卡。
+
+<ItemIcon item='memory_card' size={50} />
+
+Shift右键可以保存指向的机器的配置数据（朝向，链式方块数，标记的物品及其数量）
+
+右键方块就可以直接覆盖方块的配置数据。

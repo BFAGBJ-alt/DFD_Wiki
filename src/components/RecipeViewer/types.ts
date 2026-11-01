@@ -1,4 +1,4 @@
-import type {ResolvedItem} from '@site/src/data/items';
+import type {ResolvedItem} from '@site/src/data/items/index';
 
 export type ItemStack = {
   /** 物品 id（从物品数据库解析名称/贴图），优先级低于直接写的字段 */

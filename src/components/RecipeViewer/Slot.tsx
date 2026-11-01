@@ -35,6 +35,14 @@ export default function Slot({item}: {item?: ResolvedStack}): ReactNode {
       ) : (
         <div className={styles.placeholder} />
       )}
+      {item.overlay && stage === 0 && !item.block && (
+        <img
+          src={item.overlay}
+          alt=""
+          aria-hidden="true"
+          className={styles.overlay}
+        />
+      )}
       {item.glint && <span className="mc-glint" />}
       {item.count && item.count > 1 && (
         <span className={styles.count}>{item.count}</span>

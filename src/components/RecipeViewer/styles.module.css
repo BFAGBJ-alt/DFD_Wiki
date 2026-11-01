@@ -83,6 +83,16 @@
   image-rendering: pixelated;
 }
 
+.overlay {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 32px;
+  height: 32px;
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+
 .placeholder {
   width: 24px;
   height: 24px;

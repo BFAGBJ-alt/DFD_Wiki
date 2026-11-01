@@ -3,7 +3,7 @@
 """items.ts 可视化编辑器
 
 用法:
-    python scripts/items_editor.py            # 打开默认的 src/data/items.ts
+    python scripts/items_editor.py            # 打开默认的 src/data/items 目录
     python scripts/items_editor.py <文件路径>  # 打开指定文件
     python scripts/items_editor.py --check     # 只做解析/回写的往返校验（不开 GUI）
 
@@ -12,7 +12,8 @@
     - 贴图可点「浏览…」从 static/img/Minecraft 目录树中挑选，带预览
     - 新建、重命名、删除物品
     - 保存时只替换 `export const items = {...}` 这一块，文件其余内容原样保留
-    - 保存前自动备份为 items.ts.bak
+    - 数据按分类存放在 src/data/items/*.ts，保存时写回各自文件
+    - 保存前自动备份为 <文件名>.ts.bak
 
 注意: items 对象内部的注释（如 // ===== 原版材料 =====）在保存后不会保留。
 """
@@ -25,17 +26,18 @@ import tkinter as tk
 from pathlib import Path
 from tkinter import filedialog, messagebox, simpledialog, ttk
 
-FIELD_ORDER = ["name", "block", "texture", "color", "link", "glint"]
+FIELD_ORDER = ["name", "block", "texture", "overlay", "color", "link", "glint"]
 FIELD_LABELS = {
     "name": "名称",
     "block": "3D 模型",
     "texture": "贴图路径",
+    "overlay": "叠加贴图",
     "color": "颜色",
     "link": "wiki 链接",
     "glint": "附魔光效",
 }
 
-DEFAULT_PATH = Path(__file__).resolve().parent.parent / "src" / "data" / "items.ts"
+DEFAULT_PATH = Path(__file__).resolve().parent.parent / "src" / "data" / "items"
 STATIC_ROOT = Path(__file__).resolve().parent.parent / "static"
 MC_TEXTURE_ROOT = STATIC_ROOT / "img" / "Minecraft"
 TEXTURE_URL_PREFIX = "/img/Minecraft"
@@ -179,16 +181,41 @@ def _find_block_end(text: str, start: int) -> int:
 ITEMS_RE = re.compile(r"export\s+const\s+items\s*:\s*Record<[^>]*>\s*=\s*\{")
 
 
+def item_files(path: Path) -> list[Path]:
+    """物品数据文件列表。path 可以是目录（取其中所有分类 ts）或单个文件。"""
+    if path.is_file():
+        return [path]
+    if not path.exists():
+        return []
+    return sorted(
+        p for p in path.glob("*.ts") if p.name not in ("index.ts", "types.ts")
+    )
+
+
 def load_items(path: Path):
-    """返回 (items 字典, 原文, 对象起始下标, 对象结束下标)。"""
-    text = path.read_text(encoding="utf-8")
-    m = ITEMS_RE.search(text)
-    if not m:
-        raise ValueError("文件里找不到 `export const items: Record<string, ItemDef> = {`")
-    start = m.end() - 1
-    end = _find_block_end(text, start)
-    items = _Parser(text, start).parse_object()
-    return items, text, start, end
+    """返回 (合并后的 items, 每个文件的快照, None, None)。
+
+    快照结构: {文件: (原文, 对象起始下标, 对象结束下标, 该文件内的 items)}
+    保存时按快照把每个文件的物品写回原文件，实现「一分类一文件」。
+    """
+    files = item_files(path)
+    if not files:
+        raise ValueError(f"没有找到物品文件: {path}")
+    merged = {}
+    snapshot = {}
+    for file in files:
+        text = file.read_text(encoding="utf-8")
+        m = ITEMS_RE.search(text)
+        if not m:
+            continue
+        start = m.end() - 1
+        end = _find_block_end(text, start)
+        data = _Parser(text, start).parse_object()
+        snapshot[file] = (text, start, end, data)
+        merged.update(data)
+    if not snapshot:
+        raise ValueError(f"文件里找不到 `export const items: Record<string, ItemDef> = {{`: {path}")
+    return merged, snapshot, None, None
 
 
 def _fmt_value(v) -> str:
@@ -236,12 +263,29 @@ def render_items(items: dict) -> str:
 
 
 def save_items(path: Path, items: dict):
-    _, text, start, end = load_items(path)
-    new_block = render_items(items)
-    new_text = text[:start] + new_block + text[end + 1:]
-    if path.exists():
-        shutil.copyfile(path, path.with_suffix(path.suffix + ".bak"))
-    path.write_text(new_text, encoding="utf-8")
+    """按原有归属把 items 写回各自的分类文件；新增物品落到 misc.ts。"""
+    _, snapshot, _, _ = load_items(path)
+    membership = {}
+    for file, (_, _, _, data) in snapshot.items():
+        for item_id in data:
+            membership[item_id] = file
+    default_file = (path / "misc.ts") if path.is_dir() else path
+    groups: dict[Path, dict] = {}
+    for item_id, data in items.items():
+        file = membership.get(item_id, default_file)
+        groups.setdefault(file, {})[item_id] = data
+    for file, (text, start, end, _) in snapshot.items():
+        new_text = text[:start] + render_items(groups.get(file, {})) + text[end + 1:]
+        shutil.copyfile(file, file.with_suffix(file.suffix + ".bak"))
+        file.write_text(new_text, encoding="utf-8")
+    if default_file not in snapshot and groups.get(default_file):
+        content = (
+            "import type {ItemDef} from './types';\n\n"
+            "export const items: Record<string, ItemDef> = "
+            + render_items(groups[default_file])
+            + ";\n"
+        )
+        default_file.write_text(content, encoding="utf-8")
 
 
 # ============ 资源索引（启动时扫描一次，之后复用） ============
@@ -642,16 +686,18 @@ class ItemsEditor:
         )
 
         self.vars = {}
-        for field in ("name", "texture", "color", "link"):
+        for field in ("name", "texture", "overlay", "color", "link"):
             row = ttk.Frame(right)
             row.pack(fill="x", pady=4)
             ttk.Label(row, text=f"{FIELD_LABELS[field]}:", width=10).pack(side="left")
             var = tk.StringVar()
             ttk.Entry(row, textvariable=var).pack(side="left", fill="x", expand=True)
-            if field == "texture":
-                ttk.Button(row, text="浏览…", command=self.pick_texture).pack(
-                    side="left", padx=(6, 0)
-                )
+            if field in ("texture", "overlay"):
+                ttk.Button(
+                    row,
+                    text="浏览…",
+                    command=lambda f=field: self.pick_texture(f),
+                ).pack(side="left", padx=(6, 0))
             self.vars[field] = var
 
         glint_row = ttk.Frame(right)
@@ -765,7 +811,7 @@ class ItemsEditor:
         self.block_text.insert("1.0", block)
 
     # ---------- 贴图 / 模型 ----------
-    def pick_texture(self):
+    def pick_texture(self, field="texture"):
         if not MC_TEXTURE_ROOT.exists():
             messagebox.showwarning(
                 "找不到贴图目录",
@@ -774,8 +820,8 @@ class ItemsEditor:
             return
         AssetPicker(
             self.root,
-            self.vars["texture"].get(),
-            self._set_texture,
+            self.vars[field].get(),
+            lambda value, f=field: self._set_texture(f, value),
             extensions=(".png",),
             title="选择贴图",
         )
@@ -797,9 +843,10 @@ class ItemsEditor:
             title="选择方块模型（可多选叠加）",
         )
 
-    def _set_texture(self, value: str):
-        self.vars["texture"].set(value)
-        self.update_preview()
+    def _set_texture(self, field, value: str):
+        self.vars[field].set(value)
+        if field == "texture":
+            self.update_preview()
 
     def _set_blocks(self, value: str):
         """把选择器返回的 URL 转成模型 id（每行一个）。"""
@@ -940,17 +987,16 @@ class ItemsEditor:
         except Exception as exc:  # noqa: BLE001
             messagebox.showerror("保存失败", str(exc))
             return
-        self.set_status(f"已保存 {len(self.items)} 个物品（备份：{self.path.name}.bak）")
+        self.set_status(f"已保存 {len(self.items)} 个物品（备份：*.ts.bak）")
 
     def choose_file(self):
-        chosen = filedialog.askopenfilename(
-            title="选择 items.ts",
+        chosen = filedialog.askdirectory(
+            title="选择物品数据目录（src/data/items）",
             initialdir=str(self.path.parent),
-            filetypes=[("TypeScript", "*.ts"), ("所有文件", "*.*")],
         )
         if chosen:
             self.path = Path(chosen)
-            self.root.title(f"items.ts 编辑器 - {self.path}")
+            self.root.title(f"物品库编辑器 - {self.path}")
             self.reload()
 
     def set_status(self, text):

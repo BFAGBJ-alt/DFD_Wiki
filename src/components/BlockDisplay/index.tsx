@@ -1,6 +1,6 @@
 import React, {useEffect, useId, useMemo, useState, type ReactNode} from 'react';
 import useBaseUrl from '@docusaurus/useBaseUrl';
-import {resolveItem} from '@site/src/data/items';
+import {resolveItem} from '@site/src/data/items/index';
 import {resolveBlockQuads, rotateFaceUv, type Quad} from '../StructureViewer/modelResolver';
 import styles from './styles.module.css';
 
@@ -19,6 +19,28 @@ const FACE_SHADE: Record<Face, number> = {
   east: 0.84,
   west: 0.72,
 };
+
+// 动画贴图（如海晶灯）是一张 16 × (16×帧数) 的竖向长图，
+// 图标里只需要第一帧，否则会把整条帧序列压进一个面。
+const frameCache = new Map<string, Promise<number>>();
+
+function loadFrames(url: string): Promise<number> {
+  let p = frameCache.get(url);
+  if (!p) {
+    p = new Promise<number>((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const w = img.naturalWidth || 1;
+        const h = img.naturalHeight || 1;
+        resolve(h > w && h % w === 0 ? h / w : 1);
+      };
+      img.onerror = () => resolve(1);
+      img.src = url;
+    });
+    frameCache.set(url, p);
+  }
+  return p;
+}
 
 // 面四角（MC 坐标 0..16），顺序对应 uv 的 (u1,v1)(u2,v1)(u1,v2)(u2,v2)
 function quadCorners(q: Quad): [number, number, number][] {
@@ -102,7 +124,7 @@ export default function BlockDisplay({
 }: {
   /** 方块模型 id，多模型叠加用数组或逗号分隔 */
   block?: string | string[];
-  /** 物品库 id（src/data/items.ts），自动取 block / name */
+  /** 物品库 id（src/data/items），自动取 block / name */
   item?: string;
   /** 图标宽度（px） */
   size?: number;
@@ -141,6 +163,21 @@ export default function BlockDisplay({
       cancelled = true;
     };
   }, [blockKey, texBase]);
+
+  // 贴图帧数（普通贴图为 1），用于把动画长图裁到第一帧
+  const [frames, setFrames] = useState<Record<string, number>>({});
+  useEffect(() => {
+    if (!quads || quads.length === 0) return;
+    let cancelled = false;
+    const urls = [...new Set(quads.map((q) => q.texture))];
+    Promise.all(urls.map((u) => loadFrames(u))).then((counts) => {
+      if (cancelled) return;
+      setFrames(Object.fromEntries(urls.map((u, i) => [u, counts[i]])));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [quads]);
 
   const drawn = useMemo(() => {
     if (!quads) return [];
@@ -245,7 +282,7 @@ export default function BlockDisplay({
             <image
               href={q.texture}
               width={16}
-              height={16}
+              height={16 * (frames[q.texture] ?? 1)}
               preserveAspectRatio="none"
               transform={`matrix(${m.join(' ')})`}
             />

@@ -1,0 +1,739 @@
+---
+sidebar_position: 0
+contributors:
+ - BFAGBJ
+ - Claude
+---
+import RecipeViewer from '@site/src/components/RecipeViewer';
+import Columns from '@site/src/components/Columns';
+import BlockDisplay from '@site/src/components/BlockDisplay';
+import ItemIcon from '@site/src/components/ItemIcon';
+
+自动合成的流程是：样板终端编码样板 → 样板放进ME接口 → 分子装配室在接口旁执行合成。
+
+每个AE网络中，每个合成任务最多只会使用 16384 个合成设备。
+
+## 分子装配室
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s molecular_assembler
+```
+
+### 用途
+
+在自动合成中充当粘液合成台；需要放在ME接口旁边，且只能用于AE的自动合成。
+
+### 合成配方
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'ABA',
+    'CDE',
+    'ABA',
+  ],
+  materials: {
+    A: {id: 'iron_ingot'},
+    B: {id: 'glass'},
+    C: {id: 'annihilation_core'},
+    D: {id: 'craft_table'},
+    E: {id: 'formation_core'},
+  },
+  result: {id: 'molecular_assembler'},
+}} />
+
+</div>
+
+<div>
+
+<BlockDisplay item="molecular_assembler" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## 高级分子装配室 - Ⅰ
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s advanced_molecular_assembler_1
+```
+
+### 用途
+
+放满加速卡的分子装配室。
+
+### 合成配方
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'ABC',
+    'CC ',
+    '   ',
+  ],
+  materials: {
+    A: {id: 'molecular_assembler'},
+    B: {id: 'me_pattern_interface'},
+    C: {id: 'acceleration_card'},
+  },
+  result: {id: 'advanced_molecular_assembler_1'},
+}} />
+
+</div>
+
+<div>
+
+<BlockDisplay item="advanced_molecular_assembler_1" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## 高级分子装配室 - Ⅱ
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s advanced_molecular_assembler_2
+```
+
+### 用途
+
+用 8 个高级分子装配室 Ⅰ 加样板接口套娃而成。
+
+### 合成配方
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'AAA',
+    'ABA',
+    'AAA',
+  ],
+  materials: {
+    A: {id: 'advanced_molecular_assembler_1'},
+    B: {id: 'me_pattern_interface'},
+  },
+  result: {id: 'advanced_molecular_assembler_2'},
+}} />
+
+</div>
+
+<div>
+
+<BlockDisplay item="advanced_molecular_assembler_2" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## 大型分子装配室
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s large_molecular_assembler
+```
+
+### 用途
+
+用于合成大型配方。
+
+### 合成配方
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'ABA',
+    'CCC',
+    'ADA',
+  ],
+  materials: {
+    A: {id: 'iron_ingot'},
+    B: {id: 'annihilation_core'},
+    C: {id: 'molecular_assembler'},
+    D: {id: 'formation_core'},
+  },
+  result: {id: 'large_molecular_assembler'},
+}} />
+
+</div>
+
+<div>
+
+<BlockDisplay item="large_molecular_assembler" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## 高级大型分子装配室 - Ⅰ
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s advanced_large_molecular_assembler_1
+```
+
+### 用途
+
+放满加速卡的大型分子装配室。
+
+### 合成配方
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'ABC',
+    'CC ',
+    '   ',
+  ],
+  materials: {
+    A: {id: 'large_molecular_assembler'},
+    B: {id: 'me_pattern_interface'},
+    C: {id: 'acceleration_card'},
+  },
+  result: {id: 'advanced_large_molecular_assembler_1'},
+}} />
+
+</div>
+
+<div>
+
+<BlockDisplay item="advanced_large_molecular_assembler_1" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## 高级大型分子装配室 - Ⅱ
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s advanced_large_molecular_assembler_2
+```
+
+### 用途
+
+用 8 个高级大型分子装配室 Ⅰ 加样板接口套娃而成。
+
+### 合成配方
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'AAA',
+    'ABA',
+    'AAA',
+  ],
+  materials: {
+    A: {id: 'advanced_large_molecular_assembler_1'},
+    B: {id: 'me_pattern_interface'},
+  },
+  result: {id: 'advanced_large_molecular_assembler_2'},
+}} />
+
+</div>
+
+<div>
+
+<BlockDisplay item="advanced_large_molecular_assembler_2" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## 流程分配器
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s cooking_allocator
+```
+
+### 用途
+
+自动合成时将物品放于指定的容器。
+
+### 合成配方
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'ABA',
+    'CDE',
+    'ABA',
+  ],
+  materials: {
+    A: {id: 'iron_ingot'},
+    B: {id: 'glass'},
+    C: {id: 'annihilation_core'},
+    D: {id: 'me_ie_bus'},
+    E: {id: 'formation_core'},
+  },
+  result: {id: 'cooking_allocator'},
+}} />
+
+</div>
+
+<div>
+
+<BlockDisplay item="cooking_allocator" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## 原版分子装配室
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s vanilla_molecular_assembler
+```
+
+### 用途
+
+在自动合成中充当原版合成设备，支持工作台 / 熔炉 / 高炉 / 烟熏炉 / 切石机。
+
+### 合成配方
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'ABA',
+    'CDE',
+    'AFA',
+  ],
+  materials: {
+    A: {id: 'iron_ingot'},
+    B: {id: 'glass'},
+    C: {id: 'annihilation_core'},
+    D: {id: 'molecular_assembler'},
+    E: {id: 'formation_core'},
+    F: {id: 'printed_calculation_processor'},
+  },
+  result: {id: 'vanilla_molecular_assembler'},
+}} />
+
+</div>
+
+<div>
+
+<BlockDisplay item="vanilla_molecular_assembler" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## 高级原版分子装配室 - Ⅰ
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s advanced_vanilla_molecular_assembler_1
+```
+
+### 用途
+
+放满加速卡的原版分子装配室。
+
+### 合成配方
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'ABC',
+    'CC ',
+    '   ',
+  ],
+  materials: {
+    A: {id: 'vanilla_molecular_assembler'},
+    B: {id: 'me_pattern_interface'},
+    C: {id: 'acceleration_card'},
+  },
+  result: {id: 'advanced_vanilla_molecular_assembler_1'},
+}} />
+
+</div>
+
+<div>
+
+<BlockDisplay item="advanced_vanilla_molecular_assembler_1" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## 高级原版分子装配室 - Ⅱ
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s advanced_vanilla_molecular_assembler_2
+```
+
+### 用途
+
+用 8 个高级原版分子装配室 Ⅰ 加样板接口套娃而成。
+
+### 合成配方
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'AAA',
+    'ABA',
+    'AAA',
+  ],
+  materials: {
+    A: {id: 'advanced_vanilla_molecular_assembler_1'},
+    B: {id: 'me_pattern_interface'},
+  },
+  result: {id: 'advanced_vanilla_molecular_assembler_2'},
+}} />
+
+</div>
+
+<div>
+
+<BlockDisplay item="advanced_vanilla_molecular_assembler_2" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## 合成监视器
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s me_crafting_monitor
+```
+
+### 用途
+
+右键它就能管理正在进行的自动合成任务。
+
+### 合成配方
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    '   ',
+    'ABC',
+    '   ',
+  ],
+  materials: {
+    A: {id: 'redstone_torch'},
+    B: {id: 'printed_calculation_processor'},
+    C: {id: 'lapis_lazuli'},
+  },
+  result: {id: 'me_crafting_monitor'},
+}} />
+
+</div>
+
+<div>
+
+<BlockDisplay item="me_crafting_monitor" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## 样板工作台
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s pattern_workbench
+```
+
+### 用途
+
+在里面放入数量对应的配方所需物品和输出，就可以合成样板；支持超大型配方，不支持原版配方。
+
+### 合成配方
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'ABC',
+    '   ',
+    '   ',
+  ],
+  materials: {
+    A: {id: 'me_pattern_terminal'},
+    B: {id: 'engineering_processor'},
+    C: {id: 'chest'},
+  },
+  result: {id: 'pattern_workbench'},
+}} />
+
+</div>
+
+<div>
+
+<BlockDisplay item="pattern_workbench" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## 样板重置机
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s pattern_reset_machine
+```
+
+### 用途
+
+将任意样板还原为空白样板。
+
+### 合成配方
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'A A',
+    'BCD',
+    'AEA',
+  ],
+  materials: {
+    A: {id: 'quartz_glass'},
+    B: {id: 'annihilation_core'},
+    C: {id: 'grindstone'},
+    D: {id: 'formation_core'},
+    E: {id: 'printed_calculation_processor'},
+  },
+  result: {id: 'pattern_reset_machine'},
+}} />
+
+</div>
+
+<div>
+
+<BlockDisplay item="pattern_reset_machine" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## 空白样板
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s blank_pattern
+```
+
+### 用途
+
+在ME样板终端中用它制造编码样板，用于自动合成。
+
+### 合成配方
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'ABA',
+    'BCB',
+    'DDD',
+  ],
+  materials: {
+    A: {id: 'quartz_glass'},
+    B: {id: 'glowstone_dust'},
+    C: {id: 'crystal_certus_quartz'},
+    D: {id: 'iron_ingot'},
+  },
+  result: {id: 'blank_pattern'},
+}} />
+
+</div>
+
+<div>
+
+<ItemIcon item="blank_pattern" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## 编码样板
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s encoded_pattern
+```
+
+### 用途
+
+记录了一条自动合成配方的样板，由样板终端编码空白样板得到。
+
+### 合成配方
+
+该物品没有合成配方（源码 RecipeType 为 NULL），在ME样板终端中编码空白样板即可得到。
+
+</div>
+
+<div>
+
+<ItemIcon item="encoded_pattern" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## 并行处理器
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s parallel_processor
+```
+
+### 用途
+
+放入并行驱动器以提供并行处理能力。
+
+### 合成配方
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'ABA',
+    'BCB',
+    'ABA',
+  ],
+  materials: {
+    A: {id: 'me_item_storage_cell_256m'},
+    B: {id: 'engineering_processor'},
+    C: {id: 'crystal_certus_quartz'},
+  },
+  result: {id: 'parallel_processor'},
+}} />
+
+</div>
+
+<div>
+
+<ItemIcon item="parallel_processor" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## 并行驱动器
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s parallel_driver
+```
+
+### 用途
+
+放入并行处理器后，为网络中的自动合成提供并行处理能力。
+
+### 合成配方
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'ABA',
+    'CDC',
+    'ABA',
+  ],
+  materials: {
+    A: {id: 'iron_ingot'},
+    B: {id: 'engineering_processor'},
+    C: {id: 'parallel_processor'},
+    D: {id: 'me_item_storage_cell_256m'},
+  },
+  result: {id: 'parallel_driver'},
+}} />
+
+</div>
+
+<div>
+
+<ItemIcon item="parallel_driver" size={100} />
+
+</div>
+
+</Columns>
+

@@ -1,0 +1,440 @@
+---
+sidebar_position: 0
+contributors:
+ - BFAGBJ
+ - Claude
+---
+import RecipeViewer from '@site/src/components/RecipeViewer';
+import Columns from '@site/src/components/Columns';
+import BlockDisplay from '@site/src/components/BlockDisplay';
+import ItemIcon from '@site/src/components/ItemIcon';
+
+升级卡插在ME机器中，分别提供加速、自动补货、红石信号与设置复制等功能。
+
+## 基础卡
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s basic_card
+```
+
+### 用途
+
+最基础的升级卡，主要作为其他升级卡的合成材料。
+
+### 合成配方
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'AB ',
+    'CDB',
+    'AB ',
+  ],
+  materials: {
+    A: {id: 'gold_ingot'},
+    B: {id: 'iron_ingot'},
+    C: {id: 'redstone'},
+    D: {id: 'printed_calculation_processor'},
+  },
+  result: {id: 'basic_card', count: 2},
+}} />
+
+</div>
+
+<div>
+
+<ItemIcon item="basic_card" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## 高级卡
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s advanced_card
+```
+
+### 用途
+
+用于合成加速卡的高级升级卡。
+
+### 合成配方
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'AB ',
+    'CDA',
+    'EB ',
+  ],
+  materials: {
+    A: {id: 'diamond'},
+    B: {id: 'iron_ingot'},
+    C: {id: 'redstone'},
+    D: {id: 'printed_calculation_processor'},
+    E: {id: 'gold_ingot'},
+  },
+  result: {id: 'advanced_card', count: 2},
+}} />
+
+</div>
+
+<div>
+
+<ItemIcon item="advanced_card" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## 加速卡
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s acceleration_card
+```
+
+### 用途
+
+插入机器后每个 tick 额外推进 1 点加工进度。
+
+### 合成配方
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'AB ',
+    '   ',
+    '   ',
+  ],
+  materials: {
+    A: {id: 'advanced_card'},
+    B: {id: 'fluix_crystal'},
+  },
+  result: {id: 'acceleration_card'},
+}} />
+
+</div>
+
+<div>
+
+<ItemIcon item="acceleration_card" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## 高级加速卡
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s advanced_acceleration_card
+```
+
+### 用途
+
+插入机器后每个 tick 额外推进 9 点加工进度。
+
+### 合成配方
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'AAA',
+    '   ',
+    '   ',
+  ],
+  materials: {
+    A: {id: 'acceleration_card'},
+  },
+  result: {id: 'advanced_acceleration_card'},
+}} />
+
+</div>
+
+<div>
+
+<ItemIcon item="advanced_acceleration_card" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## 终极加速卡
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s ultimate_acceleration_card
+```
+
+### 用途
+
+插入机器后每个 tick 额外推进 18 点加工进度。
+
+### 合成配方
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'AAA',
+    '   ',
+    '   ',
+  ],
+  materials: {
+    A: {id: 'advanced_acceleration_card'},
+  },
+  result: {id: 'ultimate_acceleration_card'},
+}} />
+
+</div>
+
+<div>
+
+<ItemIcon item="ultimate_acceleration_card" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## 合成卡
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s crafting_card
+```
+
+### 用途
+
+当ME接口或ME输出总线中物品不足设定数量时自动下单合成。
+
+### 合成配方
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'AB ',
+    '   ',
+    '   ',
+  ],
+  materials: {
+    A: {id: 'basic_card'},
+    B: {id: 'craft_table'},
+  },
+  result: {id: 'crafting_card'},
+}} />
+
+</div>
+
+<div>
+
+<ItemIcon item="crafting_card" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## 红石卡
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s redstone_card
+```
+
+### 用途
+
+当ME接口中物品数量不足设定值时输出红石信号。
+
+### 合成配方
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'AB ',
+    '   ',
+    '   ',
+  ],
+  materials: {
+    A: {id: 'basic_card'},
+    B: {id: 'redstone_torch'},
+  },
+  result: {id: 'redstone_card'},
+}} />
+
+</div>
+
+<div>
+
+<ItemIcon item="redstone_card" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## 内存卡
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s memory_card
+```
+
+### 用途
+
+复制ME设备的设置：Shift右键复制，右键应用。
+
+### 合成配方
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'ABB',
+    'CDC',
+    '   ',
+  ],
+  materials: {
+    A: {id: 'printed_logic_processor'},
+    B: {id: 'iron_ingot'},
+    C: {id: 'gold_ingot'},
+    D: {id: 'redstone'},
+  },
+  result: {id: 'memory_card'},
+}} />
+
+</div>
+
+<div>
+
+<ItemIcon item="memory_card" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## 升级卡复制器
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s card_replicator
+```
+
+### 用途
+
+复制ME设备的升级卡设置：Shift右键复制，右键应用。
+
+### 合成配方
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'ABB',
+    'CDC',
+    '   ',
+  ],
+  materials: {
+    A: {id: 'printed_logic_processor'},
+    B: {id: 'iron_ingot'},
+    C: {id: 'gold_ingot'},
+    D: {id: 'memory_card'},
+  },
+  result: {id: 'card_replicator'},
+}} />
+
+</div>
+
+<div>
+
+<ItemIcon item="card_replicator" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## 塞卡器
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s card_inserter
+```
+
+### 用途
+
+自动/手动为AE内机器插入升级卡，支持从AE网络读取卡。
+
+### 合成配方
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'ABB',
+    'CDC',
+    '   ',
+  ],
+  materials: {
+    A: {id: 'printed_logic_processor'},
+    B: {id: 'iron_ingot'},
+    C: {id: 'gold_ingot'},
+    D: {id: 'card_replicator'},
+  },
+  result: {id: 'card_inserter'},
+}} />
+
+</div>
+
+<div>
+
+<BlockDisplay item="card_inserter" size={100} />
+
+</div>
+
+</Columns>
+

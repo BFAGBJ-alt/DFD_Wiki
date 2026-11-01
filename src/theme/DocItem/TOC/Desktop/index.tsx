@@ -4,7 +4,7 @@ import {ThemeClassNames} from '@docusaurus/theme-common';
 import {useDoc} from '@docusaurus/plugin-content-docs/client';
 import TOC from '@theme/TOC';
 import Link from '@docusaurus/Link';
-import {contributors as contributorProfiles} from '@site/src/data/contributors';
+import {contributors as contributorProfiles} from '@site/src/data/contributors/index';
 import styles from './styles.module.css';
 
 type ContributorRef = string | {name?: string};

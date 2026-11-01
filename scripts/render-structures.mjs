@@ -34,7 +34,7 @@ const STRUCT_DIR = path.join(ROOT, 'scripts', 'structures');
 const STATIC_STRUCT_DIR = path.join(ROOT, 'static', 'structures');
 const OUT_DIR = path.join(ROOT, 'static', 'img', 'structures');
 const MODEL_DIR = path.join(ROOT, 'static', 'img', 'Minecraft', 'block');
-const ITEMS_TS = path.join(ROOT, 'src', 'data', 'items.ts');
+const ITEMS_DIR = path.join(ROOT, 'src', 'data', 'items');
 
 // ===== 渲染参数（可按需调） =====
 const SIZE = 480;             // 输出正方形边长（像素）
@@ -127,12 +127,17 @@ function parseString(text, i) {
 }
 
 function loadItemsDb() {
-  if (!fs.existsSync(ITEMS_TS)) return {};
-  const text = fs.readFileSync(ITEMS_TS, 'utf8');
-  const m = /export\s+const\s+items\s*:\s*Record<[^>]*>\s*=\s*\{/.exec(text);
-  if (!m) return {};
-  const [obj] = parseValue(text, m.index + m[0].length - 1);
-  return obj;
+  if (!fs.existsSync(ITEMS_DIR)) return {};
+  const merged = {};
+  for (const name of fs.readdirSync(ITEMS_DIR).sort()) {
+    if (!name.endsWith('.ts') || name === 'index.ts' || name === 'types.ts') continue;
+    const text = fs.readFileSync(path.join(ITEMS_DIR, name), 'utf8');
+    const m = /export\s+const\s+items\s*:\s*Record<[^>]*>\s*=\s*\{/.exec(text);
+    if (!m) continue;
+    const [obj] = parseValue(text, m.index + m[0].length - 1);
+    Object.assign(merged, obj);
+  }
+  return merged;
 }
 
 // ---------- 方块模型解析 ----------

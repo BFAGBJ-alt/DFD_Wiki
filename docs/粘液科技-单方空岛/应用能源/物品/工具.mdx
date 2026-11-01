@@ -1,0 +1,267 @@
+---
+sidebar_position: 0
+contributors:
+ - BFAGBJ
+ - Claude
+---
+import RecipeViewer from '@site/src/components/RecipeViewer';
+import Columns from '@site/src/components/Columns';
+import ItemIcon from '@site/src/components/ItemIcon';
+
+工具主要用于拆卸AE设备、查看网络信息与在终端中置顶物品。
+
+## 赛特斯石英扳手
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s certus_quartz_wrench
+```
+
+### 用途
+
+右键可将大部分AE设备拆卸为掉落物形式。
+
+### 合成配方
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'A A',
+    ' A ',
+    'A A',
+  ],
+  materials: {
+    A: {id: 'crystal_certus_quartz'},
+  },
+  result: {id: 'certus_quartz_wrench'},
+}} />
+
+</div>
+
+<div>
+
+<ItemIcon item="certus_quartz_wrench" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## 下界石英扳手
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s quartz_wrench
+```
+
+### 用途
+
+手持扳手右键可将大部分AE设备拆卸为掉落物形式。
+
+### 合成配方
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'A A',
+    ' A ',
+    'A A',
+  ],
+  materials: {
+    A: {id: 'quartz'},
+  },
+  result: {id: 'quartz_wrench'},
+}} />
+
+</div>
+
+<div>
+
+<ItemIcon item="quartz_wrench" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## 网络工具
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s network_tool
+```
+
+### 用途
+
+右键可查看整个AE网络的各个网络元件；Shift右键可将大部分AE设备拆卸为掉落物形式。
+
+网络工具也可以用 [下界石英扳手](#下界石英扳手) 代替赛特斯石英扳手合成，配方其余部分相同。
+
+### 合成配方
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'AB ',
+    'CD ',
+    '   ',
+  ],
+  materials: {
+    A: {id: 'certus_quartz_wrench'},
+    B: {id: 'quartz_glass'},
+    C: {id: 'printed_calculation_processor'},
+    D: {id: 'chest'},
+  },
+  result: {id: 'network_tool'},
+}} />
+
+</div>
+
+<div>
+
+<ItemIcon item="network_tool" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## 置顶器
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s ae_terminal_topper
+```
+
+### 用途
+
+用于在终端中置顶物品：在终端中拿起此物品，在显示物品上点击。
+
+### 合成配方
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'ABA',
+    'BBB',
+    'ABA',
+  ],
+  materials: {
+    A: {id: 'me_glass_cable'},
+    B: {id: 'charged_crystal_certus_quartz'},
+  },
+  result: {id: 'ae_terminal_topper'},
+}} />
+
+</div>
+
+<div>
+
+<ItemIcon item="ae_terminal_topper" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## 熵变机械臂
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s entropy_manipulator
+```
+
+### 用途
+
+充满电可处理 125 个方块；右键产生高温效应，Shift右键产生低温效应。
+
+### 合成配方
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'AB ',
+    'CD ',
+    '  D',
+  ],
+  materials: {
+    A: {id: 'fluix_crystal'},
+    B: {id: 'me_energy_cell'},
+    C: {id: 'printed_engineering_circuit'},
+    D: {id: 'iron_ingot'},
+  },
+  result: {id: 'entropy_manipulator'},
+}} />
+
+</div>
+
+<div>
+
+<ItemIcon item="entropy_manipulator" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## 充能法杖
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s charged_staff
+```
+
+### 用途
+
+储能容量 8000J，单次消耗 300J；右键发射能量束，命中造成真实伤害与击退。
+
+### 合成配方
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'AB ',
+    '  C',
+    '   ',
+  ],
+  materials: {
+    A: {id: 'charged_crystal_certus_quartz'},
+    B: {id: 'me_energy_cell'},
+    C: {id: 'iron_ingot'},
+  },
+  result: {id: 'charged_staff'},
+}} />
+
+</div>
+
+<div>
+
+<ItemIcon item="charged_staff" size={100} />
+
+</div>
+
+</Columns>
+

@@ -1,0 +1,400 @@
+---
+sidebar_position: 0
+contributors:
+ - BFAGBJ
+ - Claude
+---
+import RecipeViewer from '@site/src/components/RecipeViewer';
+import Columns from '@site/src/components/Columns';
+import BlockDisplay from '@site/src/components/BlockDisplay';
+
+终端是访问AE网络的入口：合成、规划、样板与无线绑定都由不同终端完成。
+
+## ME终端
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s me_terminal
+```
+
+### 用途
+
+管理ME网络内的物品。
+
+### 合成配方
+
+需要：增强型工作台
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'GCP',
+    'L  ',
+    '   ',
+  ],
+  materials: {
+    G: {id: 'quartz_glass'},
+    C: {id: 'formation_core'},
+    P: {id: 'annihilation_core'},
+    L: {id: 'printed_logic_processor'},
+  },
+  result: {id: 'me_terminal'},
+}} />
+
+</div>
+
+<div>
+
+<BlockDisplay item="me_terminal" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## ME合成终端
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s me_crafting_terminal
+```
+
+### 用途
+
+在ME终端的基础上提供合成功能，可直接在终端内合成物品。
+
+### 合成配方
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'ABC',
+    '   ',
+    '   ',
+  ],
+  materials: {
+    A: {id: 'me_terminal'},
+    B: {id: 'craft_table'},
+    C: {id: 'printed_calculation_processor'},
+  },
+  result: {id: 'me_crafting_terminal'},
+}} />
+
+</div>
+
+<div>
+
+<BlockDisplay item="me_crafting_terminal" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## ME合成计划终端
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s me_craft_planning_terminal
+```
+
+### 用途
+
+用于规划合成路线并下发自动合成任务。
+
+### 合成配方
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'ABC',
+    '   ',
+    '   ',
+  ],
+  materials: {
+    A: {id: 'me_crafting_terminal'},
+    B: {id: 'blank_pattern'},
+    C: {id: 'printed_calculation_processor'},
+  },
+  result: {id: 'me_craft_planning_terminal'},
+}} />
+
+</div>
+
+<div>
+
+<BlockDisplay item="me_craft_planning_terminal" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## ME综合终端
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s me_all_in_one_terminal
+```
+
+### 用途
+
+左键/右键存取物品，中键下单合成。
+
+### 合成配方
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'ABC',
+    '   ',
+    '   ',
+  ],
+  materials: {
+    A: {id: 'me_craft_planning_terminal'},
+    B: {id: 'me_terminal'},
+    C: {id: 'engineering_processor'},
+  },
+  result: {id: 'me_all_in_one_terminal'},
+}} />
+
+</div>
+
+<div>
+
+<BlockDisplay item="me_all_in_one_terminal" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## ME样板终端
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s me_pattern_terminal
+```
+
+### 用途
+
+可以制作编码样板。
+
+### 合成配方
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'AB ',
+    '   ',
+    '   ',
+  ],
+  materials: {
+    A: {id: 'me_crafting_terminal'},
+    B: {id: 'engineering_processor'},
+  },
+  result: {id: 'me_pattern_terminal'},
+}} />
+
+</div>
+
+<div>
+
+<BlockDisplay item="me_pattern_terminal" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## ME原版样板终端
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s me_vanilla_pattern_terminal
+```
+
+### 用途
+
+可以制作原版配方的编码样板，支持工作台 / 熔炉 / 高炉 / 烟熏炉 / 切石机。
+
+### 合成配方
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'AB ',
+    '   ',
+    '   ',
+  ],
+  materials: {
+    A: {id: 'me_pattern_terminal'},
+    B: {id: 'printed_calculation_processor'},
+  },
+  result: {id: 'me_vanilla_pattern_terminal'},
+}} />
+
+</div>
+
+<div>
+
+<BlockDisplay item="me_vanilla_pattern_terminal" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## ME安全终端
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s me_security_terminal
+```
+
+### 用途
+
+用于连接无线终端。
+
+### 合成配方
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'ABA',
+    'CDC',
+    'AEA',
+  ],
+  materials: {
+    A: {id: 'iron_ingot'},
+    B: {id: 'me_drive'},
+    C: {id: 'me_glass_cable'},
+    D: {id: 'me_item_storage_component_16k'},
+    E: {id: 'engineering_processor'},
+  },
+  result: {id: 'me_security_terminal'},
+}} />
+
+</div>
+
+<div>
+
+<BlockDisplay item="me_security_terminal" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## ME样板管理终端
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s me_pattern_management_terminal
+```
+
+### 用途
+
+统一管理网络中的所有样板。
+
+### 合成配方
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'ABC',
+    '   ',
+    '   ',
+  ],
+  materials: {
+    A: {id: 'me_pattern_terminal'},
+    B: {id: 'me_interface'},
+    C: {id: 'engineering_processor'},
+  },
+  result: {id: 'me_pattern_management_terminal'},
+}} />
+
+</div>
+
+<div>
+
+<BlockDisplay item="me_pattern_management_terminal" size={100} />
+
+</div>
+
+</Columns>
+
+***
+
+## 无线终端
+
+<Columns left={75}>
+<div>
+
+```text
+/sf give @s wireless_terminal
+```
+
+### 用途
+
+便捷地访问AE网络，需要使用ME安全终端进行绑定。
+
+### 合成配方
+
+<RecipeViewer recipe={{
+  type: 'shaped',
+  machine: 'enhanced_crafting_table',
+  pattern: [
+    'A  ',
+    'B  ',
+    'C  ',
+  ],
+  materials: {
+    A: {id: 'wireless_receiver'},
+    B: {id: 'me_terminal'},
+    C: {id: 'carbonado_edged_capacitor'},
+  },
+  result: {id: 'wireless_terminal'},
+}} />
+
+</div>
+
+<div>
+
+<BlockDisplay item="wireless_terminal" size={100} />
+
+</div>
+
+</Columns>
+
