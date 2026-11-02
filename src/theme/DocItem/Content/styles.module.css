@@ -1,0 +1,6 @@
+/* 标题下方的最后更新日期 */
+.lastUpdated {
+  margin: 0 0 2rem;
+  color: var(--ifm-color-emphasis-600);
+  font-size: 0.85rem;
+}

@@ -189,7 +189,8 @@ export default function BlockDisplay({
         const cx = rotated.reduce((s, p) => s + p[0], 0) / 4;
         const cy = rotated.reduce((s, p) => s + p[1], 0) / 4;
         const cz = rotated.reduce((s, p) => s + p[2], 0) / 4;
-        const depth = (cx + cz) / 16 - (cy / 16) * 0.6;
+        const depth =
+          (cx + cz) / 16 - (cy / 16) * 0.6 - (q.depthBias ?? 0);
         return {q, pts, depth, id: `${uid}-${i}`};
       })
       .sort((a, b) => b.depth - a.depth);
@@ -285,6 +286,7 @@ export default function BlockDisplay({
               width={texW}
               height={texH * (frames[q.texture] ?? 1)}
               preserveAspectRatio="none"
+              style={{imageRendering: 'pixelated'}}
               transform={`matrix(${m.join(' ')})`}
             />
           </g>

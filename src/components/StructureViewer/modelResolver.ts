@@ -16,6 +16,8 @@ export type Quad = {
   texture: string;
   /** 贴图像素尺寸（默认 16×16；实体贴图如箱子是 64×64） */
   texSize?: [number, number];
+  /** 绘制顺序偏置：正值更靠前（用于压在其它面上的小部件，如箱子锁扣） */
+  depthBias?: number;
   /** 面贴图旋转角度（MC 的 face.rotation，贴图顺时针转，0/90/180/270） */
   uvRotation?: number;
   /** 元素旋转（如讲台倾斜的顶板） */
@@ -156,13 +158,17 @@ function fallbackQuads(
   id: string,
   textures: Record<string, string>,
 ): Quad[] {
-  // 一个长方体按 MC 的 box UV 展开成 6 个面
+  // 一个长方体按 MC 的 box UV 展开成 6 个面。
+  // chestUv：箱子实体贴图的上下、左右方向与标准方块相反，单独处理。
   const box = (
     from: [number, number, number],
     to: [number, number, number],
     texOffs: [number, number],
     texture: string,
     texSize: [number, number],
+    chestUv = false,
+    depthBias = 0,
+    lockUv = false,
   ): Quad[] => {
     const [x1, y1, z1] = from;
     const [x2, y2, z2] = to;
@@ -170,14 +176,51 @@ function fallbackQuads(
     const h = y2 - y1;
     const d = z2 - z1;
     const [u, v] = texOffs;
-    const rects: Record<string, [number, number, number, number]> = {
-      up: [u + d, v, u + d + w, v + d],
-      down: [u + d + w, v, u + d + 2 * w, v + d],
-      east: [u, v + d, u + d, v + d + h],
-      north: [u + d, v + d, u + d + w, v + d + h],
-      west: [u + d + w, v + d, u + d + w + d, v + d + h],
-      south: [u + 2 * d + w, v + d, u + 2 * d + 2 * w, v + d + h],
-    };
+    if (lockUv) {
+      // 锁扣很小，六个面都取它正面的 2×4 区域，避免采到箱体图
+      const latch: [number, number, number, number] = [
+        u + d,
+        v + d,
+        u + d + w,
+        v + d + h,
+      ];
+      return FACES.map((face) => ({
+        face,
+        from,
+        to,
+        uv: latch,
+        texture,
+        texSize,
+        depthBias,
+        uvRotation: 180,
+      }));
+    }
+    let rects: Record<string, [number, number, number, number]>;
+    if (chestUv) {
+      // 箱子：四个侧面贴图先 180°，再左右/前后互换，最后整体逆时针 90°
+      const rWest: [number, number, number, number] = [u, v + d, u + d, v + d + h];
+      const rNorth: [number, number, number, number] = [u + d, v + d, u + d + w, v + d + h];
+      const rEast: [number, number, number, number] = [u + d + w, v + d, u + d + w + d, v + d + h];
+      const rSouth: [number, number, number, number] = [u + 2 * d + w, v + d, u + 2 * d + 2 * w, v + d + h];
+      rects = {
+        up: [u + d + w, v, u + d + 2 * w, v + d],
+        down: [u + d, v, u + d + w, v + d],
+        // 再逆时针转 90°；贴图里 west/south 两格透明，用不透明的两格替代
+        north: rEast,
+        west: rEast,
+        south: rNorth,
+        east: rNorth,
+      };
+    } else {
+      rects = {
+        up: [u + d, v, u + d + w, v + d],
+        down: [u + d + w, v, u + d + 2 * w, v + d],
+        east: [u, v + d, u + d, v + d + h],
+        north: [u + d, v + d, u + d + w, v + d + h],
+        west: [u + d + w, v + d, u + d + w + d, v + d + h],
+        south: [u + 2 * d + w, v + d, u + 2 * d + 2 * w, v + d + h],
+      };
+    }
     return FACES.map((face) => ({
       face,
       from,
@@ -185,6 +228,8 @@ function fallbackQuads(
       uv: rects[face],
       texture,
       texSize,
+      depthBias,
+      uvRotation: chestUv && face !== 'up' && face !== 'down' ? 180 : undefined,
     }));
   };
 
@@ -195,11 +240,12 @@ function fallbackQuads(
     const tex = `${base.replace(/\/block$/, '')}/entity/chest/${file}.png`;
     return [
       // 箱体 [1,0,1]-[15,10,15]，14×10×14
-      ...box([1, 0, 1], [15, 10, 15], [0, 19], tex, [64, 64]),
+      ...box([1, 0, 1], [15, 10, 15], [0, 19], tex, [64, 64], true),
       // 箱盖 [1,9,1]-[15,14,15]，14×5×14
-      ...box([1, 9, 1], [15, 14, 15], [0, 0], tex, [64, 64]),
-      // 锁扣，放在朝向观察者的北面 [7,6,0]-[9,10,1]，2×4×1
-      ...box([7, 6, 0], [9, 10, 1], [0, 0], tex, [64, 64]),
+      ...box([1, 9, 1], [15, 14, 15], [0, 0], tex, [64, 64], true),
+      // 锁扣：贴在正对观察者的北面，贴图上下 + 前后翻转（180°），上移 1 格
+      // depthBias 拉满，保证永远最后绘制、不会被箱盖侧面盖住
+      ...box([7, 7, 0], [9, 11, 1], [0, 0], tex, [64, 64], true, 100, true),
     ];
   }
 

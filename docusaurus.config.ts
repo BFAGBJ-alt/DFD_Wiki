@@ -12,6 +12,8 @@ const config: Config = {
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
   future: {
     v4: true, // Improve compatibility with the upcoming Docusaurus v4
+    // 开发模式也读取真实 git 时间（默认 dev 下使用模拟值）
+    experimental_vcs: 'git-ad-hoc',
   },
 
   // Set the production url of your site here
@@ -42,6 +44,8 @@ const config: Config = {
         docs: {
           sidebarPath: './sidebars.ts',
           editUrl: 'https://github.com/BFAGBJ-alt/DFD_Wiki/blob/main/',
+          // 页脚显示「最后于 xxx 更新」，日期取自 git 提交记录
+          showLastUpdateTime: true,
         },
         blog: false,
         theme: {

@@ -226,21 +226,49 @@ function resolveQuads(blockId) {
     }
     // 方块实体（无 elements）的兜底几何：箱子用实体贴图，其余用 particle 立方体
     if (quads.length === before) {
-      const box = (from, to, texOffs, texture, texSize) => {
+      const box = (from, to, texOffs, texture, texSize, chestUv = false, lockUv = false) => {
         const [x1, y1, z1] = from;
         const [x2, y2, z2] = to;
         const w = x2 - x1;
         const h = y2 - y1;
         const d = z2 - z1;
         const [u, v] = texOffs;
-        const rects = {
-          up: [u + d, v, u + d + w, v + d],
-          down: [u + d + w, v, u + d + 2 * w, v + d],
-          east: [u, v + d, u + d, v + d + h],
-          north: [u + d, v + d, u + d + w, v + d + h],
-          west: [u + d + w, v + d, u + d + w + d, v + d + h],
-          south: [u + 2 * d + w, v + d, u + 2 * d + 2 * w, v + d + h],
-        };
+        if (lockUv) {
+          const latch = [u + d, v + d, u + d + w, v + d + h];
+          return FACES.map((face) => ({
+            face,
+            from,
+            to,
+            uv: latch,
+            texture,
+            texSize,
+            uvRotation: 180,
+          }));
+        }
+        let rects;
+        if (chestUv) {
+          const rWest = [u, v + d, u + d, v + d + h];
+          const rNorth = [u + d, v + d, u + d + w, v + d + h];
+          const rEast = [u + d + w, v + d, u + d + w + d, v + d + h];
+          const rSouth = [u + 2 * d + w, v + d, u + 2 * d + 2 * w, v + d + h];
+          rects = {
+            up: [u + d + w, v, u + d + 2 * w, v + d],
+            down: [u + d, v, u + d + w, v + d],
+            north: rEast,
+            west: rEast,
+            south: rNorth,
+            east: rNorth,
+          };
+        } else {
+          rects = {
+            up: [u + d, v, u + d + w, v + d],
+            down: [u + d + w, v, u + d + 2 * w, v + d],
+            east: [u, v + d, u + d, v + d + h],
+            north: [u + d, v + d, u + d + w, v + d + h],
+            west: [u + d + w, v + d, u + d + w + d, v + d + h],
+            south: [u + 2 * d + w, v + d, u + 2 * d + 2 * w, v + d + h],
+          };
+        }
         return FACES.map((face) => ({
           face,
           from,
@@ -248,15 +276,16 @@ function resolveQuads(blockId) {
           uv: rects[face],
           texture,
           texSize,
+          uvRotation: chestUv && face !== 'up' && face !== 'down' ? 180 : undefined,
         }));
       };
       if (id === 'chest' || id === 'ender_chest') {
         const file = id === 'ender_chest' ? 'ender' : 'normal';
         const tex = path.join(MODEL_DIR, '..', 'entity', 'chest', `${file}.png`);
         quads.push(
-          ...box([1, 0, 1], [15, 10, 15], [0, 19], tex, [64, 64]),
-          ...box([1, 9, 1], [15, 14, 15], [0, 0], tex, [64, 64]),
-          ...box([7, 6, 0], [9, 10, 1], [0, 0], tex, [64, 64]),
+          ...box([1, 0, 1], [15, 10, 15], [0, 19], tex, [64, 64], true),
+          ...box([1, 9, 1], [15, 14, 15], [0, 0], tex, [64, 64], true),
+          ...box([7, 7, 0], [9, 11, 1], [0, 0], tex, [64, 64], true, true),
         );
       } else {
         const particle = resolveRef(textures, 'particle');
