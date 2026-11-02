@@ -21,7 +21,11 @@ export const items: Record<string, ItemDef> = {
   },
   'me_interface': {name: 'ME 接口', block: 'target', link: '/docs/粘液科技-单方空岛/应用能源/物品/接口#me接口'},
   'wireless_receiver': {name: '无线接收器', texture: '/img/Minecraft/block/redstone_torch.png'},
-  'me_pattern_interface': {name: 'ME 样板接口', block: 'target'},
+  'me_pattern_interface': {
+    name: 'ME 样板接口',
+    block: 'target',
+    link: 'http://localhost:3000/docs/%E7%B2%98%E6%B6%B2%E7%A7%91%E6%8A%80-%E5%8D%95%E6%96%B9%E7%A9%BA%E5%B2%9B/%E5%BA%94%E7%94%A8%E8%83%BD%E6%BA%90/%E7%89%A9%E5%93%81/%E6%8E%A5%E5%8F%A3#me%E6%A0%B7%E6%9D%BF%E6%8E%A5%E5%8F%A3',
+  },
   'me_io_port': {
     name: 'ME IO端口',
     block: [

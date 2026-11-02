@@ -46,6 +46,22 @@
   border-radius: 4px;
 }
 
+/* 单方块移动端：动画长图只露第一帧 */
+.singleImgCrop {
+  display: block;
+  width: 128px;
+  height: 128px;
+  overflow: hidden;
+  border-radius: 4px;
+}
+
+.singleImgInner {
+  display: block;
+  width: 128px;
+  height: auto;
+  image-rendering: pixelated;
+}
+
 .singleLabel {
   display: block;
   text-align: center;

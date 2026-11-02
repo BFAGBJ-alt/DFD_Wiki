@@ -1,32 +1,28 @@
 import type {ItemDef, ResolvedItem} from './types';
-import {items as auto_crafting} from './auto_crafting';
-import {items as buses} from './buses';
-import {items as cables} from './cables';
-import {items as cards} from './cards';
-import {items as machines} from './machines';
-import {items as materials} from './materials';
-import {items as network} from './network';
-import {items as storage} from './storage';
-import {items as terminals} from './terminals';
-import {items as tools} from './tools';
-import {items as vanilla} from './vanilla';
 
 export type {ItemDef, ResolvedItem};
 
-// 各分类合并后的物品库
-export const items: Record<string, ItemDef> = {
-  ...auto_crafting,
-  ...buses,
-  ...cables,
-  ...cards,
-  ...machines,
-  ...materials,
-  ...network,
-  ...storage,
-  ...terminals,
-  ...tools,
-  ...vanilla,
+// 自动合并目录下所有分类文件（每个文件导出 const items），
+// 新增分类文件无需修改这里；index/types 自身除外。
+declare const require: {
+  context(
+    dir: string,
+    subdirs: boolean,
+    filter: RegExp,
+  ): {
+    keys(): string[];
+    (id: string): {items?: Record<string, ItemDef>};
+  };
 };
+
+const context = require.context('./', false, /\.ts$/);
+
+export const items: Record<string, ItemDef> = {};
+for (const key of context.keys()) {
+  if (key === './index.ts' || key === './types.ts') continue;
+  const mod = context(key);
+  if (mod.items) Object.assign(items, mod.items);
+}
 
 const ITEM_PNG_BASE = '/img/Minecraft/item';
 

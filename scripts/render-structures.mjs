@@ -355,6 +355,11 @@ function loadTexture(file) {
   if (fs.existsSync(file)) {
     try {
       tex = PNG.sync.read(fs.readFileSync(file));
+      // 动画贴图（海晶灯等）是高度为宽度整数倍的竖排长图，只取第一帧；
+      // pngjs 数据按行连续存储，直接把 height 改成 width 即可
+      if (tex.height > tex.width && tex.height % tex.width === 0) {
+        tex.height = tex.width;
+      }
     } catch {
       tex = null;
     }

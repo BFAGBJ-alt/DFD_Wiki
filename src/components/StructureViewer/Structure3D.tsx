@@ -24,9 +24,22 @@ function useTextures(urls: string[]): Map<string, THREE.Texture> {
     const loader = new THREE.TextureLoader();
     const m = new Map<string, THREE.Texture>();
     for (const u of urlKey.split('|')) {
-      const t = loader.load(u, undefined, undefined, () => {
-        m.delete(u);
-      });
+      const t = loader.load(
+        u,
+        (loaded) => {
+          // 动画贴图（海晶灯等）是高度为宽度整数倍的竖排长图，只显示第一帧
+          const img = loaded.image as HTMLImageElement | undefined;
+          if (img && img.height > img.width && img.height % img.width === 0) {
+            const frames = img.height / img.width;
+            loaded.repeat.set(1, 1 / frames);
+            loaded.offset.set(0, 1 - 1 / frames);
+          }
+        },
+        undefined,
+        () => {
+          m.delete(u);
+        },
+      );
       // 像素风：最近邻采样 + sRGB
       t.magFilter = THREE.NearestFilter;
       t.colorSpace = THREE.SRGBColorSpace;

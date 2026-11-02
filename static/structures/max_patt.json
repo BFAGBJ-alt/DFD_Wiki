@@ -1,0 +1,14 @@
+{
+  "name": "max_patt",
+  "blocks": [
+    {"x": 1, "y": 0, "z": -1, "item": "me_interface"},
+    {"x": 1, "y": 0, "z": 0, "item": "cooking_allocator"},
+    {"x": 1, "y": 0, "z": 1, "item": "me_interface"},
+    {"x": 0, "y": 0, "z": -1, "item": "cooking_allocator"},
+    {"x": 0, "y": 0, "z": 0, "item": "logitech_final_stackmachine"},
+    {"x": 0, "y": 0, "z": 1, "item": "cooking_allocator"},
+    {"x": -1, "y": 0, "z": -1, "item": "me_interface"},
+    {"x": -1, "y": 0, "z": 0, "item": "cooking_allocator"},
+    {"x": -1, "y": 0, "z": 1, "item": "me_interface"}
+  ]
+}

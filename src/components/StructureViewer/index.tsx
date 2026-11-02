@@ -50,7 +50,10 @@ function MobileSingleBlock({
   const inner = (
     <>
       {img ? (
-        <img src={img} alt={label ?? String(block)} className={styles.singleImg} />
+        // 动画贴图是竖排长图：外层裁成方形，只露出第一帧
+        <span className={styles.singleImgCrop}>
+          <img src={img} alt={label ?? String(block)} className={styles.singleImgInner} />
+        </span>
       ) : (
         <span
           className={styles.singleImg}

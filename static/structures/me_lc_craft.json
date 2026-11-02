@@ -1,0 +1,8 @@
+{
+  "name": "me_lc_craft",
+  "blocks": [
+    {"x": -1, "y": 0, "z": 0, "item": "me_interface"},
+    {"x": 0, "y": 0, "z": 0, "item": "cooking_allocator"},
+    {"x": 1, "y": 0, "z": 0, "item": "logitech_final_stackmachine"}
+  ]
+}

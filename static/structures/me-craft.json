@@ -1,11 +1,12 @@
 {
   "name": "me-craft",
   "blocks": [
-    {"x": 0, "y": 0, "z": 0, "type": "controller"},
-    {"x": 1, "y": 0, "z": 0, "type": "drive"},
-    {"x": -1, "y": 0, "z": 0, "item": "me_terminal"},
-    {"x": 0, "y": 1, "z": 0, "item": "me_interface"},
-    {"x": 1, "y": 1, "z": 0, "item": "me_pattern_interface"}
+    {"x": 0, "y": 0, "z": 0, "item": "me_controller"},
+    {"x": 1, "y": 0, "z": 0, "item": "me_drive"},
+    {"x": 0, "y": 1, "z": 0, "item": "me_craft_planning_terminal"},
+    {"x": 1, "y": 1, "z": 0, "item": "me_pattern_interface"},
+    {"x": -2, "y": 0, "z": 0, "item": "molecular_assembler"},
+    {"x": -1, "y": 0, "z": 0, "item": "large_molecular_assembler"},
+    {"x": -1, "y": 1, "z": 0, "item": "vanilla_molecular_assembler"}
   ]
 }
-TODO 完善 合成演示的多方块结构
