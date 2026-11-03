@@ -12,7 +12,7 @@ declare const require: {
   ): {
     keys(): string[];
     (id: string): {items?: Record<string, ItemDef>};
-  };
+  };  
 };
 
 const context = require.context('./', false, /\.ts$/);

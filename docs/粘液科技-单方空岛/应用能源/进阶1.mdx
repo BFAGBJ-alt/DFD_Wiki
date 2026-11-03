@@ -1,0 +1,44 @@
+---
+sidebar_position: 5
+title: 进阶——使用输出总线进行逻辑存在性的自动
+contributors:
+ - BFAGBJ
+---
+
+import Term from '@site/src/components/Term';
+import StructureViewer from '@site/src/components/StructureViewer';
+import BlockDisplay from '@site/src/components/BlockDisplay';
+import ItemIcon from '@site/src/components/ItemIcon';
+
+## 引言
+
+或许你已经在物品分类总线条目看到了<Term tip="“这和网络的推送器不一样，网络的推送器会尝试一次性推送一组，而如果你只在总线中标记了x个，那么就只会推送x个物品。“的描述文本">这个特性</Term>。
+
+不过其不止于此。同网络推送一样，他是按标记的从左到右，从上到下进行输出。借此特性，便可完成逻辑前期材料：存在性，唯一性，反逻辑，逻辑四种物品的被动制作。
+
+以存在性举例：
+
+首先，我们需要先知道如何制作存在性。翻阅粘液书，根据其机制，我们可以假设出一种输入情况能够输出存在性。
+
+![存在性示例](/img/dfkd/AE/exam_save.png)
+
+这种情况下，逻辑反应堆将输出存在性。所以，我们要做的，便是让AE这样子像反应堆内推送物品。
+
+物品是按序号输入的，从左到右从上到下，按顺序来。这在机器和总线中都是相同的。所以我们要让总线按顺序输出4个True，1个逻辑门，2个True，2个False。
+
+那么我们便可以这么标记输出总线（注意，如果放入加速卡，可能导致无法按顺序输出。）
+
+![示例输出](/img/dfkd/AE/to_save.png)
+
+AE会按顺序输出6个True，1个逻辑门，2个False。
+
+其他的材料也可以通过这一套操作做出来。
+
+标记逻辑门的位置不是固定的，逻辑门无论标记在1~9任意一个位置，都是进入逻辑门的那一格。False True也一样。
+
+<div style={{display: 'flex', gap: 12, alignItems: 'center'}}>
+
+![TF](/img/dfkd/AE/TF.png)
+![LJM](/img/dfkd/AE/LJM.png)
+
+</div>
