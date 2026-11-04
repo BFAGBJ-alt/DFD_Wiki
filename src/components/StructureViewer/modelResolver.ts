@@ -151,6 +151,28 @@ export function rotateFaceUv(
   return [cu + du * cos + dv * sin, cv - du * sin + dv * cos];
 }
 
+/**
+ * 一个面的 4 个角点（A 左上、B 右上、C 左下、D 右下，均从面外侧看）各自要采样的 uv 点，
+ * 返回顺序为 [A, B, C, D]。这是原版 MC 的角点与 uv 对应关系：
+ * north/east 的 u1 在面的右侧（东/南边缘），south/west 的 u1 在左侧（西/北边缘）；
+ * up/down 以“北”为上。BlockDisplay 与 Structure3D 共用，避免两处约定漂移。
+ */
+export function quadUvPoints(
+  uv: [number, number, number, number],
+  face: Face,
+): [number, number][] {
+  const [u1, v1, u2, v2] = uv;
+  const flipU = face === 'north' || face === 'east' || face === 'down';
+  const a = flipU ? u2 : u1;
+  const b = flipU ? u1 : u2;
+  return [
+    [a, v1],
+    [b, v1],
+    [a, v2],
+    [b, v2],
+  ];
+}
+
 // 方块实体（箱子、告示牌等）没有 elements，只给一个 particle 贴图。
 // 箱子按原版 ModelChest 的 UV 布局用实体贴图还原；其余用 particle 画成立方体。
 function fallbackQuads(
@@ -329,4 +351,82 @@ export async function resolveBlockFaces(
     faces[q.face] ??= q.texture;
   }
   return faces;
+}
+
+/** 头颅朝向：up=落地头（脸朝北，MC 的 player_head）；其余为墙头，脸贴对应方向的方块边缘 */
+export type SkullFace = 'up' | 'north' | 'south' | 'east' | 'west';
+
+// 墙头侧面标签按俯视顺时针循环（绕 Y 轴旋转一步时的标签迁移）
+const SKULL_SIDE_CYCLE: Face[] = ['north', 'east', 'south', 'west'];
+
+/**
+ * 自定义头颅贴图（64×64 皮肤 PNG）→ 头颅 quads：
+ * 8×8×8 底层 + 外扩 0.5 的帽子层（外扩后可见面天然在底层之前）。
+ *
+ * 基准朝向为面北墙头（脸贴 z=0 边缘，底层 [4,4,0]-[12,12,8]）；
+ * face='up' 时平移为落地头（[4,0,4]-[12,8,12]，脸仍朝北）；
+ * face=east/south/west 时绕 Y 轴 (8,y,8) 俯视顺时针旋转 1/2/3 步：
+ * 侧面标签随几何旋转循环迁移（uv 区域不变，按新面的角点约定自动保持正向），
+ * up 面每步 uvRotation+90、down 面 +270（保持头顶/下巴贴图方向正确）。
+ */
+export function skullQuads(texture: string, face: SkullFace = 'up'): Quad[] {
+  // 皮肤头部 UV（texSize 64×64）：
+  //   脸 (8,8)-(16,16)  后脑 (24,8)-(32,16)
+  //   角色右侧 (0,8)-(8,16)  左侧 (16,8)-(24,16)
+  //   顶 (8,0)-(16,8)（v=8 一侧是额头）  底 (16,0)-(24,8)
+  const layer = (
+    from: [number, number, number],
+    to: [number, number, number],
+    du: number,
+  ): Quad[] => {
+    const texSize: [number, number] = [64, 64];
+    return [
+      {face: 'north', from, to, uv: [8 + du, 8, 16 + du, 16], texture, texSize},
+      {face: 'south', from, to, uv: [24 + du, 8, 32 + du, 16], texture, texSize},
+      {face: 'east', from, to, uv: [0 + du, 8, 8 + du, 16], texture, texSize},
+      {face: 'west', from, to, uv: [16 + du, 8, 24 + du, 16], texture, texSize},
+      {face: 'up', from, to, uv: [16 + du, 8, 8 + du, 0], texture, texSize},
+      {face: 'down', from, to, uv: [16 + du, 0, 24 + du, 8], texture, texSize},
+    ];
+  };
+  // 帽子层不再需要 depthBias：外扩 0.5 后可见面本就比底层更靠近相机，
+  // 统一加偏置会让帽子层的背面反超、盖住正面的贴图。
+  const quads = [
+    ...layer([4, 4, 0], [12, 12, 8], 0),
+    ...layer([3.5, 3.5, -0.5], [12.5, 12.5, 8.5], 32),
+  ];
+  if (face === 'up') {
+    // 落地头：下移 4、南移 4，坐在方块底面上
+    return quads.map((q) => ({
+      ...q,
+      from: [q.from[0], q.from[1] - 4, q.from[2] + 4] as [number, number, number],
+      to: [q.to[0], q.to[1] - 4, q.to[2] + 4] as [number, number, number],
+    }));
+  }
+  const steps = {north: 0, east: 1, south: 2, west: 3}[face];
+  if (steps === 0) return quads;
+  const rotXZ = (x: number, z: number): [number, number] => {
+    let rx = x;
+    let rz = z;
+    for (let i = 0; i < steps; i++) [rx, rz] = [16 - rz, rx];
+    return [rx, rz];
+  };
+  return quads.map((q) => {
+    const [ax, az] = rotXZ(q.from[0], q.from[2]);
+    const [bx, bz] = rotXZ(q.to[0], q.to[2]);
+    const out: Quad = {
+      ...q,
+      from: [Math.min(ax, bx), q.from[1], Math.min(az, bz)],
+      to: [Math.max(ax, bx), q.to[1], Math.max(az, bz)],
+    };
+    const sideIdx = SKULL_SIDE_CYCLE.indexOf(q.face);
+    if (sideIdx >= 0) {
+      out.face = SKULL_SIDE_CYCLE[(sideIdx + steps) % 4];
+    } else if (q.face === 'up') {
+      out.uvRotation = (90 * steps) % 360;
+    } else {
+      out.uvRotation = (270 * steps) % 360;
+    }
+    return out;
+  });
 }

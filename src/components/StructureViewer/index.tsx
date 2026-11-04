@@ -4,7 +4,7 @@ import Link from '@docusaurus/Link';
 import useBaseUrl from '@docusaurus/useBaseUrl';
 import {resolveItem} from '@site/src/data/items/index';
 import {resolveStructure, type Structure} from './types';
-import {resolveBlockFaces} from './modelResolver';
+import {resolveBlockFaces, type SkullFace} from './modelResolver';
 import styles from './styles.module.css';
 
 // 桌面端才加载 3D 渲染代码（代码分割，移动端不下载 three.js）
@@ -25,12 +25,14 @@ function useIsMobile(): boolean | null {
 /** 移动端单一方块：解析 model 取正面贴图，静态展示（不加载 three.js） */
 function MobileSingleBlock({
   block,
+  skull,
   label,
   link,
   color,
   texBase,
 }: {
-  block: string | string[];
+  block?: string | string[];
+  skull?: string;
   label?: string;
   link?: string;
   color?: string;
@@ -38,6 +40,7 @@ function MobileSingleBlock({
 }): ReactNode {
   const [img, setImg] = useState<string | null>(null);
   useEffect(() => {
+    if (skull || !block) return;
     let cancelled = false;
     resolveBlockFaces(block, texBase).then((f) => {
       if (!cancelled) setImg(f.north ?? f.up ?? f.east ?? f.south ?? null);
@@ -45,11 +48,21 @@ function MobileSingleBlock({
     return () => {
       cancelled = true;
     };
-  }, [block, texBase]);
+  }, [block, skull, texBase]);
 
   const inner = (
     <>
-      {img ? (
+      {skull ? (
+        // 头颅：64×64 皮肤，裁出脸部区域 (8,8)-(16,16)，与 ItemIcon 一致
+        <span className={styles.singleImgCrop}>
+          <img
+            src={skull}
+            alt={label ?? '头颅'}
+            className={styles.singleImgInner}
+            style={{width: '800%', height: 'auto', margin: '-100% 0 0 -100%'}}
+          />
+        </span>
+      ) : img ? (
         // 动画贴图是竖排长图：外层裁成方形，只露出第一帧
         <span className={styles.singleImgCrop}>
           <img src={img} alt={label ?? String(block)} className={styles.singleImgInner} />
@@ -93,8 +106,12 @@ type StructureViewerProps = {
    * 数组或逗号分隔字符串，后面的模型叠加到前面之上。
    */
   block?: string | string[];
-  /** 单一方块模式：引用物品数据库 id，自动解析 block/label/link */
+  /** 单一方块模式：引用物品数据库 id，自动解析 block/skull/label/link */
   item?: string;
+  /** 单一方块模式：自定义头颅贴图 URL（64×64 皮肤 PNG），与 block 二选一 */
+  skull?: string;
+  /** 单一方块模式头颅朝向：up=落地头（默认）；水平方向=脸贴该侧边缘 */
+  face?: SkullFace;
   /** 单一方块模式的名称/链接/纯色回退（优先级高于 item 数据库） */
   label?: string;
   link?: string;
@@ -117,6 +134,8 @@ export default function StructureViewer({
   name,
   block,
   item,
+  skull,
+  face,
   label,
   link,
   color,
@@ -131,16 +150,19 @@ export default function StructureViewer({
 
   // 单方块模式下从物品数据库展开字段（内联 props 优先）
   const singleBlock = useMemo(() => {
-    if (!block && !item) return undefined;
-    const db = item ? resolveItem(item) : {};
-    const resolvedBlock = block ?? db.block;
+    if (!block && !item && !skull) return undefined;
+    const db: Partial<ReturnType<typeof resolveItem>> = item
+      ? resolveItem(item)
+      : {};
     return {
-      block: resolvedBlock,
+      block: block ?? db.block,
+      skull: skull ?? db.skull,
+      face,
       label: label ?? db.name,
       link: link ?? db.link,
       color: color ?? db.color,
     };
-  }, [block, item, label, link, color]);
+  }, [block, item, skull, face, label, link, color]);
 
   const effectiveSize = size ?? (name ? 'md' : 'sm');
   const canvasHeight = sizeHeight(effectiveSize);
@@ -157,6 +179,8 @@ export default function StructureViewer({
             y: 0,
             z: 0,
             block: b,
+            skull: singleBlock.skull,
+            face: singleBlock.face,
             label: singleBlock.label,
             link: singleBlock.link,
             color: singleBlock.color,
@@ -194,10 +218,11 @@ export default function StructureViewer({
   }
 
   if (isMobile) {
-    if (singleBlock?.block) {
+    if (singleBlock && (singleBlock.block || singleBlock.skull)) {
       return (
         <MobileSingleBlock
           block={singleBlock.block}
+          skull={singleBlock.skull}
           label={singleBlock.label}
           link={singleBlock.link}
           color={singleBlock.color}
@@ -208,7 +233,8 @@ export default function StructureViewer({
     // 结构模式：GIF + 常驻名单（去重 label）
     const seen = new Set<string>();
     const entries = structure.blocks.filter((b) => {
-      const key = b.label ?? b.block ?? '';
+      const raw = b.label ?? b.block ?? b.skull ?? '';
+      const key = Array.isArray(raw) ? raw.join(',') : raw;
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
@@ -226,9 +252,9 @@ export default function StructureViewer({
             {entries.map((b, i) => (
               <li key={i}>
                 {b.link ? (
-                  <Link to={b.link}>{b.label ?? b.block}</Link>
+                  <Link to={b.link}>{b.label ?? b.block ?? '头颅'}</Link>
                 ) : (
-                  <span>{b.label ?? b.block}</span>
+                  <span>{b.label ?? b.block ?? '头颅'}</span>
                 )}
               </li>
             ))}

@@ -1,7 +1,7 @@
 import React, {useEffect, useId, useMemo, useState, type ReactNode} from 'react';
 import useBaseUrl from '@docusaurus/useBaseUrl';
 import {resolveItem} from '@site/src/data/items/index';
-import {resolveBlockQuads, rotateFaceUv, type Quad} from '../StructureViewer/modelResolver';
+import {resolveBlockQuads, rotateFaceUv, quadUvPoints, skullQuads, type Quad, type SkullFace} from '../StructureViewer/modelResolver';
 import styles from './styles.module.css';
 
 // 固定等距视角：俯角 26°
@@ -22,22 +22,25 @@ const FACE_SHADE: Record<Face, number> = {
 
 // 动画贴图（如海晶灯）是一张 16 × (16×帧数) 的竖向长图，
 // 图标里只需要第一帧，否则会把整条帧序列压进一个面。
-const frameCache = new Map<string, Promise<number>>();
+// 同时记录贴图原始尺寸：头颅皮肤有 64×64 与 64×32（旧版）两种，
+// 必须按 natural 尺寸渲染，否则 UV 采样会错位。
+type ImgInfo = {w: number; h: number; frames: number};
+const imgCache = new Map<string, Promise<ImgInfo>>();
 
-function loadFrames(url: string): Promise<number> {
-  let p = frameCache.get(url);
+function loadImgInfo(url: string): Promise<ImgInfo> {
+  let p = imgCache.get(url);
   if (!p) {
-    p = new Promise<number>((resolve) => {
+    p = new Promise<ImgInfo>((resolve) => {
       const img = new Image();
       img.onload = () => {
         const w = img.naturalWidth || 1;
         const h = img.naturalHeight || 1;
-        resolve(h > w && h % w === 0 ? h / w : 1);
+        resolve({w, h, frames: h > w && h % w === 0 ? h / w : 1});
       };
-      img.onerror = () => resolve(1);
+      img.onerror = () => resolve({w: 16, h: 16, frames: 1});
       img.src = url;
     });
-    frameCache.set(url, p);
+    imgCache.set(url, p);
   }
   return p;
 }
@@ -114,18 +117,25 @@ function project(p: Vec3, size: number): [number, number] {
  * 用法：
  *   <BlockDisplay item="me_charger" size={100} />
  *   <BlockDisplay block="lectern" size={32} />
+ *   <BlockDisplay skull="https://.../skin.png" face="east" size={48} />
  */
 export default function BlockDisplay({
   block,
   item,
+  skull,
+  face,
   size = 32,
   name,
   className,
 }: {
   /** 方块模型 id，多模型叠加用数组或逗号分隔 */
   block?: string | string[];
-  /** 物品库 id（src/data/items），自动取 block / name */
+  /** 物品库 id（src/data/items），自动取 block / skull / name */
   item?: string;
+  /** 自定义头颅贴图 URL（64×64 皮肤 PNG），与 block 二选一（block 优先） */
+  skull?: string;
+  /** 头颅朝向：up=落地头（默认）；水平方向=脸贴该侧边缘 */
+  face?: SkullFace;
   /** 图标宽度（px） */
   size?: number;
   /** 无障碍名称 / 悬停提示 */
@@ -138,41 +148,47 @@ export default function BlockDisplay({
   const rawId = useId();
   const uid = rawId.replace(/[^a-zA-Z0-9_-]/g, '');
 
-  // item 引用物品库，block 直接内联；item 优先
+  // item 引用物品库，block/skull 直接内联；item 优先
   const resolved = useMemo(() => {
-    if (!item) return {block, name};
+    if (!item) return {block, skull, name};
     const def = resolveItem(item);
-    return {block: block ?? def.block, name: name ?? def.name};
-  }, [item, block, name]);
+    return {
+      block: block ?? def.block,
+      skull: skull ?? def.skull,
+      name: name ?? def.name,
+    };
+  }, [item, block, skull, name]);
 
   const blockKey = Array.isArray(resolved.block)
     ? resolved.block.join(',')
     : resolved.block ?? '';
+  const skullUrl = resolved.skull ?? '';
 
   useEffect(() => {
-    if (!blockKey) {
-      setQuads([]);
-      return;
+    if (blockKey) {
+      let cancelled = false;
+      setQuads(null);
+      resolveBlockQuads(blockKey, texBase).then((q) => {
+        if (!cancelled) setQuads(q);
+      });
+      return () => {
+        cancelled = true;
+      };
     }
-    let cancelled = false;
-    setQuads(null);
-    resolveBlockQuads(blockKey, texBase).then((q) => {
-      if (!cancelled) setQuads(q);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [blockKey, texBase]);
+    // 无方块模型时回退到头颅（同步生成，无需请求）
+    setQuads(skullUrl ? skullQuads(skullUrl, face) : []);
+    return undefined;
+  }, [blockKey, skullUrl, face, texBase]);
 
-  // 贴图帧数（普通贴图为 1），用于把动画长图裁到第一帧
-  const [frames, setFrames] = useState<Record<string, number>>({});
+  // 贴图原始尺寸与帧数（动画长图只取第一帧）
+  const [infos, setInfos] = useState<Record<string, ImgInfo>>({});
   useEffect(() => {
     if (!quads || quads.length === 0) return;
     let cancelled = false;
     const urls = [...new Set(quads.map((q) => q.texture))];
-    Promise.all(urls.map((u) => loadFrames(u))).then((counts) => {
+    Promise.all(urls.map((u) => loadImgInfo(u))).then((list) => {
       if (cancelled) return;
-      setFrames(Object.fromEntries(urls.map((u, i) => [u, counts[i]])));
+      setInfos(Object.fromEntries(urls.map((u, i) => [u, list[i]])));
     });
     return () => {
       cancelled = true;
@@ -246,10 +262,12 @@ export default function BlockDisplay({
       </defs>
       {drawn.map(({q, pts, id}) => {
         const [A, B, C] = pts;
-        // 角点 A/B/C 各自要采样的 uv（面旋转后是同一矩形内的另一点）
-        const pA = rotateFaceUv(q.uv[0], q.uv[1], q.uv, q.uvRotation);
-        const pB = rotateFaceUv(q.uv[2], q.uv[1], q.uv, q.uvRotation);
-        const pC = rotateFaceUv(q.uv[0], q.uv[3], q.uv, q.uvRotation);
+        // 角点 A/B/C 各自要采样的 uv（面旋转后是同一矩形内的另一点）。
+        // 与 Structure3D 共用 quadUvPoints，保证两处贴图方向一致。
+        const [pA0, pB0, pC0] = quadUvPoints(q.uv, q.face);
+        const pA = rotateFaceUv(pA0[0], pA0[1], q.uv, q.uvRotation);
+        const pB = rotateFaceUv(pB0[0], pB0[1], q.uv, q.uvRotation);
+        const pC = rotateFaceUv(pC0[0], pC0[1], q.uv, q.uvRotation);
         // 由三组「屏幕点 <-> uv 点」解出仿射矩阵，映射贴图到投影后的平行四边形
         const det =
           ((pB[0] - pA[0]) * (pC[1] - pA[1]) -
@@ -276,6 +294,7 @@ export default function BlockDisplay({
         ];
         const shade = FACE_SHADE[q.face as Face] ?? 1;
         const [texW, texH] = q.texSize ?? [16, 16];
+        const info = infos[q.texture];
         return (
           <g
             key={id}
@@ -283,8 +302,8 @@ export default function BlockDisplay({
             clipPath={`url(#${id})`}>
             <image
               href={q.texture}
-              width={texW}
-              height={texH * (frames[q.texture] ?? 1)}
+              width={info?.w ?? texW}
+              height={info?.h ?? texH}
               preserveAspectRatio="none"
               style={{imageRendering: 'pixelated'}}
               transform={`matrix(${m.join(' ')})`}

@@ -1,3 +1,5 @@
+import type {SkullFace} from './modelResolver';
+
 export type BlockDef = {
   /**
    * 原版方块 model id（如 "furnace"、"glass"）。
@@ -6,7 +8,11 @@ export type BlockDef = {
    *   或逗号分隔字符串 "chiseled_bookshelf,chiseled_bookshelf_empty_slot_top_left,..."
    */
   block?: string | string[];
-  /** 引用物品数据库的 id，展开为 block/label/link/color（内联字段优先） */
+  /** 自定义头颅贴图 URL（64×64 皮肤 PNG），与 block 二选一（block 优先） */
+  skull?: string;
+  /** 头颅朝向：up=落地头（默认）；水平方向=脸贴该方向的方块边缘 */
+  face?: SkullFace;
+  /** 引用物品数据库的 id，展开为 block/skull/label/link/color（内联字段优先） */
   item?: string;
   /** 无 block 时的纯色回退（hex，如 "#9b59b6"） */
   color?: string;
@@ -37,15 +43,17 @@ export function resolveStructure(
   resolveItemFn: (id: string) => {
     name?: string;
     block?: string | string[];
+    skull?: string;
     color?: string;
     link?: string;
   } = () => ({}),
 ): Structure {
-  const applyItem = (b: BlockDef): BlockDef => {
+  const applyItem = <T extends BlockDef>(b: T): T => {
     if (!b.item) return b;
     const db = resolveItemFn(b.item);
     return {
       block: db.block,
+      skull: db.skull,
       color: db.color,
       label: db.name,
       link: db.link,

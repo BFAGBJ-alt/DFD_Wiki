@@ -39,5 +39,6 @@ export function resolveItem(id: string): ResolvedItem {
     link: def.link,
     glint: def.glint,
     overlay: def.overlay,
+    skull: def.skull,
   };
 }

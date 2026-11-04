@@ -42,7 +42,13 @@ export default function ItemIcon({
   const [failed, setFailed] = useState(false);
   const target = link ?? item.link;
 
-  const content = item.block ? (
+  const content = item.skull ? (
+    <BlockDisplay
+      skull={item.skull}
+      size={Math.round(size * 0.92)}
+      name={item.name}
+    />
+  ) : item.block ? (
     <BlockDisplay
       block={item.block}
       size={Math.round(size * 0.92)}
@@ -70,7 +76,7 @@ export default function ItemIcon({
       style={{width: size, height: size}}
       title={item.name}>
       {content}
-      {item.overlay && !item.block && !failed && (
+      {item.overlay && !item.block && !item.skull && !failed && (
         <img
           src={item.overlay}
           alt=""

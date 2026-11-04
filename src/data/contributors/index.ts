@@ -1,18 +1,25 @@
 import type {ContributorProfile} from './types';
-import {contributors as bfagbj} from './bfagbj';
-import {contributors as deepseek} from './deepseek';
-import {contributors as msaw4} from './msaw4';
-import {contributors as gzs1596eg} from './gzs1596eg';
-import {contributors as ylzm} from './ylzm';
-import {contributors as claude} from './claude';
 
 export type {ContributorProfile};
 
-export const contributors: Record<string, ContributorProfile> = {
-  ...bfagbj,
-  ...deepseek,
-  ...msaw4,
-  ...gzs1596eg,
-  ...ylzm,
-  ...claude,
+// 自动合并目录下所有贡献者文件（每个文件导出 const contributors），
+// 新增贡献者文件无需修改这里；index/types 自身除外。
+declare const require: {
+  context(
+    dir: string,
+    subdirs: boolean,
+    filter: RegExp,
+  ): {
+    keys(): string[];
+    (id: string): {contributors?: Record<string, ContributorProfile>};
+  };
 };
+
+const context = require.context('./', false, /\.ts$/);
+
+export const contributors: Record<string, ContributorProfile> = {};
+for (const key of context.keys()) {
+  if (key === './index.ts' || key === './types.ts') continue;
+  const mod = context(key);
+  if (mod.contributors) Object.assign(contributors, mod.contributors);
+}

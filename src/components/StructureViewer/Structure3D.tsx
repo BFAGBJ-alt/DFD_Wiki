@@ -3,7 +3,7 @@ import {Canvas} from '@react-three/fiber';
 import {Html, OrbitControls} from '@react-three/drei';
 import * as THREE from 'three';
 import {useHistory} from '@docusaurus/router';
-import {resolveBlockQuads, rotateFaceUv, type Quad} from './modelResolver';
+import {resolveBlockQuads, rotateFaceUv, quadUvPoints, skullQuads, type Quad} from './modelResolver';
 import type {Structure, StructureBlock} from './types';
 import styles from './styles.module.css';
 
@@ -13,26 +13,32 @@ const OFFSET = -SIZE / 2;
 const S = SIZE / 16;
 
 // 手动加载贴图：404 时静默回退，不让整个画布崩掉
-function useTextures(urls: string[]): Map<string, THREE.Texture> {
+function useTextures(urls: string[]): {
+  texMap: Map<string, THREE.Texture>;
+  dims: Map<string, [number, number]>;
+} {
   const [texMap, setTexMap] = useState<Map<string, THREE.Texture>>(new Map());
+  const [dims, setDims] = useState<Map<string, [number, number]>>(new Map());
   const urlKey = urls.join('|');
   useEffect(() => {
     if (!urlKey) {
       setTexMap(new Map());
+      setDims(new Map());
       return;
     }
     const loader = new THREE.TextureLoader();
     const m = new Map<string, THREE.Texture>();
+    const dm = new Map<string, [number, number]>();
     for (const u of urlKey.split('|')) {
       const t = loader.load(
         u,
         (loaded) => {
-          // 动画贴图（海晶灯等）是高度为宽度整数倍的竖排长图，只显示第一帧
+          // 记录贴图原始尺寸：几何 UV 按自然尺寸归一化后，
+          // 动画长图自然只显示第一帧，64×32 旧版头颅皮肤也不会错位
           const img = loaded.image as HTMLImageElement | undefined;
-          if (img && img.height > img.width && img.height % img.width === 0) {
-            const frames = img.height / img.width;
-            loaded.repeat.set(1, 1 / frames);
-            loaded.offset.set(0, 1 - 1 / frames);
+          if (img) {
+            dm.set(u, [img.width || 1, img.height || 1]);
+            setDims(new Map(dm));
           }
         },
         undefined,
@@ -50,7 +56,7 @@ function useTextures(urls: string[]): Map<string, THREE.Texture> {
       m.forEach((t) => t.dispose());
     };
   }, [urlKey]);
-  return texMap;
+  return {texMap, dims};
 }
 
 // 绕元素旋转中心旋转 MC 坐标点（0..16）
@@ -83,48 +89,42 @@ function rotatePoint(
 }
 
 // 把一个 MC 元素面转成平面几何体（含局部 UV 与元素旋转）
-function buildQuadGeometry(q: Quad): THREE.BufferGeometry {
+// natural：贴图原始尺寸（加载完成后传入），UV 按它归一化
+function buildQuadGeometry(q: Quad, natural?: [number, number]): THREE.BufferGeometry {
   const [fx, fy, fz] = q.from;
   const [tx, ty, tz] = q.to;
-  const [u1, v1, u2, v2] = q.uv;
   // 每面 4 个角点（A 左上 B 右上 C 左下 D 右下，从面外侧看）及其 uv
   let mc: [number, number, number][];
-  let uvs: [number, number][];
   switch (q.face) {
     case 'north':
       mc = [
         [fx, ty, fz], [tx, ty, fz],
         [fx, fy, fz], [tx, fy, fz],
       ];
-      uvs = [[u1, v1], [u2, v1], [u1, v2], [u2, v2]];
       break;
     case 'south':
       mc = [
         [fx, ty, tz], [tx, ty, tz],
         [fx, fy, tz], [tx, fy, tz],
       ];
-      uvs = [[u2, v1], [u1, v1], [u2, v2], [u1, v2]];
       break;
     case 'west':
       mc = [
         [fx, ty, fz], [fx, ty, tz],
         [fx, fy, fz], [fx, fy, tz],
       ];
-      uvs = [[u1, v1], [u2, v1], [u1, v2], [u2, v2]];
       break;
     case 'east':
       mc = [
         [tx, ty, fz], [tx, ty, tz],
         [tx, fy, fz], [tx, fy, tz],
       ];
-      uvs = [[u2, v1], [u1, v1], [u2, v2], [u1, v2]];
       break;
     case 'up':
       mc = [
         [fx, ty, fz], [tx, ty, fz],
         [fx, ty, tz], [tx, ty, tz],
       ];
-      uvs = [[u1, v1], [u2, v1], [u1, v2], [u2, v2]];
       break;
     case 'down':
     default:
@@ -132,9 +132,10 @@ function buildQuadGeometry(q: Quad): THREE.BufferGeometry {
         [fx, fy, fz], [tx, fy, fz],
         [fx, fy, tz], [tx, fy, tz],
       ];
-      uvs = [[u1, v1], [u2, v1], [u1, v2], [u2, v2]];
       break;
   }
+  // 角点顺序 A/B/C/D 与 BlockDisplay 共用同一套 uv 约定
+  const uvs = quadUvPoints(q.uv, q.face);
   // 应用元素旋转后再映射到方块世界坐标
   const corners = mc.map((p) => {
     const [x, y, z] = rotatePoint(p, q.rotation);
@@ -146,7 +147,7 @@ function buildQuadGeometry(q: Quad): THREE.BufferGeometry {
     new THREE.Float32BufferAttribute(corners.flat(), 3),
   );
   // MC uv 的 v 向下，three 的 v 向上；面旋转按 MC 的 face.rotation 处理
-  const [texW, texH] = q.texSize ?? [16, 16];
+  const [texW, texH] = natural ?? q.texSize ?? [16, 16];
   geo.setAttribute(
     'uv',
     new THREE.Float32BufferAttribute(
@@ -177,8 +178,7 @@ function Block({
     () => [...new Set((quads ?? []).map((q) => q.texture))],
     [quads],
   );
-  const texByUrl = useTextures(urls);
-
+  const {texMap: texByUrl, dims} = useTextures(urls);
   // 每张贴图共享一个材质
   const materials = useMemo(() => {
     const m = new Map<string, THREE.MeshBasicMaterial>();
@@ -206,8 +206,8 @@ function Block({
   );
 
   const geometries = useMemo(
-    () => (quads ?? []).map(buildQuadGeometry),
-    [quads],
+    () => (quads ?? []).map((q) => buildQuadGeometry(q, dims.get(q.texture))),
+    [quads, dims],
   );
 
   useEffect(
@@ -300,7 +300,9 @@ export default function Structure3D({
       structure.blocks.map((b) =>
         b.block
           ? resolveBlockQuads(b.block, texBase)
-          : Promise.resolve(null),
+          : b.skull
+            ? Promise.resolve(skullQuads(b.skull, b.face))
+            : Promise.resolve(null),
       ),
     ).then((lists) => {
       if (!cancelled) setQuadLists(lists);

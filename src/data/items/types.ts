@@ -15,6 +15,8 @@ export type ItemDef = {
   glint?: boolean;
   /** 叠加在贴图上层的贴图（如带特殊数据的烟火之星） */
   overlay?: string;
+  /** 自定义头颅贴图 URL（https://textures.minecraft.net/texture/<hash>） */
+  skull?: string;
 };
 
 export type ResolvedItem = {
@@ -25,4 +27,5 @@ export type ResolvedItem = {
   link?: string;
   glint?: boolean;
   overlay?: string;
+  skull?: string;
 };
