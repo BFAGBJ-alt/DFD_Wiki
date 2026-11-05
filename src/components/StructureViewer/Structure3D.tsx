@@ -23,7 +23,8 @@ const _sharedAtlasTextures = new Set<THREE.Texture>();
 
 function useAtlasMeta(): Meta | null {
   const [meta, setMeta] = useState<Meta | null>(null);
-  const baseUrl = useBaseUrl('');
+  // 注意用 '/' 而不是 ''：Docusaurus 的 addBaseUrl 对空串直接原样返回（不做前缀拼接）
+  const baseUrl = useBaseUrl('/');
   const isProd = process.env.NODE_ENV === 'production';
   useEffect(() => {
     if (!isProd) return;
@@ -255,7 +256,7 @@ function Block({
   const history = useHistory();
   const [hovered, setHovered] = useState(false);
   const atlasMeta = useAtlasMeta();
-  const atlasBaseUrl = useBaseUrl('');
+  const atlasBaseUrl = useBaseUrl('/');
   const isProd = process.env.NODE_ENV === 'production';
 
   const urls = useMemo(

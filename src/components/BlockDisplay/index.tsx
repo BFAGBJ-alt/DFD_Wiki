@@ -144,7 +144,8 @@ export default function BlockDisplay({
   className?: string;
 }): ReactNode {
   const texBase = useBaseUrl('/img/Minecraft/block');
-  const atlasBase = useBaseUrl('');
+  // 注意用 '/' 而不是 ''：Docusaurus 的 addBaseUrl 对空串直接原样返回（不做前缀拼接）
+  const atlasBase = useBaseUrl('/');
   const isProd = process.env.NODE_ENV === 'production';
   const [quads, setQuads] = useState<Quad[] | null>(null);
   const [atlasMeta, setAtlasMeta] = useState<Meta | null>(null);

@@ -33,7 +33,8 @@ type TexState = {
 };
 
 function useAtlasTex(rawUrl: string): TexState {
-  const baseUrl = useBaseUrl('');
+  // 注意用 '/' 而不是 ''：Docusaurus 的 addBaseUrl 对空串直接原样返回（不做前缀拼接）
+  const baseUrl = useBaseUrl('/');
   // 数据里是 '/img/Minecraft/...' 绝对路径，子路径部署（baseUrl=/wiki_page/）要补前缀
   const url = withBase(rawUrl, baseUrl);
   const [meta, setMeta] = useState<Meta | null>(null);
