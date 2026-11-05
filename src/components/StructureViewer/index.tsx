@@ -5,6 +5,7 @@ import useBaseUrl from '@docusaurus/useBaseUrl';
 import {resolveItem} from '@site/src/data/items/index';
 import {resolveStructure, type Structure} from './types';
 import {resolveBlockFaces, type SkullFace} from './modelResolver';
+import MinecraftImage from '../MinecraftImage';
 import styles from './styles.module.css';
 
 // 桌面端才加载 3D 渲染代码（代码分割，移动端不下载 three.js）
@@ -65,7 +66,11 @@ function MobileSingleBlock({
       ) : img ? (
         // 动画贴图是竖排长图：外层裁成方形，只露出第一帧
         <span className={styles.singleImgCrop}>
-          <img src={img} alt={label ?? String(block)} className={styles.singleImgInner} />
+          <MinecraftImage
+            src={img}
+            alt={label ?? String(block)}
+            className={styles.singleImgInner}
+          />
         </span>
       ) : (
         <span

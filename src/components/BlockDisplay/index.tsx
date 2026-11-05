@@ -2,6 +2,7 @@ import React, {useEffect, useId, useMemo, useState, type ReactNode} from 'react'
 import useBaseUrl from '@docusaurus/useBaseUrl';
 import {resolveItem} from '@site/src/data/items/index';
 import {resolveBlockQuads, rotateFaceUv, quadUvPoints, skullQuads, type Quad, type SkullFace} from '../StructureViewer/modelResolver';
+import {loadAtlasMeta, resolveTex, type Meta} from '@site/src/utils/minecraftAtlas';
 import styles from './styles.module.css';
 
 // 固定等距视角：俯角 26°
@@ -143,10 +144,31 @@ export default function BlockDisplay({
   className?: string;
 }): ReactNode {
   const texBase = useBaseUrl('/img/Minecraft/block');
+  // 注意用 '/' 而不是 ''：Docusaurus 的 addBaseUrl 对空串直接原样返回（不做前缀拼接）
+  const atlasBase = useBaseUrl('/');
+  const isProd = process.env.NODE_ENV === 'production';
   const [quads, setQuads] = useState<Quad[] | null>(null);
+  const [atlasMeta, setAtlasMeta] = useState<Meta | null>(null);
+  // atlas meta 是否已经尝试加载完（成功或失败），用于避免预加载已删除的原贴图
+  const [atlasReady, setAtlasReady] = useState(!isProd);
   // clipPath 的 id 必须全局唯一，否则同页多个图标会互相套用裁剪路径
   const rawId = useId();
   const uid = rawId.replace(/[^a-zA-Z0-9_-]/g, '');
+
+  // prod 环境预加载 atlas meta（全局单例 Promise，多个 BlockDisplay 共享）
+  useEffect(() => {
+    if (!isProd) return;
+    let cancelled = false;
+    loadAtlasMeta(atlasBase).then((m) => {
+      if (!cancelled) {
+        setAtlasMeta(m);
+        setAtlasReady(true);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [atlasBase, isProd]);
 
   // item 引用物品库，block/skull 直接内联；item 优先
   const resolved = useMemo(() => {
@@ -184,8 +206,17 @@ export default function BlockDisplay({
   const [infos, setInfos] = useState<Record<string, ImgInfo>>({});
   useEffect(() => {
     if (!quads || quads.length === 0) return;
+    // prod 下等 atlas meta 就绪：命中 atlas 的贴图原 PNG 已被删除，
+    // 预加载只会得到 404，尺寸直接由 atlas 区域决定
+    if (!atlasReady) return;
     let cancelled = false;
-    const urls = [...new Set(quads.map((q) => q.texture))];
+    const urls = [...new Set(quads.map((q) => q.texture))].filter(
+      (u) => !resolveTex(u, atlasMeta, isProd, atlasBase).region,
+    );
+    if (urls.length === 0) {
+      setInfos({});
+      return;
+    }
     Promise.all(urls.map((u) => loadImgInfo(u))).then((list) => {
       if (cancelled) return;
       setInfos(Object.fromEntries(urls.map((u, i) => [u, list[i]])));
@@ -193,7 +224,7 @@ export default function BlockDisplay({
     return () => {
       cancelled = true;
     };
-  }, [quads]);
+  }, [quads, atlasMeta, atlasReady, atlasBase, isProd]);
 
   const drawn = useMemo(() => {
     if (!quads) return [];
@@ -292,18 +323,32 @@ export default function BlockDisplay({
           A[0] - m00 * pA[0] - m01 * pA[1],
           A[1] - m10 * pA[0] - m11 * pA[1],
         ];
+        // Atlas 命中：调整仿射矩阵平移量，让原贴图 uv 坐标 (u, v)
+        // 映射到 atlas 里 (region.x + u, region.y + v)，再由 m 变换到屏幕
+        const atlasHit = resolveTex(q.texture, atlasMeta, isProd, atlasBase);
+        const region = atlasHit.region;
+        if (region) {
+          const [tx, ty] = [
+            m[4] - m00 * region.x - m01 * region.y,
+            m[5] - m10 * region.x - m11 * region.y,
+          ];
+          m[4] = tx;
+          m[5] = ty;
+        }
         const shade = FACE_SHADE[q.face as Face] ?? 1;
         const [texW, texH] = q.texSize ?? [16, 16];
         const info = infos[q.texture];
+        const imgW = region ? atlasHit.atlasW! : (info?.w ?? texW);
+        const imgH = region ? atlasHit.atlasH! : (info?.h ?? texH);
         return (
           <g
             key={id}
             style={{filter: `brightness(${shade})`}}
             clipPath={`url(#${id})`}>
             <image
-              href={q.texture}
-              width={info?.w ?? texW}
-              height={info?.h ?? texH}
+              href={atlasHit.src}
+              width={imgW}
+              height={imgH}
               preserveAspectRatio="none"
               style={{imageRendering: 'pixelated'}}
               transform={`matrix(${m.join(' ')})`}

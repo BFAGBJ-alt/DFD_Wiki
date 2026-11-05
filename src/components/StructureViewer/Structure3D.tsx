@@ -3,7 +3,9 @@ import {Canvas} from '@react-three/fiber';
 import {Html, OrbitControls} from '@react-three/drei';
 import * as THREE from 'three';
 import {useHistory} from '@docusaurus/router';
+import useBaseUrl from '@docusaurus/useBaseUrl';
 import {resolveBlockQuads, rotateFaceUv, quadUvPoints, skullQuads, type Quad} from './modelResolver';
+import {loadAtlasMeta, resolveTex, type Meta} from '@site/src/utils/minecraftAtlas';
 import type {Structure, StructureBlock} from './types';
 import styles from './styles.module.css';
 
@@ -12,8 +14,50 @@ const SIZE = 0.95;
 const OFFSET = -SIZE / 2;
 const S = SIZE / 16;
 
+// 全局 atlas texture 缓存（所有 Block 组件共享一张 atlas.png）
+let _atlasTex: THREE.Texture | null = null;
+let _atlasTexUrl: string | null = null;
+let _atlasLoadPromise: Promise<THREE.Texture> | null = null;
+// 标记哪些 texture 是 atlas 共享的（cleanup 时跳过，不 dispose）
+const _sharedAtlasTextures = new Set<THREE.Texture>();
+
+function useAtlasMeta(): Meta | null {
+  const [meta, setMeta] = useState<Meta | null>(null);
+  // 注意用 '/' 而不是 ''：Docusaurus 的 addBaseUrl 对空串直接原样返回（不做前缀拼接）
+  const baseUrl = useBaseUrl('/');
+  const isProd = process.env.NODE_ENV === 'production';
+  useEffect(() => {
+    if (!isProd) return;
+    let cancelled = false;
+    loadAtlasMeta(baseUrl).then((m) => {
+      if (!cancelled) setMeta(m);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [baseUrl, isProd]);
+  return meta;
+}
+
+function getAtlasTexture(url: string): THREE.Texture | null {
+  if (_atlasTex && _atlasTexUrl === url) return _atlasTex;
+  const loader = new THREE.TextureLoader();
+  _atlasTex = loader.load(url);
+  _atlasTex.magFilter = THREE.NearestFilter;
+  _atlasTex.colorSpace = THREE.SRGBColorSpace;
+  _atlasTexUrl = url;
+  _sharedAtlasTextures.add(_atlasTex);
+  return _atlasTex;
+}
+
 // 手动加载贴图：404 时静默回退，不让整个画布崩掉
-function useTextures(urls: string[]): {
+// atlasMeta 传入时，命中 atlas 的 URL 共享一张 atlas texture 并设置 offset/repeat
+function useTextures(
+  urls: string[],
+  atlasMeta: Meta | null,
+  atlasBaseUrl: string,
+  isProd: boolean,
+): {
   texMap: Map<string, THREE.Texture>;
   dims: Map<string, [number, number]>;
 } {
@@ -29,33 +73,71 @@ function useTextures(urls: string[]): {
     const loader = new THREE.TextureLoader();
     const m = new Map<string, THREE.Texture>();
     const dm = new Map<string, [number, number]>();
+    let needsAtlas = false;
+    const atlasHits: {url: string; src: string; region: {x:number;y:number;w:number;h:number}; atlasW: number; atlasH: number}[] = [];
+
     for (const u of urlKey.split('|')) {
-      const t = loader.load(
-        u,
-        (loaded) => {
-          // 记录贴图原始尺寸：几何 UV 按自然尺寸归一化后，
-          // 动画长图自然只显示第一帧，64×32 旧版头颅皮肤也不会错位
-          const img = loaded.image as HTMLImageElement | undefined;
-          if (img) {
-            dm.set(u, [img.width || 1, img.height || 1]);
-            setDims(new Map(dm));
-          }
-        },
-        undefined,
-        () => {
-          m.delete(u);
-        },
-      );
-      // 像素风：最近邻采样 + sRGB
-      t.magFilter = THREE.NearestFilter;
-      t.colorSpace = THREE.SRGBColorSpace;
-      m.set(u, t);
+      const hit = resolveTex(u, atlasMeta, isProd, atlasBaseUrl);
+      if (hit.region && hit.atlasW && hit.atlasH) {
+        // 命中 atlas：后续统一加载 atlas.png 一次
+        atlasHits.push({url: u, src: hit.src, region: hit.region, atlasW: hit.atlasW, atlasH: hit.atlasH});
+        needsAtlas = true;
+      } else {
+        // 直贴图（dev / SlimeFun / 未命中 / Skull 皮肤）
+        const t = loader.load(
+          u,
+          (loaded) => {
+            const img = loaded.image as HTMLImageElement | undefined;
+            if (img) {
+              dm.set(u, [img.width || 1, img.height || 1]);
+              setDims(new Map(dm));
+            }
+          },
+          undefined,
+          () => {
+            m.delete(u);
+          },
+        );
+        t.magFilter = THREE.NearestFilter;
+        t.colorSpace = THREE.SRGBColorSpace;
+        m.set(u, t);
+      }
     }
+
+    // 加载 atlas.png 一次，然后给每个命中的 url 设置 offset/repeat
+    if (needsAtlas && atlasHits.length > 0) {
+      const atlasSrc = atlasHits[0].src;
+      const atlasTex = getAtlasTexture(atlasSrc)!;
+      // 同步设置 offset/repeat（atlas 纹理加载可能还没完成，但 repeat/offset 属性先设置好）
+      // 等 onLoad 触发时 three.js 会重新上传
+      for (const hit of atlasHits) {
+        // 因为多个命中 url 共享同一张 atlas texture，
+        // 但每个 url 需要不同的 offset/repeat，所以我们给每个 url clone 一份！
+        // three.js 的 Texture.clone() 是浅拷贝，共享 image 但各自有 offset/repeat
+        const texClone = atlasTex.clone();
+        // three.js 贴图默认 flipY=true：UV 的 v=0 对应图像底部，
+        // 而 atlas 的 region.y 是从图像顶部算起，所以 y 偏移要翻过来
+        texClone.offset.set(
+          hit.region.x / hit.atlasW,
+          (hit.atlasH - hit.region.y - hit.region.h) / hit.atlasH,
+        );
+        texClone.repeat.set(hit.region.w / hit.atlasW, hit.region.h / hit.atlasH);
+        texClone.needsUpdate = true;
+        m.set(hit.url, texClone);
+        dm.set(hit.url, [hit.region.w, hit.region.h]);
+      }
+      // 全部命中 atlas 时没有 onLoad 回调，这里统一刷新尺寸，
+      // 否则几何体 UV 会退回 16×16 归一化，动画长图会把所有帧挤到一面上
+      setDims(new Map(dm));
+    }
+
     setTexMap(m);
     return () => {
-      m.forEach((t) => t.dispose());
+      m.forEach((t) => {
+        if (!_sharedAtlasTextures.has(t)) t.dispose();
+      });
     };
-  }, [urlKey]);
+  }, [urlKey, atlasMeta, atlasBaseUrl, isProd]);
   return {texMap, dims};
 }
 
@@ -173,12 +255,15 @@ function Block({
 }): ReactNode {
   const history = useHistory();
   const [hovered, setHovered] = useState(false);
+  const atlasMeta = useAtlasMeta();
+  const atlasBaseUrl = useBaseUrl('/');
+  const isProd = process.env.NODE_ENV === 'production';
 
   const urls = useMemo(
     () => [...new Set((quads ?? []).map((q) => q.texture))],
     [quads],
   );
-  const {texMap: texByUrl, dims} = useTextures(urls);
+  const {texMap: texByUrl, dims} = useTextures(urls, atlasMeta, atlasBaseUrl, isProd);
   // 每张贴图共享一个材质
   const materials = useMemo(() => {
     const m = new Map<string, THREE.MeshBasicMaterial>();

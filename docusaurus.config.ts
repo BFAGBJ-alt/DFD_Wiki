@@ -14,18 +14,25 @@ const config: Config = {
     v4: true, // Improve compatibility with the upcoming Docusaurus v4
     // 开发模式也读取真实 git 时间（默认 dev 下使用模拟值）
     experimental_vcs: 'git-ad-hoc',
+    // rspack 在本机 Windows 环境下 dev 会 panic、build 会卡死在
+    // "Creating an optimized production build"，回退到 webpack
+    faster: {
+      rspackBundler: false,
+      rspackPersistentCache: false,
+    },
   },
 
   // Set the production url of your site here
-  url: 'https://your-docusaurus-site.example.com',
+  // 可用环境变量覆盖（GitHub Pages 项目页：baseUrl=/wiki_page/）
+  url: process.env.DFD_SITE_URL ?? 'https://your-docusaurus-site.example.com',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: '/',
+  baseUrl: process.env.DFD_BASE_URL ?? '/',
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
-  organizationName: 'facebook', // Usually your GitHub org/user name.
-  projectName: 'docusaurus', // Usually your repo name.
+  organizationName: 'BFAGBJ-alt', // Usually your GitHub org/user name.
+  projectName: 'wiki_page', // Usually your repo name.
 
   onBrokenLinks: 'throw',
 

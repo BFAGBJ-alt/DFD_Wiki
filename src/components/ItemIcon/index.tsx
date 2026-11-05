@@ -2,6 +2,7 @@ import React, {useState, type ReactNode} from 'react';
 import Link from '@docusaurus/Link';
 import {resolveItem} from '@site/src/data/items/index';
 import BlockDisplay from '../BlockDisplay';
+import MinecraftImage from '../MinecraftImage';
 import styles from './styles.module.css';
 
 type ItemIconProps = {
@@ -60,7 +61,7 @@ export default function ItemIcon({
       style={{width: size * 0.7, height: size * 0.7}}
     />
   ) : (
-    <img
+    <MinecraftImage
       src={item.texture}
       alt={item.name}
       width={size}
@@ -77,10 +78,9 @@ export default function ItemIcon({
       title={item.name}>
       {content}
       {item.overlay && !item.block && !item.skull && !failed && (
-        <img
+        <MinecraftImage
           src={item.overlay}
           alt=""
-          aria-hidden="true"
           width={size}
           height={size}
           className={styles.overlay}
