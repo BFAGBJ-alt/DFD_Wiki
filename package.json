@@ -5,7 +5,10 @@
   "scripts": {
     "docusaurus": "docusaurus",
     "start": "docusaurus start",
-    "build": "docusaurus build",
+    "build": "node scripts/build.mjs",
+    "build:raw": "docusaurus build",
+    "prune": "node scripts/prune_out.mjs",
+    "gen-atlas": "node scripts/gen_atlas.mjs",
     "swizzle": "docusaurus swizzle",
     "deploy": "docusaurus deploy",
     "clear": "docusaurus clear",
