@@ -14,6 +14,7 @@ npm start        # 开发服务器 http://localhost:3000
 npm run build    # 构建 + 剔除未使用材质 + 生成 atlas（产物在系统临时目录）
 npm run preview  # 本地预览构建产物 http://localhost:3001
 npm run deploy   # 构建并发布到 GitHub Pages 仓库
+npm run deploy -- --msg "更新 XXX 页面"   # 发布时在默认提交信息后追加说明
 ```
 
 ## 许可协议
