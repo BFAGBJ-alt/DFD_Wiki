@@ -14,6 +14,12 @@ const config: Config = {
     v4: true, // Improve compatibility with the upcoming Docusaurus v4
     // 开发模式也读取真实 git 时间（默认 dev 下使用模拟值）
     experimental_vcs: 'git-ad-hoc',
+    // rspack 在本机 Windows 环境下 dev 会 panic、build 会卡死在
+    // "Creating an optimized production build"，回退到 webpack
+    faster: {
+      rspackBundler: false,
+      rspackPersistentCache: false,
+    },
   },
 
   // Set the production url of your site here

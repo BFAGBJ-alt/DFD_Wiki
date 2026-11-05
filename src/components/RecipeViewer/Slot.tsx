@@ -2,6 +2,7 @@ import React, {useEffect, useState, type ReactNode} from 'react';
 import Link from '@docusaurus/Link';
 import type {ResolvedStack} from './types';
 import BlockDisplay from '../BlockDisplay';
+import MinecraftImage from '../MinecraftImage';
 import styles from './styles.module.css';
 
 export default function Slot({item}: {item?: ResolvedStack}): ReactNode {
@@ -29,7 +30,7 @@ export default function Slot({item}: {item?: ResolvedStack}): ReactNode {
         // 头颅：等距 3D 渲染皮肤头部
         <BlockDisplay skull={item.skull} size={30} name={item.name} />
       ) : src ? (
-        <img
+        <MinecraftImage
           src={src}
           alt={item.name ?? ''}
           className={styles.icon}
@@ -39,10 +40,9 @@ export default function Slot({item}: {item?: ResolvedStack}): ReactNode {
         <div className={styles.placeholder} />
       )}
       {item.overlay && stage === 0 && !item.block && (
-        <img
+        <MinecraftImage
           src={item.overlay}
           alt=""
-          aria-hidden="true"
           className={styles.overlay}
         />
       )}

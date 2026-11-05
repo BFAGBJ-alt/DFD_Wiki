@@ -9,6 +9,7 @@
     "build:raw": "docusaurus build",
     "prune": "node scripts/prune_out.mjs",
     "gen-atlas": "node scripts/gen_atlas.mjs",
+    "preview": "node scripts/preview.mjs",
     "swizzle": "docusaurus swizzle",
     "deploy": "docusaurus deploy",
     "clear": "docusaurus clear",

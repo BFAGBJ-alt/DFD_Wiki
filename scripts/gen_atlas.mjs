@@ -29,25 +29,34 @@ if (!fs.existsSync(outMinecraft)) {
 }
 
 // ============================================================================
-// 1. 收集所有原版 PNG（排除 SlimeFun），用 pngjs 解码拿尺寸 + 数据
+// 1. 收集候选 PNG：以 static 源目录为准（源目录永远完整，可重复执行），
+//    但只打包 outDir 里仍然存在的（即 prune 判定为被引用的）那些。
 // ============================================================================
 
+const srcMinecraft = path.join(REPO_ROOT, 'static', 'img', 'Minecraft');
+
 function* walkPngs(root) {
-  for (const entry of fs.readdirSync(root, {withFileTypes: true})) {
-    const p = path.join(root, entry.name);
-    if (entry.isDirectory()) {
-      if (entry.name === 'SlimeFun') continue;
-      yield* walkPngs(p);
-    } else if (entry.isFile() && path.extname(entry.name).toLowerCase() === '.png') {
-      const rel = path.relative(root, p).replace(/\\/g, '/');
-      if (rel === ATLAS_PNG) continue;
-      yield {rel, full: p};
+  function* walk(dir) {
+    for (const entry of fs.readdirSync(dir, {withFileTypes: true})) {
+      const p = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        if (entry.name === 'SlimeFun') continue;
+        yield* walk(p);
+      } else if (entry.isFile() && path.extname(entry.name).toLowerCase() === '.png') {
+        // 注意：rel 必须相对固定 root 计算，递归时不能把 root 换成子目录
+        const rel = path.relative(root, p).replace(/\\/g, '/');
+        if (rel === ATLAS_PNG) continue;
+        yield {rel, full: p};
+      }
     }
   }
+  yield* walk(root);
 }
 
 const images = [];
-for (const {rel, full} of walkPngs(outMinecraft)) {
+for (const {rel, full} of walkPngs(srcMinecraft)) {
+  // 只处理 prune 之后仍保留在产物里的图（被引用的）
+  if (!fs.existsSync(path.join(outMinecraft, rel))) continue;
   try {
     const png = PNG.sync.read(fs.readFileSync(full));
     images.push({rel, full, png, width: png.width, height: png.height});
@@ -132,13 +141,13 @@ fs.writeFileSync(path.join(outMinecraft, ATLAS_JSON), JSON.stringify(meta));
 console.log(`[gen-atlas] Wrote ${ATLAS_JSON}: ${Object.keys(hashMap).length} entries`);
 
 // ============================================================================
-// 4. 清理：删掉已合入 atlas 的原版 .png
+// 4. 清理：只删产物目录里已合入 atlas 的 PNG（static 源目录绝不动）
 // ============================================================================
 
 let pruned = 0;
-for (const {full} of images) {
+for (const {rel} of images) {
   try {
-    fs.unlinkSync(full);
+    fs.unlinkSync(path.join(outMinecraft, rel));
     pruned++;
   } catch {}
 }

@@ -114,12 +114,20 @@ function useTextures(
         // 但每个 url 需要不同的 offset/repeat，所以我们给每个 url clone 一份！
         // three.js 的 Texture.clone() 是浅拷贝，共享 image 但各自有 offset/repeat
         const texClone = atlasTex.clone();
-        texClone.offset.set(hit.region.x / hit.atlasW, hit.region.y / hit.atlasH);
+        // three.js 贴图默认 flipY=true：UV 的 v=0 对应图像底部，
+        // 而 atlas 的 region.y 是从图像顶部算起，所以 y 偏移要翻过来
+        texClone.offset.set(
+          hit.region.x / hit.atlasW,
+          (hit.atlasH - hit.region.y - hit.region.h) / hit.atlasH,
+        );
         texClone.repeat.set(hit.region.w / hit.atlasW, hit.region.h / hit.atlasH);
         texClone.needsUpdate = true;
         m.set(hit.url, texClone);
         dm.set(hit.url, [hit.region.w, hit.region.h]);
       }
+      // 全部命中 atlas 时没有 onLoad 回调，这里统一刷新尺寸，
+      // 否则几何体 UV 会退回 16×16 归一化，动画长图会把所有帧挤到一面上
+      setDims(new Map(dm));
     }
 
     setTexMap(m);

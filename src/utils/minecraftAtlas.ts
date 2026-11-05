@@ -40,13 +40,19 @@ export function getHashKey(relPath: string): string {
   return (h >>> 0).toString(16).padStart(8, '0');
 }
 
+/** 拼接 baseUrl 与绝对路径，避免 // 被浏览器当成协议相对 URL。 */
+function joinBase(baseUrl: string, absPath: string): string {
+  const base = (baseUrl || '').replace(/\/+$/, '');
+  return `${base}${absPath}`;
+}
+
 /** 全局单例加载 atlas meta（只 fetch 一次）。 */
 export function loadAtlasMeta(
   baseUrl = '',
   urlOverride?: string,
 ): Promise<Meta | null> {
   if (_metaPromise) return _metaPromise;
-  const url = urlOverride ?? `${baseUrl}/img/Minecraft/_atlas.json`;
+  const url = urlOverride ?? joinBase(baseUrl, '/img/Minecraft/_atlas.json');
   _metaPromise = fetch(url)
     .then((r) => (r.ok ? (r.json() as Promise<Meta>) : null))
     .catch(() => null);
@@ -64,8 +70,11 @@ export function resolveTex(
   atlasBaseUrl = '',
 ): TexResolve {
   if (!isProd || !meta) return {src: url};
-  if (!url.startsWith('/img/Minecraft/')) return {src: url};
-  const rel = url.replace('/img/Minecraft/', '');
+  // 兼容子路径部署：baseUrl 可能是 /foo/，从标记点之后取相对路径
+  const marker = '/img/Minecraft/';
+  const idx = url.indexOf(marker);
+  if (idx === -1) return {src: url};
+  const rel = url.slice(idx + marker.length);
   if (rel.startsWith('SlimeFun/')) return {src: url};
 
   const key = getHashKey(rel);
@@ -73,7 +82,7 @@ export function resolveTex(
   if (!region) return {src: url};
 
   return {
-    src: `${atlasBaseUrl}/img/Minecraft/_atlas.png`,
+    src: joinBase(atlasBaseUrl, '/img/Minecraft/_atlas.png'),
     region,
     atlasW: meta._atlas.w,
     atlasH: meta._atlas.h,

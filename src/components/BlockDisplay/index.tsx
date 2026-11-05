@@ -148,6 +148,8 @@ export default function BlockDisplay({
   const isProd = process.env.NODE_ENV === 'production';
   const [quads, setQuads] = useState<Quad[] | null>(null);
   const [atlasMeta, setAtlasMeta] = useState<Meta | null>(null);
+  // atlas meta 是否已经尝试加载完（成功或失败），用于避免预加载已删除的原贴图
+  const [atlasReady, setAtlasReady] = useState(!isProd);
   // clipPath 的 id 必须全局唯一，否则同页多个图标会互相套用裁剪路径
   const rawId = useId();
   const uid = rawId.replace(/[^a-zA-Z0-9_-]/g, '');
@@ -157,7 +159,10 @@ export default function BlockDisplay({
     if (!isProd) return;
     let cancelled = false;
     loadAtlasMeta(atlasBase).then((m) => {
-      if (!cancelled) setAtlasMeta(m);
+      if (!cancelled) {
+        setAtlasMeta(m);
+        setAtlasReady(true);
+      }
     });
     return () => {
       cancelled = true;
@@ -200,8 +205,17 @@ export default function BlockDisplay({
   const [infos, setInfos] = useState<Record<string, ImgInfo>>({});
   useEffect(() => {
     if (!quads || quads.length === 0) return;
+    // prod 下等 atlas meta 就绪：命中 atlas 的贴图原 PNG 已被删除，
+    // 预加载只会得到 404，尺寸直接由 atlas 区域决定
+    if (!atlasReady) return;
     let cancelled = false;
-    const urls = [...new Set(quads.map((q) => q.texture))];
+    const urls = [...new Set(quads.map((q) => q.texture))].filter(
+      (u) => !resolveTex(u, atlasMeta, isProd, atlasBase).region,
+    );
+    if (urls.length === 0) {
+      setInfos({});
+      return;
+    }
     Promise.all(urls.map((u) => loadImgInfo(u))).then((list) => {
       if (cancelled) return;
       setInfos(Object.fromEntries(urls.map((u, i) => [u, list[i]])));
@@ -209,7 +223,7 @@ export default function BlockDisplay({
     return () => {
       cancelled = true;
     };
-  }, [quads]);
+  }, [quads, atlasMeta, atlasReady, atlasBase, isProd]);
 
   const drawn = useMemo(() => {
     if (!quads) return [];

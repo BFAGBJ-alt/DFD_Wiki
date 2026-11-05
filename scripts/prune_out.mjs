@@ -106,6 +106,9 @@ function loadModelChain(id, localBase) {
   _loadingModels.add(id);
   const localPath = path.join(localBase, `${id}.json`);
   if (!fs.existsSync(localPath)) return [];
+  // 父模型 JSON 本身也要保留：glass/nether_quartz_ore 等模型自身没有 elements，
+  // 要靠 parent（cube_all → block）才能解析出几何体，删掉父模型会退化成灰块
+  used.add(`block/${id}.json`);
   let json;
   try {
     json = JSON.parse(fs.readFileSync(localPath, 'utf8'));
