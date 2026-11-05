@@ -16,6 +16,14 @@ function isAtlasCandidate(url: string): boolean {
   return !url.slice(idx + '/img/Minecraft/'.length).startsWith('SlimeFun/');
 }
 
+/** 数据文件里写的是 '/img/Minecraft/xxx' 绝对路径，部署到子路径时需要补上 baseUrl */
+function withBase(url: string, baseUrl: string): string {
+  if (!url.startsWith('/')) return url;
+  const base = (baseUrl || '').replace(/\/+$/, '');
+  if (!base) return url;
+  return url.startsWith(`${base}/`) ? url : `${base}${url}`;
+}
+
 type TexState = {
   status: 'ready' | 'pending';
   src: string;
@@ -24,8 +32,10 @@ type TexState = {
   atlasH?: number;
 };
 
-function useAtlasTex(url: string): TexState {
+function useAtlasTex(rawUrl: string): TexState {
   const baseUrl = useBaseUrl('');
+  // 数据里是 '/img/Minecraft/...' 绝对路径，子路径部署（baseUrl=/wiki_page/）要补前缀
+  const url = withBase(rawUrl, baseUrl);
   const [meta, setMeta] = useState<Meta | null>(null);
 
   useEffect(() => {
@@ -100,7 +110,7 @@ export default function MinecraftImage({
   if (!tex.region) {
     return (
       <img
-        src={src}
+        src={tex.src}
         alt={alt}
         className={className}
         width={width}
