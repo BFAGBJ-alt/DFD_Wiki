@@ -23,15 +23,16 @@ const config: Config = {
   },
 
   // Set the production url of your site here
-  url: 'https://your-docusaurus-site.example.com',
+  // 可用环境变量覆盖（GitHub Pages 项目页：baseUrl=/wiki_page/）
+  url: process.env.DFD_SITE_URL ?? 'https://your-docusaurus-site.example.com',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: '/',
+  baseUrl: process.env.DFD_BASE_URL ?? '/',
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
-  organizationName: 'facebook', // Usually your GitHub org/user name.
-  projectName: 'docusaurus', // Usually your repo name.
+  organizationName: 'BFAGBJ-alt', // Usually your GitHub org/user name.
+  projectName: 'wiki_page', // Usually your repo name.
 
   onBrokenLinks: 'throw',
 
