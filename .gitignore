@@ -19,4 +19,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# Minecraft 素材：整目录不进库。
+# SlimeFun 材质见仓库根目录的 SlimeAssets.zip / SlimeAssets.7z
+# （解压到 static/img/Minecraft/），原版材质按 docs/帮我们扩充.mdx 的目录结构自行部署
 /static/img/Minecraft

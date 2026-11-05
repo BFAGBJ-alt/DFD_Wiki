@@ -1,11 +1,370 @@
 ---
 sidebar_position: 1000
-title: 帮我们扩充wiki！
+title: 帮我们扩充 Wiki
 sidebar_label: 帮我们扩充
 contributors:
   - BFAGBJ
+  - Deepseek v4.1 flash
 ---
 
-其实很简单，访问Wiki的Github地址，将其fork下来，添加你的条目，然后提交Pr就行了。
+本 Wiki 由社区共同维护，欢迎任何人参与补充与修正。内容以「准确、可复现、可维护」为第一原则：
+凡是写进 Wiki 的内容，都应当能在游戏中或插件源码中得到验证。
 
-本wiki的条目除了正常mdx格式，还添加了结构渲染，以更加直观的显示。
+贡献方式有三种，可根据自身情况选择。
+
+## 一、贡献方式
+
+### 方式一：Fork 后提交 Pull Request（推荐）
+
+适合能使用 Git 的贡献者，便于审查与讨论。
+
+1. 打开源码仓库 [BFAGBJ-alt/DFD_Wiki](https://github.com/BFAGBJ-alt/DFD_Wiki)，点击右上角 **Fork**。
+2. 将你名下的 Fork 克隆到本地：
+
+   ```bash
+   git clone https://github.com/<你的用户名>/DFD_Wiki.git
+   cd DFD_Wiki
+   npm install
+   npm start          # 本地预览：http://localhost:3000
+   ```
+
+3. 新建分支并在其上写作，不要直接改 `main`：
+
+   ```bash
+   git checkout -b docs/你的主题
+   ```
+
+4. 在 `docs/` 下新增或修改条目（`mdx` 格式），素材放到 `static/` 对应目录。
+5. 本地确认无误后提交并推送：
+
+   ```bash
+   git add -A
+   git commit -m "docs: 补充 XXX"
+   git push origin docs/你的主题
+   ```
+
+6. 回到 GitHub，向 **BFAGBJ-alt/DFD_Wiki 的 `main` 分支** 发起 Pull Request，说明改动内容与依据（游戏内实测截图、源码位置等）。
+
+### 方式二：提交 Issue（不具备 Fork 条件时）
+
+不熟悉 Git、或只是指出问题，可直接在
+[Issues 页面](https://github.com/BFAGBJ-alt/DFD_Wiki/issues) 提交 Issue，同样视为有效贡献。
+
+建议在 Issue 中尽量提供：
+
+- 页面标题或链接；
+- 问题描述（笔误、数值错误、步骤缺失、贴图错误等）；
+- 依据（游戏内实测、插件源码片段、配置项位置）。
+
+我们会在核实后更新对应条目，并在 Issue 中回复处理结果。
+
+### 方式三：参与讨论与校对
+
+对已有条目提出异议、补充截图、指出术语不统一，都可以通过 Issue 完成。
+校对类贡献与写作类贡献同等重要。
+
+> 部署仓库 `wiki_page` 仅存放构建产物，其内容每次发布都会被整体覆盖。
+> 请勿在该仓库提交 Issue 或 Pull Request，所有讨论请集中在源码仓库。
+
+## 二、内容与 AI 使用规范
+
+本站不排斥 AI 工具，但要求「工具可以加速，判断必须由人负责」。具体约定如下。
+
+### 允许：用 AI 分析源码生成物品数据
+
+`src/data/items/` 下的 `ts` 文件是结构化数据（名称、模型、贴图、链接等），
+允许借助 AI 阅读插件源码、`assets` 目录或模型文件后批量生成。
+
+生成结果需满足：
+
+- 字段与 `src/data/items/types.ts` 中的 `ItemDef` 定义一致；
+- 物品 id 与游戏中一致，不臆造；
+- 同一物品在多个文件间不要重复登记。
+
+### 允许：用 AI 批量生产物品页面，但必须逐条核对
+
+物品类页面（配方、数值、获取方式等）允许批量生成，**但必须自行与游戏内表现
+或附属源码逐一核对**后再提交。核对范围至少包括：
+
+- 配方形状、材料数量、产出数量；
+- 耗时、耗电等数值；
+- 机器归属与合成类型（工作台 / 熔炉 / 机器）；
+- 物品贴图与实际游戏贴图是否一致。
+
+未核对的内容不要提交；提交时请在 PR / Issue 中说明核对方式。
+
+### 不允许：用 AIGC 代写教程正文
+
+教程（例如「基础 ME 网络的搭建」这类有先后顺序、有操作步骤、有判断分支的条目）
+**必须由撰写者本人亲自完成**。AI 可以用于润色语句、检查错别字，但不得用于生成教程主体。
+
+原因很直接：教程的价值在于「按此操作一定成功」，而这一点只能由真正搭过、
+踩过坑的人保证。未经实践验证的教程对其他玩家的伤害远大于留白。
+
+## 三、常用组件
+
+本站内置了一批 Minecraft 相关组件，直接写在 `mdx` 中即可使用。
+下述示例中的代码块请原样复制到你的条目中。
+
+### BlockDisplay：等距 3D 方块图标
+
+使用原版模型几何与贴图渲染，非立方体方块（讲台、栅栏、箱子等）也能正确显示形状。
+固定视角、不可交互，适合放在正文里做小图标。
+
+```mdx
+import BlockDisplay from '@site/src/components/BlockDisplay';
+
+<BlockDisplay item="me_charger" size={100} />
+<BlockDisplay block="lectern" size={32} />
+<BlockDisplay skull="https://textures.minecraft.net/texture/xxxx" face="east" size={48} />
+```
+
+| 参数 | 类型 | 默认值 | 说明 |
+| --- | --- | --- | --- |
+| `item` | `string` | — | 物品库 id（`src/data/items`），自动展开 `block` / `skull` / `name` |
+| `block` | `string \| string[]` | — | 原版方块 model id，如 `furnace`、`glass`；数组或逗号分隔字符串可叠加多个模型（后者绘制在上层） |
+| `skull` | `string` | — | 自定义头颅皮肤 URL（64×64 PNG）；与 `block` 同时填写时以 `block` 为准 |
+| `face` | `'up' \| 'north' \| 'south' \| 'east' \| 'west'` | `'up'` | 头颅朝向：`up` 为落地头（脸朝北）；水平方向表示脸贴在该侧边缘 |
+| `size` | `number` | `32` | 图标宽度（px），高度按模型包围盒自适应 |
+| `name` | `string` | — | 无障碍名称 / 悬停提示 |
+| `className` | `string` | — | 附加的 CSS class |
+
+### StructureViewer：交互式结构查看器
+
+桌面端使用 3D 渲染（可旋转、可点击带 `link` 的方块），移动端降级为静态图与方块名单。
+用于展示多方块结构，也支持只展示单个方块。
+
+```mdx
+import StructureViewer from '@site/src/components/StructureViewer';
+
+<StructureViewer name="me-network" />
+<StructureViewer item="me_drive" />
+<StructureViewer block="furnace" label="熔炉" />
+<StructureViewer skull="https://textures.minecraft.net/texture/xxxx" face="up" label="玩家头颅" />
+```
+
+| 参数 | 类型 | 默认值 | 说明 |
+| --- | --- | --- | --- |
+| `name` | `string` | — | 结构名，读取 `static/structures/<name>.json`；移动端同时读取 `static/img/structures/<name>.gif` |
+| `block` | `string \| string[]` | — | 原版方块 model id，可叠加多个模型 |
+| `item` | `string` | — | 物品库 id，自动展开方块、名称与链接 |
+| `skull` | `string` | — | 自定义头颅皮肤 URL（64×64 PNG） |
+| `face` | `'up' \| 'north' \| 'south' \| 'east' \| 'west'` | `'up'` | 单方块模式下头颅朝向 |
+| `label` | `string` | — | 名称：桌面端悬停显示，移动端在名单里常驻显示 |
+| `link` | `string` | — | 点击方块跳转的 wiki 链接 |
+| `color` | `string` | `#888888` | 无模型、无贴图时的纯色回退 |
+| `size` | `'sm' \| 'md' \| 'lg' \| number` | 结构 `md`，单方块 `sm` | 画布高度：`sm`=280、`md`=480、`lg`=600，或直接给像素数 |
+
+结构文件放在 `static/structures/<name>.json`，坐标单位为格，格式如下：
+
+```json
+{
+  "name": "me-craft",
+  "palette": {
+    "controller": {
+      "block": "black_stained_glass",
+      "label": "ME 控制器",
+      "link": "/docs/粘液科技-单方空岛/应用能源/物品/ME控制器"
+    }
+  },
+  "blocks": [
+    {"x": 0, "y": 0, "z": 0, "type": "controller"},
+    {"x": 1, "y": 0, "z": 0, "item": "me_drive"},
+    {"x": 0, "y": 1, "z": 0, "block": "target", "label": "样板接口"}
+  ]
+}
+```
+
+- `palette` 用于预设重复出现的方块，`blocks[].type` 引用预设；
+- `blocks[].item` 引用物品库（`src/data/items`），方块内的内联字段优先于预设与数据库；
+- 每个方块可填 `block` / `skull` / `face` / `color` / `label` / `link`。
+
+### ItemIcon：物品图标
+
+按物品库自动选择 3D 方块图标或平面贴图，可按需显示数量角标与跳转链接。
+
+```mdx
+import ItemIcon from '@site/src/components/ItemIcon';
+
+<ItemIcon id="me_drive" />
+<ItemIcon item="me_charger" size={48} count={4} />
+```
+
+| 参数 | 类型 | 默认值 | 说明 |
+| --- | --- | --- | --- |
+| `id` | `string` | — | 物品库 id |
+| `item` | `string` | — | 与 `id` 等价，二者写一个即可 |
+| `size` | `number` | `32` | 图标边长（px） |
+| `count` | `number` | — | 数量，大于 1 时右下角显示角标 |
+| `link` | `string` | 物品库登记值 | 覆盖跳转链接 |
+| `className` | `string` | — | 附加的 CSS class |
+
+### RecipeViewer：合成配方
+
+支持有序合成、无序合成与熔炉三种，可附带机器、耗时与耗电信息。
+
+```mdx
+import RecipeViewer from '@site/src/components/RecipeViewer';
+
+<RecipeViewer
+  recipe={{
+    type: 'shaped',
+    pattern: ['ABA', 'BCB', 'ABA'],
+    materials: {
+      A: {id: 'stone'},
+      B: {id: 'iron_ingot'},
+      C: {id: 'redstone'},
+    },
+    result: {id: 'me_drive', count: 1},
+    machine: 'enhanced_crafting_table',
+    time: 10,
+    energy: 500,
+  }}
+/>
+```
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `type` | `'shaped' \| 'shapeless' \| 'furnace'` | 配方类型 |
+| `pattern` | `string[]` | 仅 `shaped`：最多三行，每行最多三个字符，空格表示空槽 |
+| `materials` | `Record<string, ItemStack>` | 仅 `shaped`：字符到材料的映射 |
+| `ingredients` | `ItemStack[]` | 仅 `shapeless`：材料列表 |
+| `input` / `fuel` | `ItemStack` | 仅 `furnace`：输入物与燃料（燃料可省略） |
+| `result` | `ItemStack` | 产出物 |
+| `machine` | `ItemStack \| string` | 所需机器，显示在九宫格左侧；可写机器表 id |
+| `time` | `number \| string` | 耗时：数字按秒显示，字符串原样显示（如 `'1m20s'`） |
+| `energy` | `number \| string` | 耗电：数字按 J 显示，字符串原样显示（如 `'1k FE'`） |
+
+其中 `ItemStack` 的字段为：
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `id` | `string` | 物品库 id，自动解析名称与贴图 |
+| `name` | `string` | 覆盖显示名称 |
+| `texture` | `string` | 覆盖贴图路径 |
+| `count` | `number` | 数量，默认 1 |
+
+### Columns：左右分栏
+
+适合「左边文字、右边结构图」的排版。
+
+```mdx
+import Columns from '@site/src/components/Columns';
+
+<Columns left={45} gap={20} keepRowOnMobile={false}>
+<div>
+
+左边的内容
+
+</div>
+<div>
+
+<StructureViewer item="me_drive" />
+
+</div>
+</Columns>
+```
+
+| 参数 | 类型 | 默认值 | 说明 |
+| --- | --- | --- | --- |
+| `left` | `number` | `45` | 左栏宽度百分比，右栏占剩余空间 |
+| `gap` | `number` | `20` | 两栏间距（px） |
+| `keepRowOnMobile` | `boolean` | `false` | 窄屏下是否保持并排（默认上下堆叠） |
+
+> 两个子元素之间要留空行，内部的 Markdown 才会被解析。
+
+### Term：悬停术语提示
+
+正文里的术语加气泡解释，适合首次出现的缩写。
+
+```mdx
+import Term from '@site/src/components/Term';
+
+<Term tip="应用能源（Applied Energistics）的简称">AE</Term> 网络由……
+```
+
+| 参数 | 类型 | 说明 |
+| --- | --- | --- |
+| `tip` | `string` | 悬停时浮现的提示内容 |
+| `children` | `ReactNode` | 正文中被解释的词 |
+
+### 物品库数据
+
+组件里用到的 `item` / `id` 都来自 `src/data/items/`。新增物品时按下表字段书写：
+
+```ts
+// src/data/items/example.ts
+import type {ItemDef} from './types';
+
+export const items: Record<string, ItemDef> = {
+  example_item: {
+    name: '示例物品',
+    block: 'furnace',          // 3D 方块模型 id（可选）
+    texture: '/img/Minecraft/item/paper.png', // 平面贴图（可选）
+    link: '/docs/某条目',       // 标记后方块可点击跳转
+    glint: true,                // 显示附魔光效
+  },
+};
+```
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `name` | `string` | 中文名 |
+| `texture` | `string` | 贴图路径；不填则默认 `/img/Minecraft/item/<id>.png` |
+| `block` | `string \| string[]` | 3D 方块模型 id |
+| `skull` | `string` | 自定义头颅皮肤 URL |
+| `color` | `string` | 纯色回退 |
+| `link` | `string` | 点击跳转链接 |
+| `glint` | `boolean` | 是否显示附魔光效 |
+| `overlay` | `string` | 叠加在贴图上层的贴图 |
+
+## 四、提交前自查
+
+- [ ] 内容与游戏内或插件源码一致，数值、配方、名称均核对过；
+- [ ] 教程为本人实践后撰写，步骤可复现；
+- [ ] 新增图片放在 `static/` 下，路径从 `/img/...` 开始写；
+- [ ] 组件参数与本文档一致，页面在本地 `npm start` 下显示正常；
+- [ ] PR / Issue 中写清改动原因与核对依据。
+
+感谢每一位贡献者。哪怕只改一个错别字，也是在让这份 Wiki 更可靠。
+
+## 五、附：原版材质目录结构
+
+`static/img/Minecraft/` 整个目录不进版本库，需要按下面的结构自行部署。
+附属（SlimeFun）材质打包在仓库根目录，二选一解压到 `static/img/Minecraft/` 即可：
+
+| 文件 | 大小 | 说明 |
+| --- | --- | --- |
+| `SlimeAssets.zip` | 约 14.6 MB | 系统自带解压，推荐 |
+| `SlimeAssets.7z` | 约 6.8 MB | 体积更小，需 7-Zip（Win11 新版资源管理器可直接打开） |
+
+两个压缩包内容相同，解压后根目录都是 `SlimeFun/`。
+
+```text
+static/img/Minecraft/
+├── block/                      # 方块模型与贴图（3600 个文件）
+│   ├── stone.json              # 方块模型：parent / textures / elements
+│   ├── stone.png               # 方块贴图（16×16）
+│   ├── water_still.png         # 动画贴图：竖向长条，每帧 16×16
+│   └── water_still.png.mcmeta  # 动画帧序与时长
+├── item/                       # 物品平面贴图（792 个 PNG）
+│   └── apple.png
+├── items/                      # 物品定义（1505 个 JSON，1.21+ item definition）
+│   └── acacia_boat.json        # 指向 minecraft:item/acacia_boat
+├── model/
+│   └── item/                   # 物品模型（1283 个 JSON）
+│       └── acacia_boat.json    # 指向 item/ 下的贴图
+├── entity/                     # 实体贴图（631 个文件，按实体名分组）
+│   ├── chest/
+│   ├── player/
+│   ├── villager/
+│   └── ...
+└── SlimeFun/                   # 附属材质：由 SlimeAssets.zip / .7z 解压得到
+    └── assets/<命名空间>/textures/...
+```
+
+> 素材来源 Minecraft 1.21.11，自行根据该结构部署材质。
+> 解压压缩包后根目录即 `SlimeFun/`，最终应得到 `static/img/Minecraft/SlimeFun/assets/...`。
+> 整个 `static/img/Minecraft/` 都被 `.gitignore` 忽略；缺少材质时构建仍可进行，
+> 但页面中的方块与物品图标会缺失。
+
