@@ -81,6 +81,14 @@ for (const entry of fs.readdirSync(DEPLOY_DIR)) {
 fs.cpSync(outDir, DEPLOY_DIR, {recursive: true});
 // GitHub Pages 默认跑 Jekyll，会忽略下划线开头的文件/目录
 fs.writeFileSync(path.join(DEPLOY_DIR, '.nojekyll'), '');
+// 说明与协议文件（部署目录每次整体覆盖，所以每次重新写入）
+fs.copyFileSync(
+  path.join(REPO_ROOT, 'scripts', 'pages-readme.md'),
+  path.join(DEPLOY_DIR, 'README.md'),
+);
+for (const name of ['LICENSE', 'LICENSE-CONTENT']) {
+  fs.copyFileSync(path.join(REPO_ROOT, name), path.join(DEPLOY_DIR, name));
+}
 
 // 4. 提交
 const changed = git('status --porcelain');

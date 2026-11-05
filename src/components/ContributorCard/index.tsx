@@ -1,4 +1,5 @@
 import type {ReactNode} from 'react';
+import useBaseUrl from '@docusaurus/useBaseUrl';
 import styles from './styles.module.css';
 
 type ContributorCardProps = {
@@ -14,11 +15,13 @@ export default function ContributorCard({
   description,
   href,
 }: ContributorCardProps): ReactNode {
+  // 头像路径是 '/img/contributors/xxx'，子路径部署（baseUrl=/wiki_page/）要补前缀
+  const avatarUrl = useBaseUrl(avatar ?? '');
   const body = (
     <>
       <div className={styles.avatar}>
-        {avatar ? (
-          <img src={avatar} alt={name} />
+        {avatarUrl ? (
+          <img src={avatarUrl} alt={name} />
         ) : (
           name.trim().charAt(0).toUpperCase()
         )}
