@@ -102,16 +102,81 @@ if (!changed) {
   );
 }
 
-// 5. 推送（加速器偶发证书错误时，回退到跳过校验再试一次）
+// 5. 推送
+// 本机走加速器，常见问题：SSL 证书校验失败、502/503、连接重置、超时。
+// 策略：最多重试 N 次（默认 10），指数退避；检测到证书问题时本次降级 skip 校验。
 console.log('\n=== [deploy] push ===');
-try {
-  git(`push origin ${BRANCH}`);
-} catch (e) {
-  console.warn('[deploy] push failed, retry with sslVerify=false');
-  execSync(`git -c http.sslVerify=false push origin ${BRANCH}`, {
+
+const MAX_ATTEMPTS = Number(process.env.DFD_PUSH_RETRIES ?? 10);
+// git 在 CI/后台环境里不要弹交互式凭据输入，否则会卡住
+const pushEnv = {...process.env, GIT_TERMINAL_PROMPT: '0'};
+
+function sleep(ms) {
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+}
+
+function gitPush(extraArgs = '') {
+  return execSync(`git ${extraArgs} push origin ${BRANCH}`, {
     cwd: DEPLOY_DIR,
-    stdio: 'inherit',
+    stdio: 'pipe',
+    encoding: 'utf8',
+    env: pushEnv,
   });
+}
+
+let lastError = null;
+for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+  try {
+    gitPush();
+    console.log(`[deploy] push ok (attempt ${attempt})`);
+    lastError = null;
+    break;
+  } catch (e) {
+    lastError = e;
+    const msg = `${e.stderr ?? ''}\n${e.stdout ?? ''}\n${e.message ?? ''}`;
+    const isSsl = /SSL|certificate|schannel|unable to get local issuer/i.test(msg);
+    const isTransient =
+      /502|503|504|429|timed out|Connection reset|RPC failed|early EOF|Could not resolve host/i.test(msg);
+    const isAuth = /Authentication failed|Permission denied|403/i.test(msg);
+
+    console.warn(
+      `[deploy] push attempt ${attempt}/${MAX_ATTEMPTS} failed` +
+        (isSsl ? ' (SSL)' : isTransient ? ' (transient)' : isAuth ? ' (auth)' : ''),
+    );
+    if (attempt === MAX_ATTEMPTS) break;
+
+    // 证书问题：本轮直接降级跳过校验 + 强制 HTTP/1.1（部分加速器对 HTTP/2 不友好）
+    if (isSsl) {
+      try {
+        gitPush('-c http.sslVerify=false -c http.version=HTTP/1.1');
+        console.log('[deploy] push ok with sslVerify=false');
+        lastError = null;
+        break;
+      } catch (e2) {
+        lastError = e2;
+      }
+    } else if (isTransient) {
+      // 502/超时：降级 HTTP/1.1 再试一次
+      try {
+        gitPush('-c http.version=HTTP/1.1');
+        console.log('[deploy] push ok with HTTP/1.1');
+        lastError = null;
+        break;
+      } catch (e2) {
+        lastError = e2;
+      }
+    }
+
+    // 指数退避：2s, 4s, 8s, 16s, 30s（上限）
+    const wait = Math.min(30000, 2000 * 2 ** (attempt - 1));
+    console.warn(`[deploy] retry in ${wait / 1000}s ...`);
+    sleep(wait);
+  }
+}
+
+if (lastError) {
+  console.error(`[deploy] push failed after ${MAX_ATTEMPTS} attempts`);
+  throw lastError;
 }
 
 console.log(`\n[deploy] done → ${SITE_URL}${BASE_URL}`);
