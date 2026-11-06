@@ -3,7 +3,7 @@ import {Canvas} from '@react-three/fiber';
 import {Html, OrbitControls} from '@react-three/drei';
 import * as THREE from 'three';
 import {useHistory} from '@docusaurus/router';
-import useBaseUrl from '@docusaurus/useBaseUrl';
+import useBaseUrl, {useBaseUrlUtils} from '@docusaurus/useBaseUrl';
 import {resolveBlockQuads, rotateFaceUv, quadUvPoints, skullQuads, type Quad} from './modelResolver';
 import {loadAtlasMeta, resolveTex, type Meta} from '@site/src/utils/minecraftAtlas';
 import type {Structure, StructureBlock} from './types';
@@ -254,6 +254,9 @@ function Block({
   labelDistance: number;
 }): ReactNode {
   const history = useHistory();
+  // 数据里的 link 是站内绝对路径（/docs/...），子路径部署（/wiki_page/）要补前缀。
+  // react-router 的 history.push 不认 baseUrl，必须自己拼。
+  const {withBaseUrl} = useBaseUrlUtils();
   const [hovered, setHovered] = useState(false);
   const atlasMeta = useAtlasMeta();
   const atlasBaseUrl = useBaseUrl('/');
@@ -323,7 +326,7 @@ function Block({
         clickable
           ? (e) => {
               e.stopPropagation();
-              history.push(block.link!);
+              history.push(withBaseUrl(block.link!));
             }
           : undefined
       }
