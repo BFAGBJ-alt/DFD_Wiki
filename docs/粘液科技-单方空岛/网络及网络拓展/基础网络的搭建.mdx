@@ -1,0 +1,25 @@
+---
+sidebar_position: 1
+title: 基础网络的搭建
+contributors:
+ - BFAGBJ
+---
+
+import Term from '@site/src/components/Term';
+import StructureViewer from '@site/src/components/StructureViewer';
+import BlockDisplay from '@site/src/components/BlockDisplay';
+import ItemIcon from '@site/src/components/ItemIcon';
+
+`网络`是网络附属的核心，所有的一切都要基于它。要创建一个网络，需要用到网络控制器....
+
+当然，光有一个控制器一点用也没有，以下是一个用于储物的最小网络:
+
+<StructureViewer name="NTW_network" />
+
+虽然简陋，但是该网络已经能够存储一个大箱子的物品，并进行搜索，排序等功能。
+
+:::warning[注意]
+单个网络中只能出现一个网络控制器，如果你在一个网络里不小心又放下了一个控制器....
+
+那么其中一个控制器会爆炸，或者是释放爆炸的粒子，在此期间，网络将不会进行任何操作。
+:::

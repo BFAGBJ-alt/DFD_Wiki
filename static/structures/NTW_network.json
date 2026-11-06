@@ -1,0 +1,8 @@
+{
+  "name": "NTW_network",
+  "blocks": [
+    {"x": 0, "y": 0, "z": 0, "item": "NTW_CONTROLLER"},
+    {"x": 1, "y": 0, "z": 0, "item": "NTW_GRID"},
+    {"x": -1, "y": 0, "z": 0, "item": "NTW_CELL"}
+  ]
+}
