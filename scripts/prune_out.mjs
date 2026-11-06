@@ -1,13 +1,15 @@
 #!/usr/bin/env node
-// Post-build prune: 在 docusaurus build 完成后，从 outDir 里删掉未被引用的 Minecraft 原版材质。
-// SlimeFun/ 子树永远保留，Skull 远程皮肤不进 static，完全不受影响。
+// Post-build prune: 在 docusaurus build 完成后，从 outDir 里删掉未被引用的 Minecraft 材质。
+// 原版与 SlimeFun 走同一套引用扫描；Skull 远程皮肤不进 static，完全不受影响。
 //
 // 扫描来源：
 //   1. ts/tsx/mdx 里硬编码的 /img/Minecraft/<relpath> 字符串（直接命中 item/*.png / block/*.png / entity/*.png / block/*.json）
 //   2. ItemDef.machineDef 里的 block: 'xxx' 字段（作为 block model id，递归解析 JSON 链）
 //   3. Structure JSON 里的 block 字段（运行时 fetch，此处无法覆盖 → 保守策略：把源码扫描未命中的 block 模型里，只有"完全没被引用的"才删）
 // 操作目标：outDir/img/Minecraft/ 下的 .png / .json / .mcmeta
-// 安全策略：SlimeFun/ 永远保留；只删文件、不删目录（空目录 Docusaurus 下次也不会出现）
+// 安全策略：只删文件、不删目录（空目录 Docusaurus 下次也不会出现）
+// 注意：SlimeFun/ 现在也会被裁剪（产物里 2 万多个文件实际只用到个位数）。
+//       如果以后某处是「运行时拼路径」引用附属贴图而没写死在源码里，需要把该文件加进白名单。
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -53,13 +55,12 @@ function scanSources() {
       const content = fs.readFileSync(file, 'utf8');
 
       // (a) 硬编码 /img/Minecraft/<relpath>
+      //     SlimeFun/ 也走同一套：产物里 2 万多个附属贴图实际只用到个位数，
+      //     全量保留会让 Pages 部署（21k 文件）卡在 10 分钟超时边缘
       const reUrl = /\/img\/Minecraft\/([a-zA-Z0-9_\-/.]+)/g;
       let m;
       while ((m = reUrl.exec(content))) {
-        const rel = m[1];
-        if (rel.startsWith('SlimeFun/')) continue;
-        if (rel.startsWith('SlimeFun\\')) continue;
-        used.add(rel.replace(/\\/g, '/'));
+        used.add(m[1].replace(/\\/g, '/'));
       }
 
       // (b) block: 'xxx' 或 block: ['xxx', 'yyy']
@@ -224,12 +225,6 @@ function prune() {
   const deletedList = [];
 
   for (const rel of allRelPaths) {
-    // SlimeFun 子树永远保留
-    if (rel.startsWith('SlimeFun/')) {
-      kept++;
-      continue;
-    }
-
     // 精确匹配
     if (used.has(rel)) {
       kept++;
