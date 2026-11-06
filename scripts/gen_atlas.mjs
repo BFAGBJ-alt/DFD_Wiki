@@ -77,31 +77,42 @@ if (images.length === 0) {
 
 images.sort((a, b) => b.height - a.height || b.width - a.width);
 
+// 每个贴图四周复制 PAD 像素的「边缘像素」（dilate）。
+// 只用透明间隙挡不住采样越界：缩放/过滤时边缘会取到相邻像素或透明黑，
+// 表现为贴图四周出现一圈发黑的细线（黑线）。复制边缘像素后，
+// 越界采样拿到的还是自己边缘的颜色。
+const PAD = 2;
+const cellW = (img) => img.width + PAD * 2;
+const cellH = (img) => img.height + PAD * 2;
+
 const rows = [];
 let curRow = null;
 
 for (const img of images) {
   let placed = false;
   for (const row of rows) {
-    const usedW = row.items.reduce((s, it) => s + it.img.width, 0);
-    const gap = 2;
-    if (row.h >= img.height && usedW + gap + img.width <= MAX_ATLAS_SIZE) {
-      row.items.push({x: usedW + gap, img});
+    const usedW = row.items.reduce((s, it) => s + cellW(it.img), 0);
+    if (row.h >= cellH(img) && usedW + cellW(img) <= MAX_ATLAS_SIZE) {
+      row.items.push({x: usedW, img});
       placed = true;
       break;
     }
   }
   if (!placed) {
-    const newRow = {y: curRow ? curRow.y + curRow.h + 2 : 2, h: img.height + 2, items: [{x: 2, img}]};
+    const newRow = {
+      y: curRow ? curRow.y + curRow.h : PAD,
+      h: cellH(img),
+      items: [{x: PAD, img}],
+    };
     rows.push(newRow);
     curRow = newRow;
   }
 }
 
 const atlasW = Math.min(MAX_ATLAS_SIZE, Math.max(...rows.flatMap(r =>
-  r.items.reduce((s, it) => Math.max(s, it.x + it.img.width), 0)
-)) + 2);
-const atlasH = rows.reduce((s, r) => Math.max(s, r.y + r.h), 0) + 2;
+  r.items.reduce((s, it) => Math.max(s, it.x + cellW(it.img)), 0)
+)) + PAD);
+const atlasH = rows.reduce((s, r) => Math.max(s, r.y + r.h), 0) + PAD;
 console.log(`[gen-atlas] Atlas: ${atlasW} × ${atlasH} (${rows.length} rows)`);
 
 // ============================================================================
@@ -110,11 +121,21 @@ console.log(`[gen-atlas] Atlas: ${atlasW} × ${atlasH} (${rows.length} rows)`);
 
 const canvas = new PNG({width: atlasW, height: atlasH});
 
+// 写入一张图 + 四周 PAD 像素的边缘复制（坐标超出贴图范围时钳到边缘像素）
 function blit(srcPng, destX, destY) {
-  for (let y = 0; y < srcPng.height; y++) {
-    const srcOff = y * srcPng.width * 4;
-    const destOff = ((destY + y) * atlasW + destX) * 4;
-    srcPng.data.copy(canvas.data, destOff, srcOff, srcOff + srcPng.width * 4);
+  const {width: sw, height: sh, data} = srcPng;
+  for (let y = -PAD; y < sh + PAD; y++) {
+    const sy = Math.min(sh - 1, Math.max(0, y));
+    const destRow = ((destY + y) * atlasW + destX) * 4;
+    for (let x = -PAD; x < sw + PAD; x++) {
+      const sx = Math.min(sw - 1, Math.max(0, x));
+      const srcOff = (sy * sw + sx) * 4;
+      const destOff = destRow + x * 4;
+      canvas.data[destOff] = data[srcOff];
+      canvas.data[destOff + 1] = data[srcOff + 1];
+      canvas.data[destOff + 2] = data[srcOff + 2];
+      canvas.data[destOff + 3] = data[srcOff + 3];
+    }
   }
 }
 
@@ -122,9 +143,12 @@ const hashMap = {};
 
 for (const row of rows) {
   for (const {x, img} of row.items) {
-    blit(img.png, x, row.y);
+    // x/y 是 cell 左上角，内层贴图从 cell + PAD 开始
+    const innerX = x + PAD;
+    const innerY = row.y + PAD;
+    blit(img.png, innerX, innerY);
     const key = hashRel(img.rel);
-    hashMap[key] = {x, y: row.y, w: img.width, h: img.height};
+    hashMap[key] = {x: innerX, y: innerY, w: img.width, h: img.height};
   }
 }
 

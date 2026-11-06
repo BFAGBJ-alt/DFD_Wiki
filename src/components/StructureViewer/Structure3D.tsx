@@ -44,6 +44,10 @@ function getAtlasTexture(url: string): THREE.Texture | null {
   const loader = new THREE.TextureLoader();
   _atlasTex = loader.load(url);
   _atlasTex.magFilter = THREE.NearestFilter;
+  // 关掉 mipmap：多张 16px 贴图挤在一张 atlas 里，缩小后各级 mip 会把
+  // 相邻贴图混进来，看起来像贴图边缘有一圈黑线
+  _atlasTex.minFilter = THREE.NearestFilter;
+  _atlasTex.generateMipmaps = false;
   _atlasTex.colorSpace = THREE.SRGBColorSpace;
   _atlasTexUrl = url;
   _sharedAtlasTextures.add(_atlasTex);
@@ -99,6 +103,8 @@ function useTextures(
           },
         );
         t.magFilter = THREE.NearestFilter;
+        t.minFilter = THREE.NearestFilter;
+        t.generateMipmaps = false;
         t.colorSpace = THREE.SRGBColorSpace;
         m.set(u, t);
       }

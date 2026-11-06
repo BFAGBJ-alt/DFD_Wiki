@@ -81,12 +81,6 @@ const config: Config = {
           position: 'left',
           label: '文档',
         },
-        // 移动端目录按钮：自定义 navbar item（见 src/theme/NavbarItem/ComponentTypes.tsx）
-        // 放在 left 容器里用 margin-left:auto 顶到最右：右侧容器在窄屏会被挤出可视区
-        {
-          type: 'custom-drawer-toggle' as never,
-          position: 'left',
-        },
         {
           href: 'https://github.com/BFAGBJ-alt/DFD_Wiki/',
           label: 'GitHub',

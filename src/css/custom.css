@@ -65,26 +65,6 @@
   }
 }
 
-/* 移动端目录按钮：是否渲染由 JS 判断（useNavbarMobileSidebar().disabled），
-   这里不要再靠媒体查询控制显隐——老浏览器不支持媒体查询 range 语法时
-   会整段失效，按钮就永远看不到了 */
-.navbar-drawer-toggle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  padding: 0;
-  border: 1px solid var(--ifm-color-emphasis-400);
-  border-radius: 6px;
-  background: transparent;
-  color: inherit;
-  cursor: pointer;
-  /* 靠左容器（flex:1）的 margin-left:auto 顶到最右，避开窄屏下被挤出的右侧容器 */
-  margin-left: auto;
-  order: 99;
-}
-
 /* 16px 贴图放大时保持像素感。
    老 Safari 只认 -webkit-optimize-contrast；image-rendering 可继承，
    写在容器上对里面所有 <image>/<img> 生效 */

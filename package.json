@@ -42,13 +42,14 @@
   },
   "browserslist": {
     "production": [
-      ">0.5%",
+      "ios_saf >= 15.4",
+      "safari >= 15.4",
+      "chrome >= 99",
+      "and_chr >= 99",
+      "firefox >= 97",
+      "edge >= 99",
       "not dead",
-      "not op_mini all",
-      "ios_saf >= 14",
-      "safari >= 14",
-      "chrome >= 87",
-      "and_chr >= 87"
+      "not op_mini all"
     ],
     "development": [
       "last 3 chrome version",
