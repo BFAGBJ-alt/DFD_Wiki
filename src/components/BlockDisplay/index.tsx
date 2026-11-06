@@ -1,4 +1,4 @@
-import React, {useEffect, useId, useMemo, useState, type ReactNode} from 'react';
+import React, {useEffect, useMemo, useRef, useState, type ReactNode} from 'react';
 import useBaseUrl from '@docusaurus/useBaseUrl';
 import {resolveItem} from '@site/src/data/items/index';
 import {resolveBlockQuads, rotateFaceUv, quadUvPoints, skullQuads, type Quad, type SkullFace} from '../StructureViewer/modelResolver';
@@ -21,26 +21,27 @@ const FACE_SHADE: Record<Face, number> = {
   west: 0.72,
 };
 
-// 动画贴图（如海晶灯）是一张 16 × (16×帧数) 的竖向长图，
-// 图标里只需要第一帧，否则会把整条帧序列压进一个面。
+// 图标用 <canvas> 画而不是 <svg>：
+// 浏览器普遍不对 SVG 里的 <image> 应用 image-rendering，16px 贴图放大后
+// 会被双线性插值糊成一片（Safari 尤其明显）。canvas 的
+// imageSmoothingEnabled = false 是所有浏览器都认的开关。
 // 同时记录贴图原始尺寸：头颅皮肤有 64×64 与 64×32（旧版）两种，
 // 必须按 natural 尺寸渲染，否则 UV 采样会错位。
-type ImgInfo = {w: number; h: number; frames: number};
-const imgCache = new Map<string, Promise<ImgInfo>>();
+type LoadedImg = {img: HTMLImageElement; w: number; h: number};
+const imgCache = new Map<string, Promise<LoadedImg>>();
 
-function loadImgInfo(url: string): Promise<ImgInfo> {
+function loadImg(url: string): Promise<LoadedImg> {
   let p = imgCache.get(url);
   if (!p) {
-    p = new Promise<ImgInfo>((resolve) => {
+    p = new Promise<LoadedImg>((resolve, reject) => {
       const img = new Image();
-      img.onload = () => {
-        const w = img.naturalWidth || 1;
-        const h = img.naturalHeight || 1;
-        resolve({w, h, frames: h > w && h % w === 0 ? h / w : 1});
-      };
-      img.onerror = () => resolve({w: 16, h: 16, frames: 1});
+      img.onload = () =>
+        resolve({img, w: img.naturalWidth || 1, h: img.naturalHeight || 1});
+      img.onerror = () => reject(new Error(`图片加载失败：${url}`));
       img.src = url;
     });
+    // 失败不要缓存，下次还能重试
+    p.catch(() => imgCache.delete(url));
     imgCache.set(url, p);
   }
   return p;
@@ -174,10 +175,6 @@ export default function BlockDisplay({
   const [atlasMeta, setAtlasMeta] = useState<Meta | null>(null);
   // atlas meta 是否已经尝试加载完（成功或失败），用于避免预加载已删除的原贴图
   const [atlasReady, setAtlasReady] = useState(!isProd);
-  // clipPath 的 id 必须全局唯一，否则同页多个图标会互相套用裁剪路径
-  const rawId = useId();
-  const uid = rawId.replace(/[^a-zA-Z0-9_-]/g, '');
-
   // prod 环境预加载 atlas meta（全局单例 Promise，多个 BlockDisplay 共享）
   useEffect(() => {
     if (!isProd) return;
@@ -225,24 +222,28 @@ export default function BlockDisplay({
     return undefined;
   }, [blockKey, skullUrl, face, texBase]);
 
-  // 贴图原始尺寸与帧数（动画长图只取第一帧）
-  const [infos, setInfos] = useState<Record<string, ImgInfo>>({});
+  // 贴图（含 atlas）解码后的 Image 对象，绘制时直接 drawImage
+  const [imgs, setImgs] = useState<Record<string, LoadedImg>>({});
   useEffect(() => {
     if (!quads || quads.length === 0) return;
-    // prod 下等 atlas meta 就绪：命中 atlas 的贴图原 PNG 已被删除，
-    // 预加载只会得到 404，尺寸直接由 atlas 区域决定
+    // prod 下等 atlas meta 就绪：命中 atlas 的原 PNG 已被删除，
+    // 提前加载只会得到 404
     if (!atlasReady) return;
     let cancelled = false;
-    const urls = [...new Set(quads.map((q) => q.texture))].filter(
-      (u) => !resolveTex(u, atlasMeta, isProd, atlasBase).region,
-    );
-    if (urls.length === 0) {
-      setInfos({});
-      return;
-    }
-    Promise.all(urls.map((u) => loadImgInfo(u))).then((list) => {
+    const srcs = [
+      ...new Set(
+        quads.map(
+          (q) => resolveTex(q.texture, atlasMeta, isProd, atlasBase).src,
+        ),
+      ),
+    ];
+    Promise.all(srcs.map((s) => loadImg(s).catch(() => null))).then((list) => {
       if (cancelled) return;
-      setInfos(Object.fromEntries(urls.map((u, i) => [u, list[i]])));
+      const map: Record<string, LoadedImg> = {};
+      list.forEach((v, i) => {
+        if (v) map[srcs[i]] = v;
+      });
+      setImgs(map);
     });
     return () => {
       cancelled = true;
@@ -252,7 +253,7 @@ export default function BlockDisplay({
   const drawn = useMemo(() => {
     if (!quads) return [];
     return quads
-      .map((q, i) => {
+      .map((q) => {
         const rotated = quadCorners(q).map((p) => rotatePoint(p, q.rotation));
         // 投影后整体外扩一点：相邻面互相压住，消除接缝处的黑线
         const pts = growPoints(
@@ -265,10 +266,10 @@ export default function BlockDisplay({
         const cz = rotated.reduce((s, p) => s + p[2], 0) / 4;
         const depth =
           (cx + cz) / 16 - (cy / 16) * 0.6 - (q.depthBias ?? 0);
-        return {q, pts, depth, id: `${uid}-${i}`};
+        return {q, pts, depth};
       })
       .sort((a, b) => b.depth - a.depth);
-  }, [quads, size, uid]);
+  }, [quads, size]);
 
   // 实际投影包围盒，按内容设置视口，避免特殊模型被裁切
   const bounds = useMemo(() => {
@@ -292,44 +293,23 @@ export default function BlockDisplay({
     return {x: minX - pad, y: minY - pad, w: w + pad * 2, h: h + pad * 2};
   }, [drawn, size]);
 
-  if (!quads || quads.length === 0) {
-    return <span className={styles.placeholder} style={{width: size, height: size}} />;
-  }
-
   const renderHeight = (bounds.h / bounds.w) * size;
 
-  return (
-    <svg
-      width={size}
-      height={renderHeight}
-      viewBox={`${bounds.x} ${bounds.y} ${bounds.w} ${bounds.h}`}
-      role="img"
-      aria-label={resolved.name ?? ''}
-      className={`${styles.svg} mc-pixelated ${className ?? ''}`}>
-      <defs>
-        {drawn.map(({pts, id}) => (
-          <clipPath key={id} id={id}>
-            {/* 顺序 A→B→D→C，避免自相交；pts 已按 SEAM_OVERLAP 外扩 */}
-            <polygon
-              points={[pts[0], pts[1], pts[3], pts[2]]
-                .map(([x, y]) => `${x},${y}`)
-                .join(' ')}
-            />
-          </clipPath>
-        ))}
-      </defs>
-      {drawn.map(({q, pts, id}) => {
+  // 每个面的绘制参数：裁剪多边形 + 贴图坐标 -> 屏幕坐标的仿射矩阵 + 取图区域
+  const faces = useMemo(
+    () =>
+      drawn.map(({q, pts}) => {
         const [A, B, C] = pts;
         // 角点 A/B/C 各自要采样的 uv（面旋转后是同一矩形内的另一点）。
         // 与 Structure3D 共用 quadUvPoints，保证两处贴图方向一致。
-        const [pA0, pB0, pC0] = quadUvPoints(q.uv, q.face);
-        const pA = rotateFaceUv(pA0[0], pA0[1], q.uv, q.uvRotation);
-        const pB = rotateFaceUv(pB0[0], pB0[1], q.uv, q.uvRotation);
-        const pC = rotateFaceUv(pC0[0], pC0[1], q.uv, q.uvRotation);
+        const uvPts = quadUvPoints(q.uv, q.face).map(([u, v]) =>
+          rotateFaceUv(u, v, q.uv, q.uvRotation),
+        );
+        const [pA, pB, pC] = uvPts;
         // 由三组「屏幕点 <-> uv 点」解出仿射矩阵，映射贴图到投影后的平行四边形
         const det =
-          ((pB[0] - pA[0]) * (pC[1] - pA[1]) -
-            (pC[0] - pA[0]) * (pB[1] - pA[1])) || 1e-6;
+          (pB[0] - pA[0]) * (pC[1] - pA[1]) -
+            (pC[0] - pA[0]) * (pB[1] - pA[1]) || 1e-6;
         const m00 =
           ((B[0] - A[0]) * (pC[1] - pA[1]) - (C[0] - A[0]) * (pB[1] - pA[1])) /
           det;
@@ -342,7 +322,7 @@ export default function BlockDisplay({
         const m11 =
           ((C[1] - A[1]) * (pB[0] - pA[0]) - (B[1] - A[1]) * (pC[0] - pA[0])) /
           det;
-        const m = [
+        const m: [number, number, number, number, number, number] = [
           m00,
           m10,
           m01,
@@ -350,41 +330,109 @@ export default function BlockDisplay({
           A[0] - m00 * pA[0] - m01 * pA[1],
           A[1] - m10 * pA[0] - m11 * pA[1],
         ];
-        // Atlas 命中：调整仿射矩阵平移量，让原贴图 uv 坐标 (u, v)
-        // 映射到 atlas 里 (region.x + u, region.y + v)，再由 m 变换到屏幕
-        const atlasHit = resolveTex(q.texture, atlasMeta, isProd, atlasBase);
-        const region = atlasHit.region;
-        if (region) {
-          const [tx, ty] = [
-            m[4] - m00 * region.x - m01 * region.y,
-            m[5] - m10 * region.x - m11 * region.y,
-          ];
-          m[4] = tx;
-          m[5] = ty;
+        // Atlas 命中：把 uv 原点平移到 atlas 里对应的 region
+        const hit = resolveTex(q.texture, atlasMeta, isProd, atlasBase);
+        const ox = hit.region?.x ?? 0;
+        const oy = hit.region?.y ?? 0;
+        if (hit.region) {
+          m[4] -= m00 * ox + m01 * oy;
+          m[5] -= m10 * ox + m11 * oy;
         }
-        const shade = FACE_SHADE[q.face as Face] ?? 1;
-        const [texW, texH] = q.texSize ?? [16, 16];
-        const info = infos[q.texture];
-        const imgW = region ? atlasHit.atlasW! : (info?.w ?? texW);
-        const imgH = region ? atlasHit.atlasH! : (info?.h ?? texH);
-        return (
-          <g
-            key={id}
-            style={{filter: `brightness(${shade})`}}
-            clipPath={`url(#${id})`}>
-            <image
-              href={atlasHit.src}
-              width={imgW}
-              height={imgH}
-              preserveAspectRatio="none"
-              // 老 Safari 只认 -webkit-optimize-contrast（CSS 里已按特性分组兜底），
-              // 这里再补一个 SVG 1.1 的 optimizeSpeed，避免 16px 贴图放大后糊成一片
-              imageRendering="optimizeSpeed"
-              transform={`matrix(${m.join(' ')})`}
-            />
-          </g>
-        );
-      })}
-    </svg>
+        // 只取 uv 覆盖到的那一小块，避免每个面都画整张 atlas
+        const xs = uvPts.map(([u]) => u + ox);
+        const ys = uvPts.map(([, v]) => v + oy);
+        const sx = Math.floor(Math.min(...xs));
+        const sy = Math.floor(Math.min(...ys));
+        const sw = Math.max(1, Math.ceil(Math.max(...xs)) - sx);
+        const sh = Math.max(1, Math.ceil(Math.max(...ys)) - sy);
+        return {
+          pts,
+          m,
+          src: hit.src,
+          sx,
+          sy,
+          sw,
+          sh,
+          shade: FACE_SHADE[q.face as Face] ?? 1,
+        };
+      }),
+    [drawn, atlasMeta, atlasBase, isProd],
+  );
+
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  // 真正绘制：canvas + imageSmoothingEnabled=false，贴图放大保持像素感
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || faces.length === 0) return;
+    const dpr = Math.min(window.devicePixelRatio || 1, 3);
+    const cw = Math.max(1, Math.round(size * dpr));
+    const ch = Math.max(1, Math.round(renderHeight * dpr));
+    if (canvas.width !== cw) canvas.width = cw;
+    if (canvas.height !== ch) canvas.height = ch;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, cw, ch);
+    // 与 SVG 的 viewBox 等价：bounds -> 画布像素
+    const k = (size / bounds.w) * dpr;
+    ctx.setTransform(k, 0, 0, k, -bounds.x * k, -bounds.y * k);
+
+    for (const f of faces) {
+      const loaded = imgs[f.src];
+      if (!loaded) continue;
+      const [p0, p1, p3, p2] = f.pts;
+      ctx.save();
+      // 顺序 A→B→D→C，避免自相交（pts 已按 SEAM_OVERLAP 外扩）
+      ctx.beginPath();
+      ctx.moveTo(p0[0], p0[1]);
+      ctx.lineTo(p1[0], p1[1]);
+      ctx.lineTo(p3[0], p3[1]);
+      ctx.lineTo(p2[0], p2[1]);
+      ctx.closePath();
+      ctx.clip();
+
+      ctx.save();
+      ctx.transform(f.m[0], f.m[1], f.m[2], f.m[3], f.m[4], f.m[5]);
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(
+        loaded.img,
+        f.sx,
+        f.sy,
+        f.sw,
+        f.sh,
+        f.sx,
+        f.sy,
+        f.sw,
+        f.sh,
+      );
+      ctx.restore();
+
+      // 面向光照明暗：在裁剪区域内叠一层黑（等价于 brightness 压暗）
+      if (f.shade < 1) {
+        ctx.globalAlpha = 1 - f.shade;
+        ctx.fillStyle = '#000';
+        ctx.fillRect(bounds.x, bounds.y, bounds.w, bounds.h);
+        ctx.globalAlpha = 1;
+      }
+      ctx.restore();
+    }
+  }, [faces, imgs, bounds, size, renderHeight]);
+
+  if (!quads || quads.length === 0) {
+    return <span className={styles.placeholder} style={{width: size, height: size}} />;
+  }
+
+  return (
+    <canvas
+      ref={canvasRef}
+      width={Math.round(size * 2)}
+      height={Math.round(renderHeight * 2)}
+      style={{width: size, height: renderHeight, imageRendering: 'auto'}}
+      role="img"
+      aria-label={resolved.name ?? ''}
+      className={`${styles.svg} ${className ?? ''}`}
+    />
   );
 }
