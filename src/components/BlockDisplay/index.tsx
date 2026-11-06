@@ -113,18 +113,26 @@ function project(p: Vec3, size: number): [number, number] {
 
 /**
  * 以多边形中心为基准外扩，用来盖住相邻面之间的抗锯齿缝隙。
- * 放大后每个面边缘会有约 1px 的半透明过渡，相邻面拼不严就会露出背景（黑线）。
+ *
+ * 注意要连「贴图使用的角点」一起外扩（而不是只外扩裁剪路径）：
+ * 每个面的贴图边缘本身是抗锯齿的半透明过渡，两个面严丝合缝地拼在一起时
+ * 半透明边缘叠加仍有缝隙，会露出底色，看起来像黑线。把面本身放大 1.2%
+ * 让它们互相压住，才能真正消掉黑线。
  */
-function expandPolygon(
+function growPoints(
   points: [number, number][],
-  factor = 1.012,
-): string {
+  factor: number,
+): [number, number][] {
   const cx = points.reduce((s, p) => s + p[0], 0) / points.length;
   const cy = points.reduce((s, p) => s + p[1], 0) / points.length;
-  return points
-    .map(([x, y]) => `${cx + (x - cx) * factor},${cy + (y - cy) * factor}`)
-    .join(' ');
+  return points.map(([x, y]) => [
+    cx + (x - cx) * factor,
+    cy + (y - cy) * factor,
+  ]);
 }
+
+/** 相邻面互相压住的放大比例（1.2%，肉眼不可见，足够盖住 1px 抗锯齿缝） */
+const SEAM_OVERLAP = 1.012;
 
 /**
  * 方块图标：固定角度、不可交互的等距 3D 渲染。
@@ -246,7 +254,11 @@ export default function BlockDisplay({
     return quads
       .map((q, i) => {
         const rotated = quadCorners(q).map((p) => rotatePoint(p, q.rotation));
-        const pts = rotated.map((p) => project(p, size));
+        // 投影后整体外扩一点：相邻面互相压住，消除接缝处的黑线
+        const pts = growPoints(
+          rotated.map((p) => project(p, size)),
+          SEAM_OVERLAP,
+        );
         // 用四个角的中点算深度：越大越远，先画远的（画家算法）
         const cx = rotated.reduce((s, p) => s + p[0], 0) / 4;
         const cy = rotated.reduce((s, p) => s + p[1], 0) / 4;
@@ -297,12 +309,12 @@ export default function BlockDisplay({
       <defs>
         {drawn.map(({pts, id}) => (
           <clipPath key={id} id={id}>
-            {/*
-              顺序 A→B→D→C，避免自相交。
-              多边形以中心略微外扩（0.6%）：相邻面放大后边缘的抗锯齿缝隙
-              会露出背景色，看起来像一圈黑线。
-            */}
-            <polygon points={expandPolygon([pts[0], pts[1], pts[3], pts[2]])} />
+            {/* 顺序 A→B→D→C，避免自相交；pts 已按 SEAM_OVERLAP 外扩 */}
+            <polygon
+              points={[pts[0], pts[1], pts[3], pts[2]]
+                .map(([x, y]) => `${x},${y}`)
+                .join(' ')}
+            />
           </clipPath>
         ))}
       </defs>
@@ -365,13 +377,9 @@ export default function BlockDisplay({
               width={imgW}
               height={imgH}
               preserveAspectRatio="none"
-              // 老 Safari 只认 -webkit-optimize-contrast，两个都写上
-              style={
-                {
-                  imageRendering: 'pixelated',
-                  WebkitImageRendering: '-webkit-optimize-contrast',
-                } as React.CSSProperties
-              }
+              // 老 Safari 只认 -webkit-optimize-contrast（CSS 里已按特性分组兜底），
+              // 这里再补一个 SVG 1.1 的 optimizeSpeed，避免 16px 贴图放大后糊成一片
+              imageRendering="optimizeSpeed"
               transform={`matrix(${m.join(' ')})`}
             />
           </g>

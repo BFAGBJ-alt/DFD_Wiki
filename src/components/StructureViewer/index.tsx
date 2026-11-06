@@ -2,6 +2,7 @@ import React, {Suspense, useEffect, useMemo, useState, type ReactNode} from 'rea
 import BrowserOnly from '@docusaurus/BrowserOnly';
 import useBaseUrl from '@docusaurus/useBaseUrl';
 import {resolveItem} from '@site/src/data/items/index';
+import {supportsWebGL2} from '@site/src/utils/webgl';
 import {resolveStructure, type Structure} from './types';
 import type {SkullFace} from './modelResolver';
 import BlockDisplay from '../BlockDisplay';
@@ -114,6 +115,11 @@ export default function StructureViewer({
   const [error, setError] = useState(false);
   const [overlayOpen, setOverlayOpen] = useState(false);
   const isMobile = useIsMobile();
+  // three 只支持 WebGL2；桌面端少数精简浏览器 / 关闭硬件加速时也会拿不到上下文
+  const [webgl2, setWebgl2] = useState<boolean | null>(null);
+  useEffect(() => {
+    setWebgl2(supportsWebGL2());
+  }, []);
   const jsonUrl = useBaseUrl(`/structures/${name ?? ''}.json`);
   const texBase = useBaseUrl('/img/Minecraft/block');
 
@@ -215,23 +221,30 @@ export default function StructureViewer({
   return (
     <div className={styles.box} style={{height: canvasHeight + (isSingle ? 0 : 32)}}>
       <BrowserOnly fallback={<div className={styles.canvasPlaceholder} style={{height: canvasHeight}} />}>
-        {() => (
-          <ErrorBoundary
-            fallback={
-              <div className={styles.panelError} style={{height: canvasHeight}}>
-                3D 资源加载失败，请刷新页面重试
-              </div>
-            }>
-            <Suspense fallback={<div className={styles.canvasPlaceholder} style={{height: canvasHeight}} />}>
-              <LazyStructure3D
-                structure={structure}
-                texBase={texBase}
-                height={canvasHeight}
-                autoRotate={!isSingle}
-              />
-            </Suspense>
-          </ErrorBoundary>
-        )}
+        {() =>
+          webgl2 === false ? (
+            <div className={styles.panelError} style={{height: canvasHeight}}>
+              <p>当前浏览器不支持 WebGL2，无法显示 3D 模型</p>
+            </div>
+          ) : (
+            <ErrorBoundary
+              renderFallback={(err) => (
+                <div className={styles.panelError} style={{height: canvasHeight}}>
+                  <p>3D 资源加载失败，请刷新页面重试</p>
+                  <p className={styles.panelErrorDetail}>{err.message}</p>
+                </div>
+              )}>
+              <Suspense fallback={<div className={styles.canvasPlaceholder} style={{height: canvasHeight}} />}>
+                <LazyStructure3D
+                  structure={structure}
+                  texBase={texBase}
+                  height={canvasHeight}
+                  autoRotate={!isSingle}
+                />
+              </Suspense>
+            </ErrorBoundary>
+          )
+        }
       </BrowserOnly>
       {!isSingle && (
         <p className={styles.hint}>拖动旋转 · 悬停查看名称 · 带 ↗ 的方块可点击跳转</p>

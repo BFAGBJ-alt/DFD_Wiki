@@ -113,7 +113,7 @@ export default function MinecraftImage({
       <img
         src={tex.src}
         alt={alt}
-        className={className}
+        className={`mc-pixelated ${className ?? ''}`}
         width={width}
         height={height}
         style={style}
@@ -130,11 +130,11 @@ export default function MinecraftImage({
 
   return (
     <svg
-      className={className}
+      className={`mc-pixelated ${className ?? ''}`}
       width={width}
       height={height}
       viewBox={`${tex.region.x} ${tex.region.y} ${tex.region.w} ${frameH}`}
-      style={{imageRendering: 'pixelated', ...style}}
+      style={style}
       role="img"
       aria-label={alt}>
       <image
@@ -143,6 +143,7 @@ export default function MinecraftImage({
         y={0}
         width={tex.atlasW}
         height={tex.atlasH}
+        imageRendering="optimizeSpeed"
       />
     </svg>
   );

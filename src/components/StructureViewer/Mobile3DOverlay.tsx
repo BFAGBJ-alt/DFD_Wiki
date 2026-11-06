@@ -2,6 +2,7 @@ import React, {useEffect, useRef, useState, type ReactNode} from 'react';
 import BrowserOnly from '@docusaurus/BrowserOnly';
 import ErrorBoundary from '../ErrorBoundary';
 import LazyStructure3D from './lazyStructure3D';
+import {supportsWebGL2} from '@site/src/utils/webgl';
 import type {Structure} from './types';
 import styles from './styles.module.css';
 
@@ -25,6 +26,14 @@ export default function Mobile3DOverlay({
 }): ReactNode {
   const panelRef = useRef<HTMLDivElement>(null);
   const [fullscreen, setFullscreen] = useState(false);
+  // three 只支持 WebGL2：老设备拿不到上下文时会直接抛错，先探测再决定渲染什么
+  const [webgl2, setWebgl2] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    setWebgl2(supportsWebGL2());
+  }, []);
+
+  const no3d = webgl2 === false;
 
   const height = (() => {
     if (typeof window === 'undefined') return 320;
@@ -95,52 +104,68 @@ export default function Mobile3DOverlay({
         <div className={styles.panelBar}>
           <span className={styles.panelTitle}>{title ?? '3D 视图'}</span>
           <div className={styles.panelActions}>
-            <button type="button" className={styles.panelBtn} onClick={toggleFullscreen}>
-              {fullscreen ? '退出全屏' : '全屏'}
-            </button>
+            {!no3d && (
+              <button type="button" className={styles.panelBtn} onClick={toggleFullscreen}>
+                {fullscreen ? '退出全屏' : '全屏'}
+              </button>
+            )}
             <button type="button" className={styles.panelBtn} onClick={onClose}>
               关闭
             </button>
           </div>
         </div>
         <div className={styles.panelBody}>
-          <BrowserOnly
-            fallback={
-              <div className={styles.canvasPlaceholder} style={{height}} />
-            }>
-            {() => (
-              <ErrorBoundary
-                renderFallback={(error) => (
-                  <div className={styles.panelError} style={{height}}>
-                    <p>3D 资源加载失败</p>
-                    <p className={styles.panelErrorDetail}>{error.message}</p>
-                    <button
-                      type="button"
-                      className={styles.panelBtn}
-                      onClick={() => window.location.reload()}>
-                      重新加载页面
-                    </button>
-                  </div>
-                )}>
-                <React.Suspense
-                  fallback={
-                    <div className={styles.canvasPlaceholder} style={{height}} />
-                  }>
-                  <LazyStructure3D
-                    structure={structure}
-                    texBase={texBase}
-                    height={height}
-                    autoRotate
-                    interactive={fullscreen}
-                  />
-                </React.Suspense>
-              </ErrorBoundary>
-            )}
-          </BrowserOnly>
+          {no3d ? (
+            <div className={styles.panelError} style={{height}}>
+              <p>当前浏览器不支持 WebGL2，无法显示 3D 模型</p>
+              <p className={styles.panelErrorDetail}>
+                升级系统 / 浏览器后即可查看；结构内容不影响正常阅读
+              </p>
+            </div>
+          ) : (
+            <BrowserOnly
+              fallback={
+                <div className={styles.canvasPlaceholder} style={{height}} />
+              }>
+              {() => (
+                <ErrorBoundary
+                  renderFallback={(error) => (
+                    <div className={styles.panelError} style={{height}}>
+                      <p>3D 资源加载失败</p>
+                      <p className={styles.panelErrorDetail}>{error.message}</p>
+                      <button
+                        type="button"
+                        className={styles.panelBtn}
+                        onClick={() => window.location.reload()}>
+                        重新加载页面
+                      </button>
+                    </div>
+                  )}>
+                  <React.Suspense
+                    fallback={
+                      <div
+                        className={styles.canvasPlaceholder}
+                        style={{height}}
+                      />
+                    }>
+                    <LazyStructure3D
+                      structure={structure}
+                      texBase={texBase}
+                      height={height}
+                      autoRotate
+                      interactive={fullscreen}
+                    />
+                  </React.Suspense>
+                </ErrorBoundary>
+              )}
+            </BrowserOnly>
+          )}
         </div>
-        <p className={styles.panelHint}>
-          {fullscreen ? '双指缩放 · 单指拖动旋转' : '进入全屏后可拖动与缩放'}
-        </p>
+        {!no3d && (
+          <p className={styles.panelHint}>
+            {fullscreen ? '双指缩放 · 单指拖动旋转' : '进入全屏后可拖动与缩放'}
+          </p>
+        )}
       </div>
     </div>
   );
