@@ -65,3 +65,37 @@
   }
 }
 
+/* 移动端目录按钮：默认隐藏在桌面端，窄屏时排到主题切换按钮右边 */
+.navbar-drawer-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+@media (max-width: 996px) {
+  .navbar-drawer-toggle {
+    display: inline-flex;
+    /* 排序在主题切换按钮之后（Infima 的 color mode toggle 默认 order 0） */
+    order: 10;
+  }
+
+  /* 隐藏默认的左侧汉堡，避免两个入口重复 */
+  .navbar__toggle {
+    display: none !important;
+  }
+}
+
+/* 16px 贴图放大时尽量保持像素感；-webkit-optimize-contrast 是老 Safari 的别名 */
+.mc-pixelated,
+.mc-pixelated image {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: pixelated;
+}
+

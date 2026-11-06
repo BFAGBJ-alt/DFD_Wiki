@@ -112,6 +112,21 @@ function project(p: Vec3, size: number): [number, number] {
 }
 
 /**
+ * 以多边形中心为基准外扩，用来盖住相邻面之间的抗锯齿缝隙。
+ * 放大后每个面边缘会有约 1px 的半透明过渡，相邻面拼不严就会露出背景（黑线）。
+ */
+function expandPolygon(
+  points: [number, number][],
+  factor = 1.006,
+): string {
+  const cx = points.reduce((s, p) => s + p[0], 0) / points.length;
+  const cy = points.reduce((s, p) => s + p[1], 0) / points.length;
+  return points
+    .map(([x, y]) => `${cx + (x - cx) * factor},${cy + (y - cy) * factor}`)
+    .join(' ');
+}
+
+/**
  * 方块图标：固定角度、不可交互的等距 3D 渲染。
  * 直接使用原版模型几何 + 贴图，非立方体（讲台、栅栏等）也能正确显示形状。
  *
@@ -278,16 +293,16 @@ export default function BlockDisplay({
       viewBox={`${bounds.x} ${bounds.y} ${bounds.w} ${bounds.h}`}
       role="img"
       aria-label={resolved.name ?? ''}
-      className={`${styles.svg} ${className ?? ''}`}>
+      className={`${styles.svg} mc-pixelated ${className ?? ''}`}>
       <defs>
         {drawn.map(({pts, id}) => (
           <clipPath key={id} id={id}>
-            {/* 顺序 A→B→D→C，避免自相交 */}
-            <polygon
-              points={[pts[0], pts[1], pts[3], pts[2]]
-                .map(([x, y]) => `${x},${y}`)
-                .join(' ')}
-            />
+            {/*
+              顺序 A→B→D→C，避免自相交。
+              多边形以中心略微外扩（0.6%）：相邻面放大后边缘的抗锯齿缝隙
+              会露出背景色，看起来像一圈黑线。
+            */}
+            <polygon points={expandPolygon([pts[0], pts[1], pts[3], pts[2]])} />
           </clipPath>
         ))}
       </defs>

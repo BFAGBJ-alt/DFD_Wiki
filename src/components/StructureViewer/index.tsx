@@ -1,15 +1,14 @@
 import React, {Suspense, useEffect, useMemo, useState, type ReactNode} from 'react';
 import BrowserOnly from '@docusaurus/BrowserOnly';
-import Link from '@docusaurus/Link';
 import useBaseUrl from '@docusaurus/useBaseUrl';
 import {resolveItem} from '@site/src/data/items/index';
 import {resolveStructure, type Structure} from './types';
-import {resolveBlockFaces, type SkullFace} from './modelResolver';
-import MinecraftImage from '../MinecraftImage';
+import type {SkullFace} from './modelResolver';
+import BlockDisplay from '../BlockDisplay';
+import ErrorBoundary from '../ErrorBoundary';
+import Mobile3DOverlay from './Mobile3DOverlay';
+import LazyStructure3D from './lazyStructure3D';
 import styles from './styles.module.css';
-
-// 桌面端才加载 3D 渲染代码（代码分割，移动端不下载 three.js）
-const LazyStructure3D = React.lazy(() => import('./Structure3D'));
 
 function useIsMobile(): boolean | null {
   const [mobile, setMobile] = useState<boolean | null>(null);
@@ -23,75 +22,40 @@ function useIsMobile(): boolean | null {
   return mobile;
 }
 
-/** 移动端单一方块：解析 model 取正面贴图，静态展示（不加载 three.js） */
-function MobileSingleBlock({
+/**
+ * 移动端预览卡：等距 3D 静态图 + 轻触进入 3D 浮层。
+ * 不再用单面贴图 / GIF：方块用 BlockDisplay（和桌面一致的立方体），
+ * 不带任何 labels，避免分栏里把超链接文本暴露出来。
+ */
+function MobilePreview({
   block,
   skull,
   label,
-  link,
   color,
-  texBase,
+  onOpen,
 }: {
   block?: string | string[];
   skull?: string;
   label?: string;
-  link?: string;
   color?: string;
-  texBase: string;
+  onOpen: () => void;
 }): ReactNode {
-  const [img, setImg] = useState<string | null>(null);
-  useEffect(() => {
-    if (skull || !block) return;
-    let cancelled = false;
-    resolveBlockFaces(block, texBase).then((f) => {
-      if (!cancelled) setImg(f.north ?? f.up ?? f.east ?? f.south ?? null);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [block, skull, texBase]);
-
-  const inner = (
-    <>
-      {skull ? (
-        // 头颅：64×64 皮肤，裁出脸部区域 (8,8)-(16,16)，与 ItemIcon 一致
-        <span className={styles.singleImgCrop}>
-          <img
-            src={skull}
-            alt={label ?? '头颅'}
-            className={styles.singleImgInner}
-            style={{width: '800%', height: 'auto', margin: '-100% 0 0 -100%'}}
-          />
-        </span>
-      ) : img ? (
-        // 动画贴图是竖排长图：外层裁成方形，只露出第一帧
-        <span className={styles.singleImgCrop}>
-          <MinecraftImage
-            src={img}
-            alt={label ?? String(block)}
-            className={styles.singleImgInner}
-          />
-        </span>
+  return (
+    <button
+      type="button"
+      className={styles.trigger}
+      onClick={onOpen}
+      aria-label={`查看 ${label ?? '方块'} 的 3D 模型`}>
+      {block || skull ? (
+        <BlockDisplay block={block} skull={skull} size={120} name={label} />
       ) : (
         <span
           className={styles.singleImg}
           style={{background: color ?? '#888888'}}
         />
       )}
-      {label && <span className={styles.singleLabel}>{label}</span>}
-    </>
-  );
-
-  return (
-    <div className={styles.single}>
-      {link ? (
-        <Link to={link} className={styles.singleLink}>
-          {inner}
-        </Link>
-      ) : (
-        inner
-      )}
-    </div>
+      <span className={styles.triggerHint}>轻触查看 3D</span>
+    </button>
   );
 }
 
@@ -148,9 +112,9 @@ export default function StructureViewer({
 }: StructureViewerProps): ReactNode {
   const [structure, setStructure] = useState<Structure | null>(null);
   const [error, setError] = useState(false);
+  const [overlayOpen, setOverlayOpen] = useState(false);
   const isMobile = useIsMobile();
   const jsonUrl = useBaseUrl(`/structures/${name ?? ''}.json`);
-  const gifUrl = useBaseUrl(`/img/structures/${name ?? ''}.gif`);
   const texBase = useBaseUrl('/img/Minecraft/block');
 
   // 单方块模式下从物品数据库展开字段（内联 props 优先）
@@ -223,49 +187,26 @@ export default function StructureViewer({
   }
 
   if (isMobile) {
-    if (singleBlock && (singleBlock.block || singleBlock.skull)) {
-      return (
-        <MobileSingleBlock
-          block={singleBlock.block}
-          skull={singleBlock.skull}
-          label={singleBlock.label}
-          link={singleBlock.link}
-          color={singleBlock.color}
-          texBase={texBase}
-        />
-      );
-    }
-    // 结构模式：GIF + 常驻名单（去重 label）
-    const seen = new Set<string>();
-    const entries = structure.blocks.filter((b) => {
-      const raw = b.label ?? b.block ?? b.skull ?? '';
-      const key = Array.isArray(raw) ? raw.join(',') : raw;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
+    const title =
+      singleBlock?.label ?? (name ? `结构「${name}」` : undefined);
     return (
-      <figure className={styles.box}>
-        <img
-          src={gifUrl}
-          alt={`${name} 结构旋转示意`}
-          className={styles.gif}
-          loading="lazy"
+      <>
+        <MobilePreview
+          block={singleBlock?.block ?? (name ? structure.blocks[0]?.block : undefined)}
+          skull={singleBlock?.skull ?? (name ? structure.blocks[0]?.skull : undefined)}
+          label={title}
+          color={singleBlock?.color ?? structure.blocks[0]?.color}
+          onOpen={() => setOverlayOpen(true)}
         />
-        <figcaption>
-          <ul className={styles.legend}>
-            {entries.map((b, i) => (
-              <li key={i}>
-                {b.link ? (
-                  <Link to={b.link}>{b.label ?? b.block ?? '头颅'}</Link>
-                ) : (
-                  <span>{b.label ?? b.block ?? '头颅'}</span>
-                )}
-              </li>
-            ))}
-          </ul>
-        </figcaption>
-      </figure>
+        {overlayOpen && (
+          <Mobile3DOverlay
+            structure={structure}
+            texBase={texBase}
+            title={title}
+            onClose={() => setOverlayOpen(false)}
+          />
+        )}
+      </>
     );
   }
 
@@ -275,14 +216,21 @@ export default function StructureViewer({
     <div className={styles.box} style={{height: canvasHeight + (isSingle ? 0 : 32)}}>
       <BrowserOnly fallback={<div className={styles.canvasPlaceholder} style={{height: canvasHeight}} />}>
         {() => (
-          <Suspense fallback={<div className={styles.canvasPlaceholder} style={{height: canvasHeight}} />}>
-            <LazyStructure3D
-              structure={structure}
-              texBase={texBase}
-              height={canvasHeight}
-              autoRotate={!isSingle}
-            />
-          </Suspense>
+          <ErrorBoundary
+            fallback={
+              <div className={styles.panelError} style={{height: canvasHeight}}>
+                3D 资源加载失败，请刷新页面重试
+              </div>
+            }>
+            <Suspense fallback={<div className={styles.canvasPlaceholder} style={{height: canvasHeight}} />}>
+              <LazyStructure3D
+                structure={structure}
+                texBase={texBase}
+                height={canvasHeight}
+                autoRotate={!isSingle}
+              />
+            </Suspense>
+          </ErrorBoundary>
         )}
       </BrowserOnly>
       {!isSingle && (

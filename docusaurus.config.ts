@@ -81,6 +81,11 @@ const config: Config = {
           position: 'left',
           label: '文档',
         },
+        // 移动端目录按钮：自定义 navbar item（见 src/theme/NavbarItem/ComponentTypes.tsx）
+        {
+          type: 'custom-drawer-toggle' as never,
+          position: 'right',
+        },
         {
           href: 'https://github.com/BFAGBJ-alt/DFD_Wiki/',
           label: 'GitHub',

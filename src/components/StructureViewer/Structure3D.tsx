@@ -370,12 +370,15 @@ export default function Structure3D({
   texBase,
   height = 480,
   autoRotate = true,
+  interactive = true,
 }: {
   structure: Structure;
   texBase: string;
   height?: number;
   /** 自动旋转；单方块模式关闭 */
   autoRotate?: boolean;
+  /** 是否允许拖动/缩放；移动端预览态只自动旋转，全屏后才开启交互 */
+  interactive?: boolean;
 }): ReactNode {
   const [quadLists, setQuadLists] = useState<(Quad[] | null)[] | null>(null);
 
@@ -419,12 +422,15 @@ export default function Structure3D({
     <div className={styles.canvas} style={{height}}>
       <Canvas
         camera={{position: [d, d * 0.8, d], fov: 40}}
+        style={{touchAction: interactive ? 'none' : 'auto'}}
         dpr={[1, 2]}>
         <OrbitControls
           makeDefault
           autoRotate={autoRotate}
           autoRotateSpeed={1.2}
           enablePan={false}
+          enableRotate={interactive}
+          enableZoom={interactive}
           minDistance={radius}
           maxDistance={radius * 6}
         />

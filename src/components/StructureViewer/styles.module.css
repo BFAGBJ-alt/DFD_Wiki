@@ -109,3 +109,108 @@
   margin-left: 0.3em;
   opacity: 0.85;
 }
+
+/* ===== 移动端：静态预览 + 3D 浮层 ===== */
+
+.trigger {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  padding: 8px 0 4px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.triggerHint {
+  font-size: 0.78rem;
+  color: var(--ifm-color-emphasis-600);
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 560px;
+  overflow: hidden;
+  border-radius: 10px;
+  background: var(--ifm-background-surface-color);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+}
+
+/* 全屏：真实全屏与 iOS 视觉全屏兜底都走这里 */
+.panelFull {
+  position: fixed;
+  inset: 0;
+  max-width: none;
+  border-radius: 0;
+  background: var(--ifm-background-color);
+}
+
+.panelBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--ifm-color-emphasis-300);
+}
+
+.panelTitle {
+  overflow: hidden;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.panelActions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 8px;
+}
+
+.panelBtn {
+  padding: 4px 10px;
+  border: 1px solid var(--ifm-color-emphasis-400);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ifm-font-color-base);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.panelBody {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.panelHint {
+  margin: 0;
+  padding: 6px 12px 10px;
+  color: var(--ifm-color-emphasis-600);
+  font-size: 0.78rem;
+  text-align: center;
+}
+
+.panelError {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ifm-color-emphasis-700);
+  font-size: 0.85rem;
+}
