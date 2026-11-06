@@ -5,12 +5,14 @@ import {useNavbarMobileSidebar} from '@docusaurus/theme-common/internal';
  * 移动端目录按钮（自定义 navbar item）。
  *
  * 默认的汉堡按钮在最左侧，这里复用它背后的 `useNavbarMobileSidebar()` 状态，
- * 在导航栏右侧再放一个入口；样式由 custom.css 的 `.navbar-drawer-toggle` 控制，
- * 只在窄屏（≤996px）显示。
+ * 在导航栏右侧再放一个入口。是否显示完全由 JS 判断（shouldRender），
+ * 不依赖媒体查询 —— 老浏览器不支持媒体查询 range 语法时也不会漏掉。
  */
 export default function NavbarDrawerToggle(): ReactNode {
-  const {disabled, shown, toggle} = useNavbarMobileSidebar();
-  if (disabled) return null;
+  // shouldRender = 侧边栏可用 且 当前是移动端窗口（Docusaurus 用 JS 判断，
+  // 不依赖媒体查询，老浏览器也不会出错）
+  const {shouldRender, shown, toggle} = useNavbarMobileSidebar();
+  if (!shouldRender) return null;
 
   return (
     <button
