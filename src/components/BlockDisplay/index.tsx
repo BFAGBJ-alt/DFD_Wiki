@@ -382,14 +382,15 @@ export default function BlockDisplay({
     for (const f of faces) {
       const loaded = imgs[f.src];
       if (!loaded) continue;
-      const [p0, p1, p3, p2] = f.pts;
+      // 顺序 A→B→D→C（pts = [A 左上, B 右上, C 左下, D 右下]），
+      // 直接按 A-B-D-C 连才不会自相交成 X 形
+      const [a, b, c, d] = f.pts;
       ctx.save();
-      // 顺序 A→B→D→C，避免自相交（pts 已按 SEAM_OVERLAP 外扩）
       ctx.beginPath();
-      ctx.moveTo(p0[0], p0[1]);
-      ctx.lineTo(p1[0], p1[1]);
-      ctx.lineTo(p3[0], p3[1]);
-      ctx.lineTo(p2[0], p2[1]);
+      ctx.moveTo(a[0], a[1]);
+      ctx.lineTo(b[0], b[1]);
+      ctx.lineTo(d[0], d[1]);
+      ctx.lineTo(c[0], c[1]);
       ctx.closePath();
       ctx.clip();
 

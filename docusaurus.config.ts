@@ -36,6 +36,50 @@ const config: Config = {
 
   onBrokenLinks: 'throw',
 
+  plugins: [
+    // three r187 用了 class static block（`static { this.prototype... }`）等
+    // ES2022 语法，而 webpack 默认不转译 node_modules：
+    // 老 Safari（< 16.4）解析这个 chunk 直接 SyntaxError，
+    // 表现就是动态 import 报「Loading chunk 847 failed」。
+    // 这里把 3D 相关依赖单独用 babel 降到 Safari 14 语法。
+    function transpileThreeDeps() {
+      return {
+        name: 'transpile-three-deps',
+        configureWebpack() {
+          return {
+            module: {
+              rules: [
+                {
+                  test: /\.[cm]?js$/,
+                  include:
+                    /node_modules[\\/](three|three-stdlib|@react-three|troika-[^\\/]+|maath|camera-controls|meshline|suspend-react|its-fine|zustand|react-reconciler)[\\/]/,
+                  use: {
+                    loader: 'babel-loader',
+                    options: {
+                      babelrc: false,
+                      configFile: false,
+                      compact: false,
+                      presets: [
+                        [
+                          '@babel/preset-env',
+                          {
+                            targets: {safari: '14', ios: '14'},
+                            bugfixes: true,
+                            modules: false,
+                          },
+                        ],
+                      ],
+                    },
+                  },
+                },
+              ],
+            },
+          };
+        },
+      };
+    },
+  ],
+
   // Even if you don't use internationalization, you can use this field to set
   // useful metadata like html lang. For example, if your site is Chinese, you
   // may want to replace "en" with "zh-Hans".
