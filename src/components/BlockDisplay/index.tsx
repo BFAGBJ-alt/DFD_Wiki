@@ -117,7 +117,7 @@ function project(p: Vec3, size: number): [number, number] {
  */
 function expandPolygon(
   points: [number, number][],
-  factor = 1.006,
+  factor = 1.012,
 ): string {
   const cx = points.reduce((s, p) => s + p[0], 0) / points.length;
   const cy = points.reduce((s, p) => s + p[1], 0) / points.length;
@@ -365,7 +365,13 @@ export default function BlockDisplay({
               width={imgW}
               height={imgH}
               preserveAspectRatio="none"
-              style={{imageRendering: 'pixelated'}}
+              // 老 Safari 只认 -webkit-optimize-contrast，两个都写上
+              style={
+                {
+                  imageRendering: 'pixelated',
+                  WebkitImageRendering: '-webkit-optimize-contrast',
+                } as React.CSSProperties
+              }
               transform={`matrix(${m.join(' ')})`}
             />
           </g>

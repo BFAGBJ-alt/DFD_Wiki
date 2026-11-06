@@ -4,6 +4,8 @@ type Props = {
   children: ReactNode;
   /** 自定义兜底 UI；不传时显示一行提示 */
   fallback?: ReactNode;
+  /** 需要拿到具体错误时用（例如把 message 显示出来便于排查） */
+  renderFallback?: (error: Error) => ReactNode;
   /** 出错时的回调（打日志用） */
   onError?: (error: Error) => void;
 };
@@ -29,7 +31,10 @@ export default class ErrorBoundary extends React.Component<Props, State> {
 
   render(): ReactNode {
     if (this.state.error) {
-      return this.props.fallback ?? <div>组件加载失败，请刷新重试</div>;
+      return (
+        this.props.renderFallback?.(this.state.error) ??
+        this.props.fallback ?? <div>组件加载失败，请刷新重试</div>
+      );
     }
     return this.props.children;
   }

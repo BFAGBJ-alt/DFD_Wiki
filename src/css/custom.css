@@ -82,13 +82,11 @@
 @media (max-width: 996px) {
   .navbar-drawer-toggle {
     display: inline-flex;
-    /* 排序在主题切换按钮之后（Infima 的 color mode toggle 默认 order 0） */
-    order: 10;
-  }
-
-  /* 隐藏默认的左侧汉堡，避免两个入口重复 */
-  .navbar__toggle {
-    display: none !important;
+    /* 靠左容器（flex:1）的 margin-left:auto 顶到最右，避开窄屏下被挤出的右侧容器 */
+    margin-left: auto;
+    order: 99;
+    border: 1px solid var(--ifm-color-emphasis-400);
+    border-radius: 6px;
   }
 }
 

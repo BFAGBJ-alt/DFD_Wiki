@@ -110,11 +110,18 @@ export default function Mobile3DOverlay({
             }>
             {() => (
               <ErrorBoundary
-                fallback={
+                renderFallback={(error) => (
                   <div className={styles.panelError} style={{height}}>
-                    3D 资源加载失败，请关闭后重试
+                    <p>3D 资源加载失败</p>
+                    <p className={styles.panelErrorDetail}>{error.message}</p>
+                    <button
+                      type="button"
+                      className={styles.panelBtn}
+                      onClick={() => window.location.reload()}>
+                      重新加载页面
+                    </button>
                   </div>
-                }>
+                )}>
                 <React.Suspense
                   fallback={
                     <div className={styles.canvasPlaceholder} style={{height}} />
