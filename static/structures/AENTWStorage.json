@@ -1,0 +1,11 @@
+{
+  "name": "NTW_network",
+  "blocks": [
+    {"x": 0, "y": 0, "z": 0, "item": "networks_expansion_switch"},
+    {"x": 1, "y": 0, "z": 0, "item": "NTW_CONTROLLER"},
+    {"x": -1, "y": 0, "z": 0, "item": "me_controller"},
+    {"x": 2, "y": 0, "z": 0, "item": "NTW_MONITOR"},
+    {"x": 2, "y": 1, "z": 0, "item": "NTW_EXPANSION_CARGO_STORAGE_UNIT_13"},
+    {"x": -2, "y": 0, "z": 0, "item": "me_drive"}
+  ]
+}

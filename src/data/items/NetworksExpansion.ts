@@ -1,5 +1,16 @@
 import type {ItemDef} from './types';
 
+// 网络抽屉：雕纹书架 + 6 个空槽模型，即 ME 驱动器的「全空」状态
+const CARGO_STORAGE_MODEL = [
+  'chiseled_bookshelf',
+  'chiseled_bookshelf_empty_slot_top_left',
+  'chiseled_bookshelf_empty_slot_top_mid',
+  'chiseled_bookshelf_empty_slot_top_right',
+  'chiseled_bookshelf_empty_slot_bottom_left',
+  'chiseled_bookshelf_empty_slot_bottom_mid',
+  'chiseled_bookshelf_empty_slot_bottom_right',
+];
+
 export const items: Record<string, ItemDef> = {
   'NTW_EXPANSION_PLACEHOLDER_ITEM': {name: '占位符', texture: '/img/Minecraft/item/clay_ball.png'},
   'NTW_EXPANSION_WORKBENCH': {name: '网络拓展工作台', block: 'bamboo_block'},
@@ -352,19 +363,19 @@ export const items: Record<string, ItemDef> = {
   },
   'NTW_EXPANSION_CARGO_NODE_QUICK_TOOL': {name: '货运节点快配工具', texture: '/img/Minecraft/item/bone.png'},
   'NTW_EXPANSION_STORAGE_UPGRADE_TABLE': {name: '网络抽屉升级台', block: 'cartography_table'},
-  'NTW_EXPANSION_CARGO_STORAGE_UNIT_1': {name: '网络抽屉 I', block: 'chiseled_bookshelf'},
-  'NTW_EXPANSION_CARGO_STORAGE_UNIT_2': {name: '网络抽屉 II', block: 'chiseled_bookshelf'},
-  'NTW_EXPANSION_CARGO_STORAGE_UNIT_3': {name: '网络抽屉 III', block: 'chiseled_bookshelf'},
-  'NTW_EXPANSION_CARGO_STORAGE_UNIT_4': {name: '网络抽屉 IV', block: 'chiseled_bookshelf'},
-  'NTW_EXPANSION_CARGO_STORAGE_UNIT_5': {name: '网络抽屉 V', block: 'chiseled_bookshelf'},
-  'NTW_EXPANSION_CARGO_STORAGE_UNIT_6': {name: '网络抽屉 VI', block: 'chiseled_bookshelf'},
-  'NTW_EXPANSION_CARGO_STORAGE_UNIT_7': {name: '网络抽屉 VII', block: 'chiseled_bookshelf'},
-  'NTW_EXPANSION_CARGO_STORAGE_UNIT_8': {name: '网络抽屉 VIII', block: 'chiseled_bookshelf'},
-  'NTW_EXPANSION_CARGO_STORAGE_UNIT_9': {name: '网络抽屉 IX', block: 'chiseled_bookshelf'},
-  'NTW_EXPANSION_CARGO_STORAGE_UNIT_10': {name: '网络抽屉 X', block: 'chiseled_bookshelf'},
-  'NTW_EXPANSION_CARGO_STORAGE_UNIT_11': {name: '网络抽屉 XI', block: 'chiseled_bookshelf'},
-  'NTW_EXPANSION_CARGO_STORAGE_UNIT_12': {name: '网络抽屉 XII', block: 'chiseled_bookshelf'},
-  'NTW_EXPANSION_CARGO_STORAGE_UNIT_13': {name: '网络抽屉 XIII', block: 'chiseled_bookshelf'},
+  'NTW_EXPANSION_CARGO_STORAGE_UNIT_1': {name: '网络抽屉 I', block: CARGO_STORAGE_MODEL},
+  'NTW_EXPANSION_CARGO_STORAGE_UNIT_2': {name: '网络抽屉 II', block: CARGO_STORAGE_MODEL},
+  'NTW_EXPANSION_CARGO_STORAGE_UNIT_3': {name: '网络抽屉 III', block: CARGO_STORAGE_MODEL},
+  'NTW_EXPANSION_CARGO_STORAGE_UNIT_4': {name: '网络抽屉 IV', block: CARGO_STORAGE_MODEL},
+  'NTW_EXPANSION_CARGO_STORAGE_UNIT_5': {name: '网络抽屉 V', block: CARGO_STORAGE_MODEL},
+  'NTW_EXPANSION_CARGO_STORAGE_UNIT_6': {name: '网络抽屉 VI', block: CARGO_STORAGE_MODEL},
+  'NTW_EXPANSION_CARGO_STORAGE_UNIT_7': {name: '网络抽屉 VII', block: CARGO_STORAGE_MODEL},
+  'NTW_EXPANSION_CARGO_STORAGE_UNIT_8': {name: '网络抽屉 VIII', block: CARGO_STORAGE_MODEL},
+  'NTW_EXPANSION_CARGO_STORAGE_UNIT_9': {name: '网络抽屉 IX', block: CARGO_STORAGE_MODEL},
+  'NTW_EXPANSION_CARGO_STORAGE_UNIT_10': {name: '网络抽屉 X', block: CARGO_STORAGE_MODEL},
+  'NTW_EXPANSION_CARGO_STORAGE_UNIT_11': {name: '网络抽屉 XI', block: CARGO_STORAGE_MODEL},
+  'NTW_EXPANSION_CARGO_STORAGE_UNIT_12': {name: '网络抽屉 XII', block: CARGO_STORAGE_MODEL},
+  'NTW_EXPANSION_CARGO_STORAGE_UNIT_13': {name: '网络抽屉 XIII', block: CARGO_STORAGE_MODEL},
   'NTW_EXPANSION_CARGO_STORAGE_UNIT_1_MODEL': {
     name: '网络抽屉 I',
     skull: 'https://textures.minecraft.net/texture/f2cda05ea5d9cca70207a8b29fde1c9696c7527c62e599e3da2d275f20e0ba9b',

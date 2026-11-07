@@ -1,0 +1,12 @@
+{
+  "name": "NTW_network",
+  "blocks": [
+    {"x": 0, "y": 0, "z": 0, "item": "NTW_CONTROLLER"},
+    {"x": 1, "y": 0, "z": 0, "item": "NTW_MONITOR"},
+    {"x": 1, "y": 1, "z": 0, "item": "NTW_EXPANSION_ADVANCED_QUANTUM_STORAGE"},
+    {"x": -1, "y": 0, "z": 0, "item": "NTW_CELL"},
+    {"x": 0, "y": 1, "z": 0, "item": "NTW_GRID"},
+    {"x": 2, "y": 0, "z": 0, "item": "NTW_MONITOR"},
+    {"x": 2, "y": 1, "z": 0, "item": "NTW_EXPANSION_CARGO_STORAGE_UNIT_13"}
+  ]
+}

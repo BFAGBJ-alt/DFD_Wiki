@@ -1,0 +1,27 @@
+---
+sidebar_position: 5
+title: 进阶——使用网络交换机来存储大宗物品
+contributors:
+ - BFAGBJ
+---
+
+import Term from '@site/src/components/Term';
+import StructureViewer from '@site/src/components/StructureViewer';
+import BlockDisplay from '@site/src/components/BlockDisplay';
+import ItemIcon from '@site/src/components/ItemIcon';
+
+## 引言
+
+在部分服务器里，存储物品只靠AE有点太吃存储元件了，虽然升级存储元件只花3倍的材料能获得4倍的空间，但对于部分产量很高的机器，就比如说终极堆叠，网络除了无尽存储，其他的并不是很够看。
+
+后续使用量子纠缠奇点，也有不便。虽然推出了AE堆叠机器和AE纠缠奇点，但其超高粘液刻和极低的倍率极高的造价，再加上一堆bug，有点难用。
+
+所以，我们通常同时使用网络和AE。网络负责存储，量子纠缠，被动合成（比如锻造模版）、AE负责合成，发配物品。
+
+<StructureViewer name="AENTWStorage" />
+
+在网络和ME网络之间放置交换机，就可以让AE读取网络中存储的东西。注意，只能读取网络监视器标记的存储和抽屉，网络单元里的东西检测不到，也没法从AE输入进去。
+
+网络中已有的东西，AE输入时，会优先进入网络，其次才是磁盘。或者说，网络交换机连接的情况下，网络的优先级更高一点。
+
+如果输入了网络没有的物品，则会直接进入磁盘。
