@@ -52,6 +52,8 @@ export default function ItemIcon({
   ) : item.block ? (
     <BlockDisplay
       block={item.block}
+      facing={item.facing}
+      axis={item.axis}
       size={Math.round(size * 0.92)}
       name={item.name}
     />

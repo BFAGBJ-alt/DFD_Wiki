@@ -1,4 +1,4 @@
-import type {SkullFace} from './modelResolver';
+import type {BlockAxis, BlockFacing, SkullFace} from './modelResolver';
 
 export type BlockDef = {
   /**
@@ -8,6 +8,13 @@ export type BlockDef = {
    *   或逗号分隔字符串 "chiseled_bookshelf,chiseled_bookshelf_empty_slot_top_left,..."
    */
   block?: string | string[];
+  /**
+   * 方块朝向（对应原版 blockstate 的 facing）。
+   * 水平朝向块默认 north，竖直块（末地烛/避雷针等）默认 up。
+   */
+  facing?: BlockFacing;
+  /** 方块轴向（对应原版 blockstate 的 axis，仅原木/柱状方块等），默认 y */
+  axis?: BlockAxis;
   /** 自定义头颅贴图 URL（64×64 皮肤 PNG），与 block 二选一（block 优先） */
   skull?: string;
   /** 头颅朝向：up=落地头（默认）；水平方向=脸贴该方向的方块边缘 */
@@ -43,6 +50,8 @@ export function resolveStructure(
   resolveItemFn: (id: string) => {
     name?: string;
     block?: string | string[];
+    facing?: BlockFacing;
+    axis?: BlockAxis;
     skull?: string;
     color?: string;
     link?: string;
@@ -53,6 +62,8 @@ export function resolveStructure(
     const db = resolveItemFn(b.item);
     return {
       block: db.block,
+      facing: db.facing,
+      axis: db.axis,
       skull: db.skull,
       color: db.color,
       label: db.name,

@@ -35,6 +35,8 @@ export function resolveItem(id: string): ResolvedItem {
     name,
     texture,
     block: def.block,
+    facing: def.facing,
+    axis: def.axis,
     color: def.color,
     link: def.link,
     glint: def.glint,

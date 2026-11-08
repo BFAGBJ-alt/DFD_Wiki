@@ -430,3 +430,212 @@ export function skullQuads(texture: string, face: SkullFace = 'up'): Quad[] {
     return out;
   });
 }
+
+/** 方块级朝向：对应原版 blockstate 的 facing 属性（末地烛、避雷针、熔炉等） */
+export type BlockFacing = 'up' | 'down' | 'north' | 'south' | 'east' | 'west';
+/** 方块级轴向：对应原版 blockstate 的 axis 属性（原木、柱状方块等） */
+export type BlockAxis = 'x' | 'y' | 'z';
+
+/** 一次绕方块中心 (8,8,8) 的旋转，按数组顺序依次应用 */
+export type BlockRotation = {axis: 'x' | 'y' | 'z'; angle: number};
+
+/**
+ * 模型默认朝向映射表。
+ *
+ * facing / axis 只有知道模型本身“默认朝哪”才能算出正确旋转量：
+ *  - horizontal：默认正面朝北（facing=north）。原版绝大多数带朝向的方块都是
+ *    这个约定，如熔炉、观察者、活塞、漏斗、发射器、箱子、木桶、工作台、
+ *    织布机、切石机、讲台、钟…
+ *  - vertical：默认竖立（facing=up），如末地烛、避雷针、锁链、蜡烛、火把、
+ *    紫水晶簇、滴水石锥…
+ *  - axis：默认沿 Y 轴（axis=y），如原木、菌柄、柱状方块、干草块、骨块…
+ *
+ * 未列出的模型按 horizontal 处理。
+ */
+const VERTICAL_MODELS = new Set([
+  'end_rod',
+  'lightning_rod',
+  'chain',
+  'candle',
+  'white_candle',
+  'orange_candle',
+  'magenta_candle',
+  'light_blue_candle',
+  'yellow_candle',
+  'lime_candle',
+  'pink_candle',
+  'gray_candle',
+  'light_gray_candle',
+  'cyan_candle',
+  'purple_candle',
+  'blue_candle',
+  'brown_candle',
+  'green_candle',
+  'red_candle',
+  'black_candle',
+  'torch',
+  'soul_torch',
+  'redstone_torch',
+  'small_amethyst_bud',
+  'medium_amethyst_bud',
+  'large_amethyst_bud',
+  'amethyst_cluster',
+  'pointed_dripstone',
+]);
+
+const AXIS_MODELS = new Set([
+  'basalt',
+  'polished_basalt',
+  'smooth_basalt',
+  'bone_block',
+  'hay_block',
+  'deepslate',
+  'bamboo_block',
+  'stripped_bamboo_block',
+  'ochre_froglight',
+  'verdant_froglight',
+  'pearlescent_froglight',
+]);
+
+// 原木类命名规律（含去皮）：*_log / *_wood / *_stem / *_hyphae / *_pillar
+const AXIS_NAME = /(^|_)(log|wood|stem|hyphae|pillar)$/;
+
+// 蜡烛模型按数量拆分命名：candle_one_candle / white_candle_two_candles …
+const CANDLE_NAME = /candle_(one_candle|two_candles|three_candles|four_candles)$/;
+
+function modelOrient(id: string): 'horizontal' | 'vertical' | 'axis' {
+  const key = normalizeId(id);
+  if (VERTICAL_MODELS.has(key) || CANDLE_NAME.test(key)) return 'vertical';
+  if (AXIS_MODELS.has(key) || AXIS_NAME.test(key)) return 'axis';
+  return 'horizontal';
+}
+
+const FACE_NORMAL: Record<Face, [number, number, number]> = {
+  up: [0, 1, 0],
+  down: [0, -1, 0],
+  north: [0, 0, -1],
+  south: [0, 0, 1],
+  west: [-1, 0, 0],
+  east: [1, 0, 0],
+};
+
+// 绕 origin 旋转 MC 坐标点，角度约定与原版模型旋转一致（右手系）
+function rotateAbout(
+  p: [number, number, number],
+  axis: 'x' | 'y' | 'z',
+  angle: number,
+  origin: [number, number, number],
+): [number, number, number] {
+  if (!angle) return p;
+  const rad = (angle * Math.PI) / 180;
+  const cos = Math.cos(rad);
+  const sin = Math.sin(rad);
+  const x = p[0] - origin[0];
+  const y = p[1] - origin[1];
+  const z = p[2] - origin[2];
+  let rx = x;
+  let ry = y;
+  let rz = z;
+  if (axis === 'x') {
+    ry = y * cos - z * sin;
+    rz = y * sin + z * cos;
+  } else if (axis === 'y') {
+    rx = x * cos + z * sin;
+    rz = -x * sin + z * cos;
+  } else {
+    rx = x * cos - y * sin;
+    ry = x * sin + y * cos;
+  }
+  return [rx + origin[0], ry + origin[1], rz + origin[2]];
+}
+
+/**
+ * 计算方块级朝向旋转；不传 facing/axis 时返回空数组（行为完全不变）。
+ * 旋转绕方块中心 (8,8,8)，在 2D / 3D 两处渲染中用法一致。
+ */
+export function resolveBlockRotation(
+  block: string | string[],
+  facing?: BlockFacing,
+  axis?: BlockAxis,
+): BlockRotation[] {
+  const ids = normalizeIds(block);
+  const orient = modelOrient(ids[0] ?? '');
+
+  if (!facing && axis) {
+    // axis 的基准是竖立状态（axis=y）
+    if (axis === 'y') return [];
+    // 原版：axis=z 用 x:90；axis=x 用 x:90,y:90。
+    // 等价地：末端朝南 = 绕 X +90；末端朝东 = 绕 Z -90。
+    return axis === 'z'
+      ? [{axis: 'x', angle: 90}]
+      : [{axis: 'z', angle: -90}];
+  }
+
+  if (!facing) return [];
+
+  const baseUp = orient === 'vertical' || orient === 'axis';
+  if (!baseUp) {
+    // 水平块基准 facing=north
+    switch (facing) {
+      case 'north':
+        return [];
+      case 'east':
+        return [{axis: 'y', angle: -90}];
+      case 'south':
+        return [{axis: 'y', angle: 180}];
+      case 'west':
+        return [{axis: 'y', angle: 90}];
+      case 'up':
+        return [{axis: 'x', angle: 90}];
+      case 'down':
+        return [{axis: 'x', angle: -90}];
+    }
+  }
+  // 竖直块基准 facing=up
+  switch (facing) {
+    case 'up':
+      return [];
+    case 'down':
+      return [{axis: 'x', angle: 180}];
+    case 'north':
+      return [{axis: 'x', angle: -90}];
+    case 'south':
+      return [{axis: 'x', angle: 90}];
+    case 'east':
+      return [{axis: 'z', angle: -90}];
+    case 'west':
+      return [{axis: 'z', angle: 90}];
+  }
+  return [];
+}
+
+/** 把 MC 坐标点按方块级旋转依次变换（默认绕方块中心 8,8,8） */
+export function rotateBlockPoint(
+  p: [number, number, number],
+  rotations: BlockRotation[],
+  origin: [number, number, number] = [8, 8, 8],
+): [number, number, number] {
+  let out: [number, number, number] = p;
+  for (const r of rotations) out = rotateAbout(out, r.axis, r.angle, origin);
+  return out;
+}
+
+/** 面标签跟着方块一起转：用于 2D 明暗（避免旋转后明暗反掉） */
+export function rotateBlockFace(
+  face: Face,
+  rotations: BlockRotation[],
+): Face {
+  if (rotations.length === 0) return face;
+  const v = rotateBlockPoint(FACE_NORMAL[face], rotations, [0, 0, 0]);
+  let best: Face = face;
+  let bestDot = -Infinity;
+  for (const f of FACES) {
+    const n = FACE_NORMAL[f];
+    const dot = v[0] * n[0] + v[1] * n[1] + v[2] * n[2];
+    if (dot > bestDot) {
+      bestDot = dot;
+      best = f;
+    }
+  }
+  return best;
+}

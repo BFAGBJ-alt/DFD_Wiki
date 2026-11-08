@@ -25,7 +25,13 @@ export default function Slot({item}: {item?: ResolvedStack}): ReactNode {
     <>
       {item.block ? (
         // 方块：固定角度的等距 3D 渲染（不可旋转）
-        <BlockDisplay block={item.block} size={30} name={item.name} />
+        <BlockDisplay
+          block={item.block}
+          facing={item.facing}
+          axis={item.axis}
+          size={30}
+          name={item.name}
+        />
       ) : item.skull ? (
         // 头颅：等距 3D 渲染皮肤头部
         <BlockDisplay skull={item.skull} size={30} name={item.name} />

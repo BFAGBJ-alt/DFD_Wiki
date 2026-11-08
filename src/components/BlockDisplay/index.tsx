@@ -1,7 +1,19 @@
 import React, {useEffect, useMemo, useRef, useState, type ReactNode} from 'react';
 import useBaseUrl from '@docusaurus/useBaseUrl';
 import {resolveItem} from '@site/src/data/items/index';
-import {resolveBlockQuads, rotateFaceUv, quadUvPoints, skullQuads, type Quad, type SkullFace} from '../StructureViewer/modelResolver';
+import {
+  resolveBlockQuads,
+  resolveBlockRotation,
+  rotateBlockFace,
+  rotateBlockPoint,
+  rotateFaceUv,
+  quadUvPoints,
+  skullQuads,
+  type BlockAxis,
+  type BlockFacing,
+  type Quad,
+  type SkullFace,
+} from '../StructureViewer/modelResolver';
 import {loadAtlasMeta, resolveTex, type Meta} from '@site/src/utils/minecraftAtlas';
 import styles from './styles.module.css';
 
@@ -149,14 +161,20 @@ export default function BlockDisplay({
   item,
   skull,
   face,
+  facing,
+  axis,
   size = 32,
   name,
   className,
 }: {
   /** 方块模型 id，多模型叠加用数组或逗号分隔 */
   block?: string | string[];
-  /** 物品库 id（src/data/items），自动取 block / skull / name */
+  /** 物品库 id（src/data/items），自动取 block / facing / axis / skull / name */
   item?: string;
+  /** 方块朝向（对应原版 facing，如末地烛朝东；默认水平块为 north、竖直块为 up） */
+  facing?: BlockFacing;
+  /** 方块轴向（对应原版 axis，如原木横放 axis=x；默认 y） */
+  axis?: BlockAxis;
   /** 自定义头颅贴图 URL（64×64 皮肤 PNG），与 block 二选一（block 优先） */
   skull?: string;
   /** 头颅朝向：up=落地头（默认）；水平方向=脸贴该侧边缘 */
@@ -190,21 +208,32 @@ export default function BlockDisplay({
     };
   }, [atlasBase, isProd]);
 
-  // item 引用物品库，block/skull 直接内联；item 优先
+  // item 引用物品库，block/facing/axis/skull 直接内联；item 优先
   const resolved = useMemo(() => {
-    if (!item) return {block, skull, name};
+    if (!item) return {block, skull, name, facing, axis};
     const def = resolveItem(item);
     return {
       block: block ?? def.block,
+      facing: facing ?? def.facing,
+      axis: axis ?? def.axis,
       skull: skull ?? def.skull,
       name: name ?? def.name,
     };
-  }, [item, block, skull, name]);
+  }, [item, block, skull, name, facing, axis]);
 
   const blockKey = Array.isArray(resolved.block)
     ? resolved.block.join(',')
     : resolved.block ?? '';
   const skullUrl = resolved.skull ?? '';
+
+  // 方块级朝向（绕方块中心 8,8,8），不传 facing/axis 时为空数组，渲染结果不变
+  const blockRots = useMemo(
+    () =>
+      blockKey
+        ? resolveBlockRotation(blockKey, resolved.facing, resolved.axis)
+        : [],
+    [blockKey, resolved.facing, resolved.axis],
+  );
 
   useEffect(() => {
     if (blockKey) {
@@ -254,7 +283,9 @@ export default function BlockDisplay({
     if (!quads) return [];
     return quads
       .map((q) => {
-        const rotated = quadCorners(q).map((p) => rotatePoint(p, q.rotation));
+        const rotated = quadCorners(q).map((p) =>
+          rotateBlockPoint(rotatePoint(p, q.rotation), blockRots),
+        );
         // 投影后整体外扩一点：相邻面互相压住，消除接缝处的黑线
         const pts = growPoints(
           rotated.map((p) => project(p, size)),
@@ -269,7 +300,7 @@ export default function BlockDisplay({
         return {q, pts, depth};
       })
       .sort((a, b) => b.depth - a.depth);
-  }, [quads, size]);
+  }, [quads, size, blockRots]);
 
   // 实际投影包围盒，按内容设置视口，避免特殊模型被裁切
   const bounds = useMemo(() => {
@@ -353,10 +384,12 @@ export default function BlockDisplay({
           sy,
           sw,
           sh,
-          shade: FACE_SHADE[q.face as Face] ?? 1,
+          // 面标签跟着方块旋转，避免旋转后明暗方向反掉
+          shade:
+            FACE_SHADE[rotateBlockFace(q.face as Face, blockRots)] ?? 1,
         };
       }),
-    [drawn, atlasMeta, atlasBase, isProd],
+    [drawn, atlasMeta, atlasBase, isProd, blockRots],
   );
 
   const canvasRef = useRef<HTMLCanvasElement>(null);

@@ -4,7 +4,14 @@ import {Html, OrbitControls} from '@react-three/drei';
 import * as THREE from 'three';
 import {useHistory} from '@docusaurus/router';
 import useBaseUrl, {useBaseUrlUtils} from '@docusaurus/useBaseUrl';
-import {resolveBlockQuads, rotateFaceUv, quadUvPoints, skullQuads, type Quad} from './modelResolver';
+import {
+  resolveBlockQuads,
+  resolveBlockRotation,
+  rotateFaceUv,
+  quadUvPoints,
+  skullQuads,
+  type Quad,
+} from './modelResolver';
 import {loadAtlasMeta, resolveTex, type Meta} from '@site/src/utils/minecraftAtlas';
 import type {Structure, StructureBlock} from './types';
 import styles from './styles.module.css';
@@ -176,6 +183,34 @@ function rotatePoint(
   return [rx + ox, ry + oy, rz + oz];
 }
 
+// 方块级朝向 -> 四元数（与 modelResolver 的点旋转同一套角度约定）
+function blockQuaternion(
+  block: string | string[] | undefined,
+  facing: StructureBlock['facing'],
+  axis: StructureBlock['axis'],
+): THREE.Quaternion | undefined {
+  if (!block) return undefined;
+  const rotations = resolveBlockRotation(block, facing, axis);
+  if (rotations.length === 0) return undefined;
+  const q = new THREE.Quaternion();
+  for (const r of rotations) {
+    const axisVec =
+      r.axis === 'x'
+        ? new THREE.Vector3(1, 0, 0)
+        : r.axis === 'y'
+          ? new THREE.Vector3(0, 1, 0)
+          : new THREE.Vector3(0, 0, 1);
+    // 依次应用：q = Rn * ... * R1
+    q.premultiply(
+      new THREE.Quaternion().setFromAxisAngle(
+        axisVec,
+        THREE.MathUtils.degToRad(r.angle),
+      ),
+    );
+  }
+  return q;
+}
+
 // 把一个 MC 元素面转成平面几何体（含局部 UV 与元素旋转）
 // natural：贴图原始尺寸（加载完成后传入），UV 按它归一化
 function buildQuadGeometry(q: Quad, natural?: [number, number]): THREE.BufferGeometry {
@@ -325,9 +360,16 @@ function Block({
 
   const clickable = !!block.link;
 
+  // 方块级朝向：绕方块中心旋转整个 group（贴图随几何体一起转）
+  const rotation = useMemo(
+    () => blockQuaternion(block.block, block.facing, block.axis),
+    [block.block, block.facing, block.axis],
+  );
+
   return (
     <group
       position={[block.x, block.y, block.z]}
+      quaternion={rotation}
       onClick={
         clickable
           ? (e) => {

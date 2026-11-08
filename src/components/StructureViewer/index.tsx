@@ -4,7 +4,7 @@ import useBaseUrl from '@docusaurus/useBaseUrl';
 import {resolveItem} from '@site/src/data/items/index';
 import {supportsWebGL2} from '@site/src/utils/webgl';
 import {resolveStructure, type Structure} from './types';
-import type {SkullFace} from './modelResolver';
+import type {BlockAxis, BlockFacing, SkullFace} from './modelResolver';
 import BlockDisplay from '../BlockDisplay';
 import ErrorBoundary from '../ErrorBoundary';
 import Mobile3DOverlay from './Mobile3DOverlay';
@@ -30,12 +30,16 @@ function useIsMobile(): boolean | null {
  */
 function MobilePreview({
   block,
+  facing,
+  axis,
   skull,
   label,
   color,
   onOpen,
 }: {
   block?: string | string[];
+  facing?: BlockFacing;
+  axis?: BlockAxis;
   skull?: string;
   label?: string;
   color?: string;
@@ -48,7 +52,14 @@ function MobilePreview({
       onClick={onOpen}
       aria-label={`查看 ${label ?? '方块'} 的 3D 模型`}>
       {block || skull ? (
-        <BlockDisplay block={block} skull={skull} size={120} name={label} />
+        <BlockDisplay
+          block={block}
+          facing={facing}
+          axis={axis}
+          skull={skull}
+          size={120}
+          name={label}
+        />
       ) : (
         <span
           className={styles.singleImg}
@@ -80,6 +91,10 @@ type StructureViewerProps = {
   item?: string;
   /** 单一方块模式：自定义头颅贴图 URL（64×64 皮肤 PNG），与 block 二选一 */
   skull?: string;
+  /** 单一方块模式方块朝向（对应原版 facing）；默认水平块为 north、竖直块为 up */
+  facing?: BlockFacing;
+  /** 单一方块模式方块轴向（对应原版 axis，原木/柱状方块） */
+  axis?: BlockAxis;
   /** 单一方块模式头颅朝向：up=落地头（默认）；水平方向=脸贴该侧边缘 */
   face?: SkullFace;
   /** 单一方块模式的名称/链接/纯色回退（优先级高于 item 数据库） */
@@ -105,6 +120,8 @@ export default function StructureViewer({
   block,
   item,
   skull,
+  facing,
+  axis,
   face,
   label,
   link,
@@ -131,13 +148,15 @@ export default function StructureViewer({
       : {};
     return {
       block: block ?? db.block,
+      facing: facing ?? db.facing,
+      axis: axis ?? db.axis,
       skull: skull ?? db.skull,
       face,
       label: label ?? db.name,
       link: link ?? db.link,
       color: color ?? db.color,
     };
-  }, [block, item, skull, face, label, link, color]);
+  }, [block, item, skull, facing, axis, face, label, link, color]);
 
   const effectiveSize = size ?? (name ? 'md' : 'sm');
   const canvasHeight = sizeHeight(effectiveSize);
@@ -154,6 +173,8 @@ export default function StructureViewer({
             y: 0,
             z: 0,
             block: b,
+            facing: singleBlock.facing,
+            axis: singleBlock.axis,
             skull: singleBlock.skull,
             face: singleBlock.face,
             label: singleBlock.label,
@@ -199,6 +220,8 @@ export default function StructureViewer({
       <>
         <MobilePreview
           block={singleBlock?.block ?? (name ? structure.blocks[0]?.block : undefined)}
+          facing={singleBlock?.facing ?? (name ? structure.blocks[0]?.facing : undefined)}
+          axis={singleBlock?.axis ?? (name ? structure.blocks[0]?.axis : undefined)}
           skull={singleBlock?.skull ?? (name ? structure.blocks[0]?.skull : undefined)}
           label={title}
           color={singleBlock?.color ?? structure.blocks[0]?.color}
