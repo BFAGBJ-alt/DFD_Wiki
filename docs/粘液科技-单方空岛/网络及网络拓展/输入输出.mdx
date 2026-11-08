@@ -1,0 +1,24 @@
+---
+sidebar_position: 3
+contributors:
+ - BFAGBJ
+---
+
+import Term from '@site/src/components/Term';
+import StructureViewer from '@site/src/components/StructureViewer';
+import BlockDisplay from '@site/src/components/BlockDisplay';
+import ItemIcon from '@site/src/components/ItemIcon';
+
+要进行输入输出，有多种方式.....
+
+<StructureViewer name="NTW/NTW_Push" />
+
+与货物管理交互的可以用网络入口/出口，他们可以输入输出物品。
+
+针对机器，可以使用抓取和推送器，一般的抓取器一次抓一格，智能抓取器则会一次抓很多东西<Term tip="不确定多少，至少堆叠机器内的能抓完">（?）</Term>
+
+推送器则会按照标记的顺序，尝试推送一组及以下的物品，智能推送器则会一次推送很多的东西<Term tip="不确定多少，至少54格的存储单元一下就满了">（?）</Term>，但只能一种。
+
+还有原版的两种，但是他们不会主动将物品推送进原版容器或将物品输入网络，而是将自己已有的物品推送进容器或从容器内获取物品到自己的存储中，所以需要用推送（抓取）对着他们，来交互原版容器。
+
+他们的界面与AE的总线界面大致相同，此处不再赘述，有需求可前往`应用能源/接口及输入输出`页面查看

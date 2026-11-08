@@ -16,8 +16,11 @@ import {loadAtlasMeta, resolveTex, type Meta} from '@site/src/utils/minecraftAtl
 import type {Structure, StructureBlock} from './types';
 import styles from './styles.module.css';
 
-// 方块渲染尺寸（留缝），MC 坐标 0..16 映射到 [-0.475, +0.475]
-const SIZE = 0.95;
+// 方块渲染尺寸：1 = 严格贴合，方块之间不留缝。
+// 贴合后可能出现“背面贴背面”的共面面（玻璃贴不透明块、两块不同玻璃相贴），
+// 由透明材质的 polygonOffset 与相机 near/far 收紧解决深度冲突，
+// 不再靠缩小方块留缝（那会在方块之间露出背景细线）。
+const SIZE = 1;
 const OFFSET = -SIZE / 2;
 const S = SIZE / 16;
 
@@ -211,87 +214,208 @@ function blockQuaternion(
   return q;
 }
 
-// 把一个 MC 元素面转成平面几何体（含局部 UV 与元素旋转）
-// natural：贴图原始尺寸（加载完成后传入），UV 按它归一化
-function buildQuadGeometry(q: Quad, natural?: [number, number]): THREE.BufferGeometry {
+// 一个面的 4 个 MC 角点（0..16，顺序 A/B/C/D，从面外侧看）
+function mcQuadCorners(q: Quad): [number, number, number][] {
   const [fx, fy, fz] = q.from;
   const [tx, ty, tz] = q.to;
-  // 每面 4 个角点（A 左上 B 右上 C 左下 D 右下，从面外侧看）及其 uv
-  let mc: [number, number, number][];
   switch (q.face) {
     case 'north':
-      mc = [
+      return [
         [fx, ty, fz], [tx, ty, fz],
         [fx, fy, fz], [tx, fy, fz],
       ];
-      break;
     case 'south':
-      mc = [
+      return [
         [fx, ty, tz], [tx, ty, tz],
         [fx, fy, tz], [tx, fy, tz],
       ];
-      break;
     case 'west':
-      mc = [
+      return [
         [fx, ty, fz], [fx, ty, tz],
         [fx, fy, fz], [fx, fy, tz],
       ];
-      break;
     case 'east':
-      mc = [
+      return [
         [tx, ty, fz], [tx, ty, tz],
         [tx, fy, fz], [tx, fy, tz],
       ];
-      break;
     case 'up':
-      mc = [
+      return [
         [fx, ty, fz], [tx, ty, fz],
         [fx, ty, tz], [tx, ty, tz],
       ];
-      break;
     case 'down':
     default:
-      mc = [
+      return [
         [fx, fy, fz], [tx, fy, fz],
         [fx, fy, tz], [tx, fy, tz],
       ];
-      break;
   }
+}
+
+type QuadData = {positions: number[]; uvs: number[]; indices: number[]};
+
+function emptyQuadData(): QuadData {
+  return {positions: [], uvs: [], indices: []};
+}
+
+// 把一面的顶点/UV 追加到合并缓冲；quat/pos 用于把方块级旋转与位置烘进顶点
+function appendQuad(
+  target: QuadData,
+  q: Quad,
+  natural?: [number, number],
+  quat?: THREE.Quaternion,
+  pos?: [number, number, number],
+): void {
+  const base = target.positions.length / 3;
   // 角点顺序 A/B/C/D 与 BlockDisplay 共用同一套 uv 约定
   const uvs = quadUvPoints(q.uv, q.face);
-  // 应用元素旋转后再映射到方块世界坐标
-  const corners = mc.map((p) => {
-    const [x, y, z] = rotatePoint(p, q.rotation);
-    return [OFFSET + x * S, OFFSET + y * S, OFFSET + z * S];
-  });
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute(
-    'position',
-    new THREE.Float32BufferAttribute(corners.flat(), 3),
-  );
   // MC uv 的 v 向下，three 的 v 向上；面旋转按 MC 的 face.rotation 处理
   const [texW, texH] = natural ?? q.texSize ?? [16, 16];
-  geo.setAttribute(
-    'uv',
-    new THREE.Float32BufferAttribute(
-      uvs
-        .map(([u, v]) => rotateFaceUv(u, v, q.uv, q.uvRotation))
-        .map(([u, v]) => [u / texW, 1 - v / texH])
-        .flat(),
-      2,
-    ),
-  );
-  geo.setIndex([0, 2, 1, 1, 2, 3]);
+  for (const [u, v] of uvs) {
+    const [ru, rv] = rotateFaceUv(u, v, q.uv, q.uvRotation);
+    target.uvs.push(ru / texW, 1 - rv / texH);
+  }
+
+  for (const mc of mcQuadCorners(q)) {
+    const [x, y, z] = rotatePoint(mc, q.rotation);
+    let vx = OFFSET + x * S;
+    let vy = OFFSET + y * S;
+    let vz = OFFSET + z * S;
+    if (quat) {
+      const v = new THREE.Vector3(vx, vy, vz).applyQuaternion(quat);
+      vx = v.x;
+      vy = v.y;
+      vz = v.z;
+    }
+    if (pos) {
+      vx += pos[0];
+      vy += pos[1];
+      vz += pos[2];
+    }
+    target.positions.push(vx, vy, vz);
+  }
+  target.indices.push(base, base + 2, base + 1, base + 1, base + 2, base + 3);
+}
+
+function dataToGeometry(data: QuadData): THREE.BufferGeometry {
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(data.positions, 3));
+  geo.setAttribute('uv', new THREE.Float32BufferAttribute(data.uvs, 2));
+  geo.setIndex(data.indices);
   return geo;
+}
+
+// 把一个 MC 元素面转成平面几何体（含局部 UV 与元素旋转）
+function buildQuadGeometry(q: Quad, natural?: [number, number]): THREE.BufferGeometry {
+  const data = emptyQuadData();
+  appendQuad(data, q, natural);
+  return dataToGeometry(data);
+}
+
+// ===== 不可见面剔除 =====
+
+const FACE_OFFSET: Record<Quad['face'], [number, number, number]> = {
+  north: [0, 0, -1],
+  south: [0, 0, 1],
+  west: [-1, 0, 0],
+  east: [1, 0, 0],
+  up: [0, 1, 0],
+  down: [0, -1, 0],
+};
+
+// 透明/半透明方块：玻璃、染色玻璃、冰、树叶等。
+// 它们的面可能从另一侧看到，因此不参与静态面剔除。
+const TRANSPARENT_ID = /(glass|leaves|ice|slime_block|honey_block|copper_grate|water)/;
+
+function isTransparentBlock(b: StructureBlock): boolean {
+  if (!b.block) return false;
+  const ids = Array.isArray(b.block) ? b.block : b.block.split(',');
+  return ids.some((id) => TRANSPARENT_ID.test(id.trim()));
+}
+
+// 透明方块的“种类”：用渲染层真正决定几何与贴图的 block 模型 id 判等，
+// 而不是 type/调色板键。理由：type 只是数据里的状态名，可以因刷蜡/朝向等
+// 拆成多个键却共用同一个模型；反过来模型相同意味着六个面的贴图、UV、
+// 是否满立方体都一致，此时贴合面两侧的材质才真正相同，剔除才不会露底。
+// 无 block 的方块（skull 等）返回 null，不参与同种透明互剔。
+function transparentKind(b: StructureBlock): string | null {
+  if (!isTransparentBlock(b) || !b.block) return null;
+  const ids = Array.isArray(b.block) ? b.block : b.block.split(',');
+  return ids.map((s) => s.trim()).join(',');
+}
+
+const OPPOSITE_FACE: Record<Quad['face'], Quad['face']> = {
+  north: 'south',
+  south: 'north',
+  west: 'east',
+  east: 'west',
+  up: 'down',
+  down: 'up',
+};
+
+// 贴图路径同样能判断透明材质（材质按贴图 URL 分组，一个贴图对应一个材质）
+function isTransparentTexture(url: string): boolean {
+  return TRANSPARENT_ID.test(url);
+}
+
+// 面是否正好贴在方块边界上（只有边界面上的面才可能被邻格挡住）
+function onBlockBoundary(q: Quad): boolean {
+  switch (q.face) {
+    case 'north':
+      return q.from[2] === 0;
+    case 'south':
+      return q.to[2] === 16;
+    case 'west':
+      return q.from[0] === 0;
+    case 'east':
+      return q.to[0] === 16;
+    case 'down':
+      return q.from[1] === 0;
+    case 'up':
+      return q.to[1] === 16;
+  }
+}
+
+// 该面是否铺满整个方块边界（0..16），用于判断“整面被邻格挡住”
+function coversFullFace(q: Quad): boolean {
+  if (q.rotation?.angle || !onBlockBoundary(q)) return false;
+  const [fx, fy, fz] = q.from;
+  const [tx, ty, tz] = q.to;
+  switch (q.face) {
+    case 'north':
+    case 'south':
+      return fx === 0 && tx === 16 && fy === 0 && ty === 16;
+    case 'west':
+    case 'east':
+      return fz === 0 && tz === 16 && fy === 0 && ty === 16;
+    case 'up':
+    case 'down':
+      return fx === 0 && tx === 16 && fz === 0 && tz === 16;
+  }
+}
+
+// 该模型是否完整的实心立方体（6 个面都铺满方块边界）
+function isFullCube(quads: Quad[] | null): boolean {
+  if (!quads) return false;
+  const seen = new Set<Quad['face']>();
+  for (const q of quads) {
+    if (coversFullFace(q)) seen.add(q.face);
+  }
+  return seen.size === 6;
 }
 
 function Block({
   block,
   quads,
+  materials,
+  dims,
   labelDistance,
 }: {
   block: StructureBlock;
   quads: Quad[] | null;
+  materials: Map<string, THREE.MeshBasicMaterial>;
+  dims: Map<string, [number, number]>;
   labelDistance: number;
 }): ReactNode {
   const history = useHistory();
@@ -299,36 +423,28 @@ function Block({
   // react-router 的 history.push 不认 baseUrl，必须自己拼。
   const {withBaseUrl} = useBaseUrlUtils();
   const [hovered, setHovered] = useState(false);
-  const atlasMeta = useAtlasMeta();
-  const atlasBaseUrl = useBaseUrl('/');
-  const isProd = process.env.NODE_ENV === 'production';
 
-  const urls = useMemo(
-    () => [...new Set((quads ?? []).map((q) => q.texture))],
-    [quads],
-  );
-  const {texMap: texByUrl, dims} = useTextures(urls, atlasMeta, atlasBaseUrl, isProd);
-  // 每张贴图共享一个材质
-  const materials = useMemo(() => {
+  // 共享材质：只有带 link 的方块需要独立材质做悬停高亮
+  const ownMaterials = useMemo(() => {
+    if (!block.link) return materials;
     const m = new Map<string, THREE.MeshBasicMaterial>();
-    for (const [url, tex] of texByUrl) {
-      m.set(
-        url,
-        new THREE.MeshBasicMaterial({
-          map: tex,
-          transparent: true,
-          side: THREE.DoubleSide,
-        }),
-      );
-    }
+    for (const [url, mat] of materials) m.set(url, mat.clone());
     return m;
-  }, [texByUrl]);
+  }, [materials, block.link]);
+
+  useEffect(
+    () => () => {
+      if (ownMaterials !== materials) ownMaterials.forEach((m) => m.dispose());
+    },
+    [ownMaterials, materials],
+  );
 
   // 回退纯色材质（无 quads 或贴图缺失时）
   const fallbackMaterial = useMemo(
     () =>
       new THREE.MeshBasicMaterial({
         color: block.color ?? '#888888',
+        transparent: false,
         side: THREE.DoubleSide,
       }),
     [block.color],
@@ -342,21 +458,20 @@ function Block({
   useEffect(
     () => () => {
       geometries.forEach((g) => g.dispose());
-      materials.forEach((m) => m.dispose());
       fallbackMaterial.dispose();
     },
-    [geometries, materials, fallbackMaterial],
+    [geometries, fallbackMaterial],
   );
 
   // 悬停高亮（仅带 link 的方块）
   useEffect(() => {
-    const all = [...materials.values(), fallbackMaterial];
+    const all = [...ownMaterials.values(), fallbackMaterial];
     all.forEach((m) => {
       const orig = (m.userData.orig ??= m.color.clone());
       m.color.copy(orig);
       if (hovered && block.link) m.color.multiplyScalar(1.35);
     });
-  }, [hovered, materials, fallbackMaterial, block.link]);
+  }, [hovered, ownMaterials, fallbackMaterial, block.link]);
 
   const clickable = !!block.link;
 
@@ -392,7 +507,7 @@ function Block({
           <mesh
             key={i}
             geometry={g}
-            material={materials.get(quads![i].texture) ?? fallbackMaterial}
+            material={ownMaterials.get(quads![i].texture) ?? fallbackMaterial}
           />
         ))
       ) : (
@@ -422,6 +537,7 @@ export default function Structure3D({
   height = 480,
   autoRotate = true,
   interactive = true,
+  layer = null,
 }: {
   structure: Structure;
   texBase: string;
@@ -430,6 +546,8 @@ export default function Structure3D({
   autoRotate?: boolean;
   /** 是否允许拖动/缩放；移动端预览态只自动旋转，全屏后才开启交互 */
   interactive?: boolean;
+  /** 只渲染该 Y 层；null/undefined 表示全部层 */
+  layer?: number | null;
 }): ReactNode {
   const [quadLists, setQuadLists] = useState<(Quad[] | null)[] | null>(null);
 
@@ -451,28 +569,188 @@ export default function Structure3D({
     };
   }, [structure, texBase]);
 
-  const {center, radius} = useMemo(() => {
+  const atlasMeta = useAtlasMeta();
+  const atlasBaseUrl = useBaseUrl('/');
+  const isProd = process.env.NODE_ENV === 'production';
+
+  // 一次性收集全部方块贴图（不受分层影响），避免切层时反复销毁/重建贴图
+  const allUrls = useMemo(
+    () => [
+      ...new Set(
+        (quadLists ?? []).flatMap((q) => (q ?? []).map((x) => x.texture)),
+      ),
+    ],
+    [quadLists],
+  );
+  const {texMap, dims} = useTextures(allUrls, atlasMeta, atlasBaseUrl, isProd);
+
+  const materials = useMemo(() => {
+    const m = new Map<string, THREE.MeshBasicMaterial>();
+    for (const [url, tex] of texMap) {
+      const transparent = isTransparentTexture(url);
+      const params: THREE.MeshBasicMaterialParameters = {
+        map: tex,
+        // 不透明块必须留在 opaque pass，否则会跟玻璃一起按距离排序，
+        // 出现“玻璃写深度把后面的方块挡掉”的视角相关问题。
+        transparent,
+        // 玻璃不写深度：后面的方块先画完后仍能透过玻璃看到；
+        // 玻璃自己之间的前后关系由深度测试读取 opaque pass 的结果保证。
+        depthWrite: !transparent,
+        // 贴合（SIZE=1）后玻璃面可能与相邻不透明块的背面严格共面。
+        // 把透明多边形往相机方向偏一点点深度（负偏移 = 更近），
+        // 保证玻璃稳定地通过深度测试、压在同深度的石面上，
+        // 不会出现两个面轮流赢的闪烁；偏移量在深度精度以内，肉眼不可见。
+        polygonOffset: transparent,
+        polygonOffsetFactor: transparent ? -1 : 0,
+        polygonOffsetUnits: transparent ? -1 : 0,
+        side: THREE.DoubleSide,
+      };
+      // 非透明材质用 alphaTest 处理树叶/植物这类镂空贴图，
+      // 避免为了透明排序把所有材质都丢进 transparent pass。
+      // 不能传 undefined：three 会在控制台报警告。
+      if (!transparent) params.alphaTest = 0.5;
+      m.set(url, new THREE.MeshBasicMaterial(params));
+    }
+    return m;
+  }, [texMap]);
+
+  const fallbackMaterial = useMemo(
+    () =>
+      new THREE.MeshBasicMaterial({
+        color: '#888888',
+        transparent: false,
+        side: THREE.DoubleSide,
+      }),
+    [],
+  );
+
+  useEffect(
+    () => () => {
+      materials.forEach((m) => m.dispose());
+      fallbackMaterial.dispose();
+    },
+    [materials, fallbackMaterial],
+  );
+
+  // 可见层 + 相机范围 + 面剔除
+  const prepared = useMemo(() => {
+    if (!quadLists) return null;
+    const shown = structure.blocks
+      .map((b, i) => ({b, i}))
+      .filter(({b}) => layer == null || b.y === layer);
+    const bounds = shown.length > 0 ? shown : structure.blocks.map((b, i) => ({b, i}));
+
     let minX = Infinity, maxX = -Infinity;
     let minY = Infinity, maxY = -Infinity;
     let minZ = Infinity, maxZ = -Infinity;
-    for (const b of structure.blocks) {
+    for (const {b} of bounds) {
       minX = Math.min(minX, b.x); maxX = Math.max(maxX, b.x);
       minY = Math.min(minY, b.y); maxY = Math.max(maxY, b.y);
       minZ = Math.min(minZ, b.z); maxZ = Math.max(maxZ, b.z);
     }
+
+    // 只把当前可见方块建索引：单层模式下不会误剔掉朝向其它层的面
+    const occupancy = new Map<string, {b: StructureBlock; i: number}>();
+    for (const entry of shown) {
+      occupancy.set(`${entry.b.x},${entry.b.y},${entry.b.z}`, entry);
+    }
+
+    const fullCube = new Map<number, boolean>();
+    const isFull = (i: number): boolean => {
+      let v = fullCube.get(i);
+      if (v === undefined) {
+        v = isFullCube(quadLists[i]);
+        fullCube.set(i, v);
+      }
+      return v;
+    };
+
+    const entries = shown.map(({b, i}) => {
+      const quads = quadLists[i] ?? [];
+      const transparent = isTransparentBlock(b);
+      const kept = quads.filter((q) => {
+        // 只有铺满整面、且没有元素旋转的面才可能被邻格完全挡住
+        if (!coversFullFace(q)) return true;
+        // 严格只看六个正交方向：occupancy 只按 ±1 的坐标键索引，
+        // 斜对角 / 棱相邻的格子根本查不到，天然不会被剔除。
+        const [dx, dy, dz] = FACE_OFFSET[q.face];
+        const nb = occupancy.get(`${b.x + dx},${b.y + dy},${b.z + dz}`);
+        // 邻格必须是完整立方体，否则它的面只遮住一部分，不能整面剔除
+        if (!nb || !isFull(nb.i)) return true;
+
+        if (!transparent) {
+          // 不透明块朝向透明块的面要保留，否则透过玻璃会看到空洞
+          if (isTransparentBlock(nb.b)) return true;
+          // 只有“不透明 <-> 不透明”的内部面才剔除
+          return false;
+        }
+
+        // 透明块默认保留全部面：它们可能从另一侧被看到。
+        // 例外：同一种透明块严格面贴面时，接触面在两侧都是同一贴图，
+        // 光路本来就被同种材质连着，剔除这对内部面不会产生可见空洞。
+        if (!isTransparentBlock(nb.b)) return true;
+        const kind = transparentKind(b);
+        if (!kind || kind !== transparentKind(nb.b)) return true;
+        // 再核对邻格反方向那面的贴图：模型相同但朝向/UV 不同时也保守保留
+        const nbQuad = (quadLists[nb.i] ?? []).find(
+          (x) => x.face === OPPOSITE_FACE[q.face] && coversFullFace(x),
+        );
+        if (!nbQuad || nbQuad.texture !== q.texture) return true;
+        return false;
+      });
+      return {b, i, quads: kept};
+    });
+
     return {
+      entries,
       center: [(minX + maxX) / 2, (minY + maxY) / 2, (minZ + maxZ) / 2] as const,
       radius: Math.max(maxX - minX, maxY - minY, maxZ - minZ, 2) / 2 + 1,
     };
-  }, [structure]);
+  }, [structure, layer, quadLists]);
 
-  if (!quadLists) return <div className={styles.canvasPlaceholder} />;
+  // 无交互的静态方块合并成按贴图分组的整体几何体，大幅减少 draw call
+  const merged = useMemo(() => {
+    if (!prepared) return [];
+    const groups = new Map<string, QuadData>();
+    for (const {b, i, quads} of prepared.entries) {
+      if (b.link || b.label || quads.length === 0) continue;
+      const quat = blockQuaternion(b.block, b.facing, b.axis);
+      for (const q of quads) {
+        let data = groups.get(q.texture);
+        if (!data) {
+          data = emptyQuadData();
+          groups.set(q.texture, data);
+        }
+        appendQuad(data, q, dims.get(q.texture), quat, [b.x, b.y, b.z]);
+      }
+    }
+    return [...groups].map(([texture, data]) => ({
+      texture,
+      geometry: dataToGeometry(data),
+    }));
+  }, [prepared, dims]);
 
+  useEffect(
+    () => () => {
+      merged.forEach((m) => m.geometry.dispose());
+    },
+    [merged],
+  );
+
+  if (!prepared) return <div className={styles.canvasPlaceholder} />;
+
+  const individual = prepared.entries.filter(
+    ({b, quads}) => b.link || b.label || quads.length === 0,
+  );
+  const {center, radius} = prepared;
   const d = radius * 2.4;
   return (
     <div className={styles.canvas} style={{height}}>
       <Canvas
-        camera={{position: [d, d * 0.8, d], fov: 40}}
+        // near/far 按模型尺度收紧：默认 far=1000 时深度缓冲精度很差，
+        // 贴合面在掠射角度更容易闪。far 取 radius*8，最大缩放距离 radius*6
+        // 仍在视锥内，不会裁掉模型。
+        camera={{position: [d, d * 0.8, d], fov: 40, near: 0.1, far: radius * 8}}
         style={{touchAction: interactive ? 'none' : 'auto'}}
         dpr={[1, 2]}>
         <OrbitControls
@@ -486,11 +764,20 @@ export default function Structure3D({
           maxDistance={radius * 6}
         />
         <group position={[-center[0], -center[1], -center[2]]}>
-          {structure.blocks.map((b, i) => (
+          {merged.map(({texture, geometry}) => (
+            <mesh
+              key={texture}
+              geometry={geometry}
+              material={materials.get(texture) ?? fallbackMaterial}
+            />
+          ))}
+          {individual.map(({b, i, quads}) => (
             <Block
               key={i}
               block={b}
-              quads={quadLists[i]}
+              quads={quads}
+              materials={materials}
+              dims={dims}
               labelDistance={Math.max(5, height / 40)}
             />
           ))}

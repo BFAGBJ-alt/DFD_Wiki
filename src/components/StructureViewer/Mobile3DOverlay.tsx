@@ -1,6 +1,7 @@
-import React, {useEffect, useRef, useState, type ReactNode} from 'react';
+import React, {useEffect, useMemo, useRef, useState, type ReactNode} from 'react';
 import BrowserOnly from '@docusaurus/BrowserOnly';
 import ErrorBoundary from '../ErrorBoundary';
+import LayerControls from './LayerControls';
 import LazyStructure3D from './lazyStructure3D';
 import {supportsWebGL2} from '@site/src/utils/webgl';
 import type {Structure} from './types';
@@ -34,11 +35,19 @@ export default function Mobile3DOverlay({
   }, []);
 
   const no3d = webgl2 === false;
+  const layers = useMemo(
+    () => [...new Set(structure.blocks.map((b) => b.y))].sort((a, b) => a - b),
+    [structure],
+  );
+  const [layer, setLayer] = useState<number | null>(null);
+  const showLayers = layers.length > 1;
 
   const height = (() => {
     if (typeof window === 'undefined') return 320;
     const h = window.innerHeight;
-    return fullscreen ? Math.round(h - 92) : Math.round(Math.min(h * 0.6, 420));
+    return fullscreen
+      ? Math.round(h - 92 - (showLayers ? 40 : 0))
+      : Math.round(Math.min(h * 0.6, 420));
   })();
 
   useEffect(() => {
@@ -114,6 +123,9 @@ export default function Mobile3DOverlay({
             </button>
           </div>
         </div>
+        {showLayers && (
+          <LayerControls layers={layers} value={layer} onChange={setLayer} />
+        )}
         <div className={styles.panelBody}>
           {no3d ? (
             <div className={styles.panelError} style={{height}}>
@@ -154,6 +166,7 @@ export default function Mobile3DOverlay({
                       height={height}
                       autoRotate
                       interactive={fullscreen}
+                      layer={layer}
                     />
                   </React.Suspense>
                 </ErrorBoundary>

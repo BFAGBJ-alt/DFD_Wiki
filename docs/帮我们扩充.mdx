@@ -137,7 +137,7 @@ import BlockDisplay from '@site/src/components/BlockDisplay';
 ```mdx
 import StructureViewer from '@site/src/components/StructureViewer';
 
-<StructureViewer name="me-network" />
+<StructureViewer name="AE/me-network" />
 <StructureViewer item="me_drive" />
 <StructureViewer block="furnace" label="熔炉" />
 <StructureViewer skull="https://textures.minecraft.net/texture/xxxx" face="up" label="玩家头颅" />
@@ -145,7 +145,7 @@ import StructureViewer from '@site/src/components/StructureViewer';
 
 | 参数 | 类型 | 默认值 | 说明 |
 | --- | --- | --- | --- |
-| `name` | `string` | — | 结构名，读取 `static/structures/<name>.json`；移动端同时读取 `static/img/structures/<name>.gif` |
+| `name` | `string` | — | 结构名，读取 `static/structures/<name>.json`；支持子目录，如 `name="AE/me-craft"` |
 | `block` | `string \| string[]` | — | 原版方块 model id，可叠加多个模型 |
 | `item` | `string` | — | 物品库 id，自动展开方块、名称与链接 |
 | `skull` | `string` | — | 自定义头颅皮肤 URL（64×64 PNG） |
@@ -155,11 +155,14 @@ import StructureViewer from '@site/src/components/StructureViewer';
 | `color` | `string` | `#888888` | 无模型、无贴图时的纯色回退 |
 | `size` | `'sm' \| 'md' \| 'lg' \| number` | 结构 `md`，单方块 `sm` | 画布高度：`sm`=280、`md`=480、`lg`=600，或直接给像素数 |
 
-结构文件放在 `static/structures/<name>.json`，坐标单位为格，格式如下：
+结构文件放在 `static/structures/<分类>/<name>.json`（如 `static/structures/AE/me-craft.json`），坐标单位为格，格式如下：
 
 ```json
 {
   "name": "me-craft",
+  "pattern": {
+    "controller": {}
+  },
   "palette": {
     "controller": {
       "block": "black_stained_glass",
@@ -175,9 +178,82 @@ import StructureViewer from '@site/src/components/StructureViewer';
 }
 ```
 
-- `palette` 用于预设重复出现的方块，`blocks[].type` 引用预设；
+- `palette`（别名 `pattern`）用于预设重复出现的方块，`blocks[].type` 引用预设；两者同时存在时 `palette` 优先；
 - `blocks[].item` 引用物品库（`src/data/items`），方块内的内联字段优先于预设与数据库；
-- 每个方块可填 `block` / `skull` / `face` / `color` / `label` / `link`。
+- 每个方块可填 `block` / `skull` / `face` / `facing` / `axis` / `color` / `label` / `link`；
+- 桌面端结构查看器顶部有分层控制条：可切到单层（按实际存在的 Y 层逐层切换）或回到全部层；移动端在全屏 3D 浮层里同样可用。
+
+### 从 litematic 生成结构 JSON
+
+`scripts/litematic_to_structure.py` 把 Litematica 投影文件转成本站的结构 JSON，
+只依赖 Python 3 标准库，无需安装额外包。
+
+```bash
+python scripts/litematic_to_structure.py <输入.litematic> <输出.json> [--name 名称] [--model-dir 目录]
+```
+
+| 参数 | 说明 |
+| --- | --- |
+| `<输入.litematic>` | 必填。Litematica 投影文件，gzip 或未压缩的 NBT 都可以 |
+| `<输出.json>` | 必填。输出路径，目录不存在会自动创建 |
+| `--name` | 可选。JSON 的 `name` 字段；省略时优先取投影里的 `Metadata.Name`，否则用输出文件名 |
+| `--model-dir` | 可选。方块模型目录，默认 `static/img/Minecraft/block`；材质没放在默认位置时用它指定 |
+
+一次完整流程：
+
+1. 在游戏里保存投影，得到 `.litematic`。
+2. 运行脚本，把结果输出到 `static/structures/<分类>/<名字>.json`：
+
+   ```bash
+   python scripts/litematic_to_structure.py "NTW_Push.litematic" "static/structures/NTW/NTW_Push.json"
+   ```
+
+3. 打开生成的 JSON，按报告补全 `pattern`（见下文）。
+4. 在 `mdx` 里嵌入查看器，路径不带 `.json`：
+
+   ```mdx
+   import StructureViewer from '@site/src/components/StructureViewer';
+
+   <StructureViewer name="NTW/NTW_Push" />
+   ```
+
+5. `npm start` 本地确认显示效果。
+
+生成的 JSON 结构：
+
+```json
+{
+  "name": "NTW_Push",
+  "pattern": {
+    "blast_furnace": {"item": ""}
+  },
+  "blocks": [
+    {"x": 0, "y": 0, "z": 5, "type": "blast_furnace", "block": "blast_furnace", "facing": "west"}
+  ]
+}
+```
+
+- `blocks[].type`：投影里的原始方块 id，同时是 `pattern` 的键；
+- `blocks[].block`：脚本根据材质推导出的本站模型 id，已经内联写好，不填 `pattern` 也能直接渲染；
+- `blocks[].facing` / `axis`：投影中带朝向的方块会写入对应原版属性；
+- `pattern` 会按本次实际出现的每个 `type` 生成占位，值为 `{"item": ""}`。
+
+`pattern` 的占位怎么填：
+
+- 想引用本站物品库：把 `item` 改成 `src/data/items` 里的 id，例如 `{"item": "me_drive"}`，
+  会自动展开名称、链接、颜色；
+- 想直接写模型：把占位换成 `{"block": "furnace", "label": "熔炉", "link": "/docs/..."}`；
+- 留空 `{"item": ""}` 时不会展开任何内容，会回退到方块内联的 `block`，不会变成灰色；
+- 方块自身的字段优先级高于 `pattern`，同一 `type` 的不同方块可以单独覆盖字段。
+
+脚本会对投影做这些处理：
+
+- **空气方块**不输出（`air`、`cave_air`、`void_air`、`structure_void`）；
+- **负 Size**：负号只表示从 `Position` 向负方向延伸，脚本按 Litematica 规则换算绝对坐标；
+- **多 region**：按世界坐标展平，重叠格按文件中 region 的顺序“后者覆盖前者”，报告会给出覆盖格数；
+- **TileEntity / Entity / PendingTicks**：本站结构 JSON 没有对应数据模型，只统计数量并在报告里列出，不写入 JSON；
+- **映射失败**：不会静默丢弃。方块仍保留 `type`，只是不写 `block`，并在报告 `[未映射]` 下列出所有缺少模型的 blockstate；
+  补材质或手动填写 `block` 后重新运行即可。
 
 ### ItemIcon：物品图标
 

@@ -1,0 +1,28 @@
+{
+  "name": "NTW_Push",
+  "pattern": {
+    "blast_furnace": {"item": "logitech_final_stackmachine"},
+    "blue_stained_glass": {"item": "NTW_EXPORT"},
+    "brown_stained_glass": {"item": "NTW_PUSHER"},
+    "chest": {"item": "chest"},
+    "end_rod": {"item": "NTW_EXPANSION_SMART_GRABBER"},
+    "lime_stained_glass": {"item": "NTW_VANILLA_PUSHER"},
+    "magenta_stained_glass": {"item": "NTW_GRABBER"},
+    "orange_stained_glass": {"item": "NTW_VANILLA_GRABBER"},
+    "red_stained_glass": {"item": "NTW_IMPORT"},
+    "lightning_rod": {"item": "NTW_EXPANSION_SMART_PUSHER"}
+  },
+  "blocks": [
+    {"x": 0, "y": 0, "z": 0, "type": "orange_stained_glass", "block": "orange_stained_glass"},
+    {"x": 2, "y": 0, "z": 0, "type": "blue_stained_glass", "block": "blue_stained_glass"},
+    {"x": 0, "y": 0, "z": 1, "type": "chest", "block": "chest", "facing": "west"},
+    {"x": 0, "y": 0, "z": 2, "type": "lime_stained_glass", "block": "lime_stained_glass"},
+    {"x": 2, "y": 0, "z": 2, "type": "red_stained_glass", "block": "red_stained_glass"},
+    {"x": 0, "y": 0, "z": 4, "type": "end_rod", "block": "end_rod", "facing": "north"},
+    {"x": 2, "y": 0, "z": 4, "type": "magenta_stained_glass", "block": "magenta_stained_glass"},
+    {"x": 0, "y": 0, "z": 5, "type": "blast_furnace", "block": "blast_furnace", "facing": "west"},
+    {"x": 2, "y": 0, "z": 5, "type": "blast_furnace", "block": "blast_furnace", "facing": "west"},
+    {"x": 0, "y": 0, "z": 6, "type": "lightning_rod", "block": "lightning_rod", "facing": "south"},
+    {"x": 2, "y": 0, "z": 6, "type": "brown_stained_glass", "block": "brown_stained_glass"}
+  ]
+}

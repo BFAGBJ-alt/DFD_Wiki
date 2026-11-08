@@ -1,10 +1,10 @@
 // 预渲染旋转图脚本（移动端降级显示用）
 // 用法: node scripts/render-structures.mjs [--preview]
 // 输出: static/img/structures/<结构名>.gif
-// 同时把结构 JSON 同步到 static/structures/ 供 <StructureViewer> 运行时加载
+// 同时把结构 JSON 同步到 static/structures/（保留 scripts/structures/ 下的子目录结构）
 // --preview 额外把第一帧存成 PNG 到系统临时目录，方便检查效果
 //
-// 结构定义见 scripts/structures/ 下的 .json 文件：
+// 结构定义见 scripts/structures/ 下的 .json 文件（支持 AE/、NTW/ 等子目录，递归扫描）：
 // {
 //   "name": "me-network",
 //   "palette": {  // 可选预设表：统一定义材质/颜色/名称/链接，减少重复
@@ -636,17 +636,32 @@ const itemsDb = loadItemsDb();
 fs.mkdirSync(OUT_DIR, {recursive: true});
 fs.mkdirSync(STATIC_STRUCT_DIR, {recursive: true});
 
-const files = fs.readdirSync(STRUCT_DIR).filter((f) => f.endsWith('.json'));
+// 递归收集结构定义，rel 是相对 scripts/structures 的路径（用于保留子目录）
+function collectStructFiles(dir, base = dir) {
+  const out = [];
+  for (const entry of fs.readdirSync(dir, {withFileTypes: true})) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      out.push(...collectStructFiles(full, base));
+    } else if (entry.name.endsWith('.json')) {
+      out.push({src: full, rel: path.relative(base, full)});
+    }
+  }
+  return out;
+}
+
+const files = collectStructFiles(STRUCT_DIR);
 if (files.length === 0) {
   console.log('[render] scripts/structures/ 下没有 .json 结构文件');
   process.exit(0);
 }
 
-for (const file of files) {
-  const src = path.join(STRUCT_DIR, file);
+for (const {src, rel} of files) {
   const struct = JSON.parse(fs.readFileSync(src, 'utf8'));
-  const name = struct.name || path.basename(file, '.json');
-  fs.copyFileSync(src, path.join(STATIC_STRUCT_DIR, file));
+  const name = struct.name || path.basename(rel, '.json');
+  const dest = path.join(STATIC_STRUCT_DIR, rel);
+  fs.mkdirSync(path.dirname(dest), {recursive: true});
+  fs.copyFileSync(src, dest);
 
   const blocks = resolveStructure(struct, itemsDb);
   const view = computeView(blocks);

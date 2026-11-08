@@ -194,6 +194,30 @@
   cursor: pointer;
 }
 
+.panelBtn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* 结构分层控制条：桌面画布上方 / 移动端浮层标题栏下方 */
+.layerBar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--ifm-color-emphasis-200);
+  background: var(--ifm-background-surface-color);
+}
+
+.layerValue {
+  min-width: 72px;
+  color: var(--ifm-color-emphasis-700);
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
 .panelBody {
   flex: 1 1 auto;
   min-height: 0;

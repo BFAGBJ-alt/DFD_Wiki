@@ -41,6 +41,8 @@ export type Structure = {
   name: string;
   /** 方块预设表：type -> 材质/名称/链接，减少重复书写 */
   palette?: Record<string, BlockDef>;
+  /** palette 的等价别名：转换脚本把待填写的映射表放在这里，填写后与 palette 等效 */
+  pattern?: Record<string, BlockDef>;
   blocks: StructureBlock[];
 };
 
@@ -71,9 +73,10 @@ export function resolveStructure(
       ...b,
     };
   };
-  const palette = s.palette
+  const presets = s.palette ?? s.pattern;
+  const palette = presets
     ? Object.fromEntries(
-        Object.entries(s.palette).map(([k, v]) => [k, applyItem(v)]),
+        Object.entries(presets).map(([k, v]) => [k, applyItem(v)]),
       )
     : undefined;
   return {

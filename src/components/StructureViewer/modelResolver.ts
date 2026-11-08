@@ -283,9 +283,36 @@ function fallbackQuads(
   );
 }
 
+// 资源包没有蜡化模型（waxed_*），渲染时退回同形状的未蜡化模型
+function unwaxedId(id: string): string | null {
+  return id.startsWith('waxed_') ? id.slice('waxed_'.length) : null;
+}
+
+// 资源包把一些方块拆成了子模型，且没有蜡化模型（waxed_*）。
+// 这里给出渲染用的候选 id：蜡化 -> 未蜡化；门/活板门 -> 默认下半子模型。
+// 门/活板门的开合与铰链方向不在结构 JSON 里，取最接近的闭合默认形态。
+function modelAliases(id: string): string[] {
+  const out: string[] = [];
+  let base = id;
+  const un = unwaxedId(id);
+  if (un) {
+    base = un;
+    out.push(un);
+  }
+  if (base.endsWith('_door')) out.push(`${base}_bottom_left`);
+  if (base.endsWith('_trapdoor')) out.push(`${base}_bottom`);
+  return out;
+}
+
 // 单个 model id -> quads
 async function resolveModelQuads(base: string, id: string): Promise<Quad[]> {
-  const chain = await loadChain(base, id);
+  let chain = await loadChain(base, id);
+  let effectiveId = id;
+  for (const alt of modelAliases(id)) {
+    if (chain.length > 0) break;
+    chain = await loadChain(base, alt);
+    effectiveId = alt;
+  }
   if (chain.length === 0) return [];
   // textures 合并：父先子后，子覆盖父
   const textures = [...chain]
@@ -319,7 +346,7 @@ async function resolveModelQuads(base: string, id: string): Promise<Quad[]> {
       });
     }
   }
-  if (quads.length === 0) return fallbackQuads(base, id, textures);
+  if (quads.length === 0) return fallbackQuads(base, effectiveId, textures);
   return quads;
 }
 
@@ -474,6 +501,7 @@ const VERTICAL_MODELS = new Set([
   'red_candle',
   'black_candle',
   'torch',
+  'copper_torch',
   'soul_torch',
   'redstone_torch',
   'small_amethyst_bud',
@@ -503,9 +531,22 @@ const AXIS_NAME = /(^|_)(log|wood|stem|hyphae|pillar)$/;
 // 蜡烛模型按数量拆分命名：candle_one_candle / white_candle_two_candles …
 const CANDLE_NAME = /candle_(one_candle|two_candles|three_candles|four_candles)$/;
 
+// 避雷针全系列：lightning_rod / exposed_ / weathered_ / oxidized_ / waxed_*（含 _on）
+const LIGHTNING_ROD_NAME = /(^|_)lightning_rod(_on)?$/;
+
+// 锁链全系列：chain / copper_chain / exposed_copper_chain …（axis 朝向，基准竖立）
+const CHAIN_NAME = /(^|_)chain$/;
+
 function modelOrient(id: string): 'horizontal' | 'vertical' | 'axis' {
   const key = normalizeId(id);
-  if (VERTICAL_MODELS.has(key) || CANDLE_NAME.test(key)) return 'vertical';
+  if (
+    VERTICAL_MODELS.has(key) ||
+    CANDLE_NAME.test(key) ||
+    LIGHTNING_ROD_NAME.test(key) ||
+    CHAIN_NAME.test(key)
+  ) {
+    return 'vertical';
+  }
   if (AXIS_MODELS.has(key) || AXIS_NAME.test(key)) return 'axis';
   return 'horizontal';
 }

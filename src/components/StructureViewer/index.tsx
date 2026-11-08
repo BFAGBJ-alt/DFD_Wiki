@@ -8,6 +8,7 @@ import type {BlockAxis, BlockFacing, SkullFace} from './modelResolver';
 import BlockDisplay from '../BlockDisplay';
 import ErrorBoundary from '../ErrorBoundary';
 import Mobile3DOverlay from './Mobile3DOverlay';
+import LayerControls from './LayerControls';
 import LazyStructure3D from './lazyStructure3D';
 import styles from './styles.module.css';
 
@@ -206,6 +207,15 @@ export default function StructureViewer({
     };
   }, [name, singleBlock, item, jsonUrl]);
 
+  const layers = useMemo(() => {
+    if (!structure) return [];
+    return [...new Set(structure.blocks.map((b) => b.y))].sort((a, b) => a - b);
+  }, [structure]);
+  const [layer, setLayer] = useState<number | null>(null);
+  useEffect(() => {
+    setLayer(null);
+  }, [structure]);
+
   if (error) {
     return <div className={styles.box}>结构「{name ?? item ?? block}」加载失败</div>;
   }
@@ -240,9 +250,13 @@ export default function StructureViewer({
   }
 
   const isSingle = !!singleBlock;
+  const showLayers = !isSingle && layers.length > 1;
 
   return (
-    <div className={styles.box} style={{height: canvasHeight + (isSingle ? 0 : 32)}}>
+    <div className={styles.box} style={{height: canvasHeight + (isSingle ? 0 : 32) + (showLayers ? 40 : 0)}}>
+      {showLayers && (
+        <LayerControls layers={layers} value={layer} onChange={setLayer} />
+      )}
       <BrowserOnly fallback={<div className={styles.canvasPlaceholder} style={{height: canvasHeight}} />}>
         {() =>
           webgl2 === false ? (
@@ -263,6 +277,7 @@ export default function StructureViewer({
                   texBase={texBase}
                   height={canvasHeight}
                   autoRotate={!isSingle}
+                  layer={layer}
                 />
               </Suspense>
             </ErrorBoundary>
