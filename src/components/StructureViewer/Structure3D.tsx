@@ -1,5 +1,5 @@
-import React, {useEffect, useMemo, useState, type ReactNode} from 'react';
-import {Canvas} from '@react-three/fiber';
+import React, {useEffect, useLayoutEffect, useMemo, useState, type ReactNode} from 'react';
+import {Canvas, useThree} from '@react-three/fiber';
 import {Html, OrbitControls} from '@react-three/drei';
 import * as THREE from 'three';
 import {useHistory} from '@docusaurus/router';
@@ -87,6 +87,7 @@ function useTextures(
     const loader = new THREE.TextureLoader();
     const m = new Map<string, THREE.Texture>();
     const dm = new Map<string, [number, number]>();
+    let cancelled = false;
     let needsAtlas = false;
     const atlasHits: {url: string; src: string; region: {x:number;y:number;w:number;h:number}; atlasW: number; atlasH: number}[] = [];
 
@@ -109,7 +110,12 @@ function useTextures(
           },
           undefined,
           () => {
+            // 贴图加载失败（404 / 网络中断）时立刻把该 url 从材质表里摘掉并重渲染，
+            // 让方块退回 fallbackMaterial 的纯色；否则材质会一直引用没有 image
+            // 的贴图，采样为黑色，表现为“某个方块整块变黑”。
+            if (cancelled) return;
             m.delete(u);
+            setTexMap(new Map(m));
           },
         );
         t.magFilter = THREE.NearestFilter;
@@ -149,6 +155,7 @@ function useTextures(
 
     setTexMap(m);
     return () => {
+      cancelled = true;
       m.forEach((t) => {
         if (!_sharedAtlasTextures.has(t)) t.dispose();
       });
@@ -464,11 +471,15 @@ function Block({
   );
 
   // 悬停高亮（仅带 link 的方块）
+  // 原始颜色必须存成纯数字：材质被 clone() 时 userData 会走 JSON 序列化，
+  // 而 THREE.Color 的 toJSON() 返回的是一个 hex 数字；clone 出来的材质再把
+  // 那个数字 copy 回 color，r/g/b 全是 undefined → NaN，整块方块渲染成黑色。
+  // 切层会让方块组件卸载/重挂，克隆材质反复继承这份脏数据，所以“点几次就黑”。
   useEffect(() => {
     const all = [...ownMaterials.values(), fallbackMaterial];
     all.forEach((m) => {
-      const orig = (m.userData.orig ??= m.color.clone());
-      m.color.copy(orig);
+      const orig = (m.userData.origRGB ??= [m.color.r, m.color.g, m.color.b]);
+      m.color.setRGB(orig[0], orig[1], orig[2]);
       if (hovered && block.link) m.color.multiplyScalar(1.35);
     });
   }, [hovered, ownMaterials, fallbackMaterial, block.link]);
@@ -529,6 +540,40 @@ function Block({
       )}
     </group>
   );
+}
+
+// 按“当前可见层”重新取景。
+// Canvas 的 camera 属性只在创建时生效（r3f 后续不会把新的 camera 对象
+// apply 到已存在的相机上），所以切层后必须在这里手动同步 near/far 和距离，
+// 否则相机会停留在上一层（或用户缩放后）的位置，可能钻进方块内部，
+// 整幅画面被一块暗面填满 —— 表现就是“渲染整体变黑”。
+function CameraRig({radius, layer}: {radius: number; layer: number | null}): null {
+  const camera = useThree((s) => s.camera);
+  const controls = useThree((s) => s.controls) as
+    | {target: THREE.Vector3; update: () => void}
+    | null;
+
+  useLayoutEffect(() => {
+    const r = Number.isFinite(radius) && radius > 0 ? radius : 8;
+    // near/far 跟随当前层收紧：最大缩放距离 6r，加模型自身半径约 r，
+    // far 取 8r 足够覆盖；near 保持 0.1 下限，避免深度精度变差导致贴合面闪烁。
+    camera.near = Math.max(0.1, r / 100);
+    camera.far = r * 8;
+    camera.updateProjectionMatrix();
+
+    const target = controls?.target ?? new THREE.Vector3(0, 0, 0);
+    // 保留用户已经转到的观察方向，只把距离拉回取景距离
+    const dir = camera.position.clone().sub(target);
+    if (!Number.isFinite(dir.lengthSq()) || dir.lengthSq() < 1e-6) {
+      dir.set(1, 0.8, 1);
+    }
+    dir.normalize().multiplyScalar(r * 2.4 * 1.6258);
+    camera.position.copy(target).add(dir);
+    camera.lookAt(target);
+    controls?.update();
+  }, [camera, controls, radius, layer]);
+
+  return null;
 }
 
 export default function Structure3D({
@@ -640,6 +685,12 @@ export default function Structure3D({
       .filter(({b}) => layer == null || b.y === layer);
     const bounds = shown.length > 0 ? shown : structure.blocks.map((b, i) => ({b, i}));
 
+    // 空结构：min/max 会停在 ±Infinity，算出的 center/radius 是 NaN，
+    // 相机拿到 NaN 后整幅画面就是黑的。这里直接给一个安全值。
+    if (bounds.length === 0) {
+      return {entries: [], center: [0, 0, 0] as const, radius: 2};
+    }
+
     let minX = Infinity, maxX = -Infinity;
     let minY = Infinity, maxY = -Infinity;
     let minZ = Infinity, maxZ = -Infinity;
@@ -747,12 +798,15 @@ export default function Structure3D({
   return (
     <div className={styles.canvas} style={{height}}>
       <Canvas
-        // near/far 按模型尺度收紧：默认 far=1000 时深度缓冲精度很差，
-        // 贴合面在掠射角度更容易闪。far 取 radius*8，最大缩放距离 radius*6
-        // 仍在视锥内，不会裁掉模型。
+        // 首帧机位：真正的 near/far 与距离由 CameraRig 按当前层重算，
+        // 这里只保证 Canvas 创建时相机不是默认的 z=5。
         camera={{position: [d, d * 0.8, d], fov: 40, near: 0.1, far: radius * 8}}
         style={{touchAction: interactive ? 'none' : 'auto'}}
         dpr={[1, 2]}>
+        {/* 切层后必须重新取景：Canvas 的 camera 属性只在挂载时生效，
+            否则相机会停在上一层（或用户缩放后）的距离上，可能钻进方块里，
+            画面被一整块暗面填满，看起来就是“整体变黑”。 */}
+        <CameraRig radius={radius} layer={layer} />
         <OrbitControls
           makeDefault
           autoRotate={autoRotate}
@@ -760,7 +814,9 @@ export default function Structure3D({
           enablePan={false}
           enableRotate={interactive}
           enableZoom={interactive}
-          minDistance={radius}
+          // 最近距离不小于 2×radius：半径本身只是包围盒的一半再加 1，
+          // 允许贴到 radius 会让相机落进大方块或扁平层的内部。
+          minDistance={radius * 2}
           maxDistance={radius * 6}
         />
         <group position={[-center[0], -center[1], -center[2]]}>

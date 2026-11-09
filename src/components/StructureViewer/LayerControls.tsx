@@ -6,6 +6,7 @@ import styles from './styles.module.css';
  * - value=null 表示“全部层”
  * - 在全部层时点“上一层/下一层”，先进入中间层（默认单层起点）
  * - 单层时按实际存在的 Y 层逐层切换，不会停到空层
+ * - 世界坐标 Y 向上：上一层 = y+1（layers 按 Y 升序），下一层 = y-1
  */
 export default function LayerControls({
   layers,
@@ -19,16 +20,17 @@ export default function LayerControls({
   if (layers.length <= 1) return null;
   const index = value == null ? -1 : layers.indexOf(value);
   const middle = Math.floor((layers.length - 1) / 2);
-  const canPrev = value != null && index > 0;
-  const canNext = value != null && index >= 0 && index < layers.length - 1;
+  // 上一层是更大的 Y，所以在升序数组里是 index+1
+  const canUp = value != null && index >= 0 && index < layers.length - 1;
+  const canDown = value != null && index > 0;
 
-  const prev = () => {
+  const up = () => {
     if (value == null) onChange(layers[middle]);
-    else if (canPrev) onChange(layers[index - 1]);
+    else if (canUp) onChange(layers[index + 1]);
   };
-  const next = () => {
+  const down = () => {
     if (value == null) onChange(layers[middle]);
-    else if (canNext) onChange(layers[index + 1]);
+    else if (canDown) onChange(layers[index - 1]);
   };
 
   return (
@@ -36,8 +38,8 @@ export default function LayerControls({
       <button
         type="button"
         className={styles.panelBtn}
-        onClick={prev}
-        disabled={value != null && !canPrev}
+        onClick={up}
+        disabled={value != null && !canUp}
         aria-label="上一层">
         上一层
       </button>
@@ -47,8 +49,8 @@ export default function LayerControls({
       <button
         type="button"
         className={styles.panelBtn}
-        onClick={next}
-        disabled={value != null && !canNext}
+        onClick={down}
+        disabled={value != null && !canDown}
         aria-label="下一层">
         下一层
       </button>
