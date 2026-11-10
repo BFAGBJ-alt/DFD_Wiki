@@ -1,0 +1,28 @@
+---
+sidebar_position: 3
+contributors:
+ - BFAGBJ
+---
+
+import Term from '@site/src/components/Term';
+import StructureViewer from '@site/src/components/StructureViewer';
+import BlockDisplay from '@site/src/components/BlockDisplay';
+import ItemIcon from '@site/src/components/ItemIcon';
+
+有时候，你需要将机器建在离主网络特别远的地方.....
+
+但是拉一条网桥过去太麻烦了。这时候就可以用网络无线传输器。
+
+<div style={{display: 'flex', gap: 12, alignItems: 'center'}}>
+
+<ItemIcon item="NTW_WIRELESS_CONFIGURATOR" size={50} />
+
+<BlockDisplay item="NTW_NETWORK_WIRELESS_TRANSMITTER" size={50} />
+
+<BlockDisplay item="NTW_NETWORK_WIRELESS_RECEIVER" size={50} />
+
+</div>
+
+当然，你还需要一个无限配置器。
+
+使用无限配置器绑定一对接收器和发射器之后，在网络无线发射器内标记物品，发射器便会尝试从自己的网络发送物品给无线接收器所在的网络。如果接收器所在网络没有存储能力，则会缓存在接收器内。

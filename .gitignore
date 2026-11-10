@@ -29,3 +29,10 @@ yarn-error.log*
 
 # 本地工作流笔记：仅自己查看，不参与构建，也不进仓库
 /notes/
+
+
+# Trae / Vscode / Cursor
+.vscode/
+.cursor/
+.trae-cn/
+.trae/
