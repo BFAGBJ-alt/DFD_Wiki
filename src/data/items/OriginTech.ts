@@ -811,6 +811,7 @@ export const items: Record<string, ItemDef> = {
   'OT_NYJQSJQ': {name: '粘液机器升级器', block: 'crafting_table'},
   'OT_MFFWSCJ': {name: '魔法符文生产机', block: 'bookshelf'},
   'OT_HFYDMNQ': {name: '核反应堆模拟器', block: 'lime_terracotta'},
+  'OT_MFFDJ': {name: '低压魔法水晶激发装置', block: 'respawn_anchor_0'},
   'OT_JQRZPJ': {name: '机器人装配机', block: 'iron_block'},
   'OT_DLBKSJ': {
     name: '电路板刻蚀机',
