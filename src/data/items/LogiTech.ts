@@ -1,7 +1,6 @@
 import type {ItemDef} from './types';
 
 export const items: Record<string, ItemDef> = {
-  // 这两个是物品组展示图标（普通 ItemStack），没有 Slimefun id，因此不带 logitech_ 前缀
   'TOOLS_RECIPES': {name: '工具与锻铸 特殊配方类型说明', block: 'crafting_table'},
   'MORE2': {name: '宇宙安全说明', texture: '/img/Minecraft/item/writable_book.png'},
   'logitech_entity_feat': {name: '生物特征', block: 'spawner'},
@@ -12,7 +11,10 @@ export const items: Record<string, ItemDef> = {
   },
   'logitech_chip_ingot': {name: '薯片合金', texture: '/img/Minecraft/item/baked_potato.png'},
   'logitech_titanium_ingot': {name: 'TITANIUM_INGOT', texture: '/img/Minecraft/item/iron_ingot.png'},
-  'logitech_tungsten_ingot': {name: 'TUNGSTEN_INGOT', texture: '/img/Minecraft/item/netherite_ingot.png'},
+  'logitech_tungsten_ingot': {
+    name: 'TUNGSTEN_INGOT',
+    texture: '/img/Minecraft/item/netherite_ingot.png',
+  },
   'logitech_logic': {name: '逻辑', texture: '/img/Minecraft/item/string.png'},
   'logitech_true_': {name: 'True', texture: '/img/Minecraft/item/music_disc_5.png'},
   'logitech_false_': {name: 'False', texture: '/img/Minecraft/item/music_disc_5.png'},
@@ -23,7 +25,7 @@ export const items: Record<string, ItemDef> = {
   'logitech_nologic': {name: '反逻辑', texture: '/img/Minecraft/item/string.png'},
   'logitech_lengine': {name: '逻辑引擎', block: 'magenta_glazed_terracotta'},
   'logitech_lfield': {name: '逻辑引擎力场', texture: '/img/Minecraft/item/end_crystal.png'},
-  'logitech_lscheduler': {name: '逻辑调度器', texture: '/img/Minecraft/item/recovery_compass.png'},
+  'logitech_lscheduler': {name: '逻辑调度器', texture: '/img/Minecraft/item/recovery_compass_00.png'},
   'logitech_lcraft': {name: '逻辑合成单元', block: 'conduit'},
   'logitech_ldigitizer': {name: '数字化核心', block: 'target'},
   'logitech_lboolizer': {name: '布尔化核心', block: 'lever'},
@@ -60,7 +62,10 @@ export const items: Record<string, ItemDef> = {
     name: '钚铈镉钔合金',
     skull: 'https://textures.minecraft.net/texture/8064777a09c00a4a92eee74aba7c672bfea7f0384b256894ea261d5a915af8ee',
   },
-  'logitech_reinforced_chip_ingot': {name: '强化薯片合金', texture: '/img/Minecraft/item/poisonous_potato.png'},
+  'logitech_reinforced_chip_ingot': {
+    name: '强化薯片合金',
+    texture: '/img/Minecraft/item/poisonous_potato.png',
+  },
   'logitech_atom_ingot': {name: '充能原子合金', texture: '/img/Minecraft/item/echo_shard.png'},
   'logitech_lmotor': {
     name: '逻辑动力马达',
@@ -108,14 +113,20 @@ export const items: Record<string, ItemDef> = {
   'logitech_supersponge': {name: '海曼牌海绵', block: 'sponge'},
   'logitech_supersponge_used': {name: '使用过的海曼牌海绵', block: 'wet_sponge'},
   'logitech_trace_arrow': {name: '暴雪桃花针', block: 'cherry_sapling'},
-  'logitech_dimensional_singularity': {name: '维度结晶', texture: '/img/Minecraft/item/amethyst_shard.png'},
+  'logitech_dimensional_singularity': {
+    name: '维度结晶',
+    texture: '/img/Minecraft/item/amethyst_shard.png',
+  },
   'logitech_rtp_rune': {name: '古代符文 [随机传送]', texture: '/img/Minecraft/item/firework_star.png'},
   'logitech_space_card': {
     name: '空间磁盘',
     texture: '/img/Minecraft/item/spire_armor_trim_smithing_template.png',
   },
   'logitech_unbreaking_shield': {name: '防暴盾牌', texture: '/img/Minecraft/item/shield.png'},
-  'logitech_fake_ui': {name: '槽位伪装板', texture: '/img/Minecraft/item/light_gray_stained_glass_pane.png'},
+  'logitech_fake_ui': {
+    name: '槽位伪装板',
+    texture: '/img/Minecraft/block/light_gray_stained_glass_pane_top.png',
+  },
   'logitech_antigravity': {name: '反重力装置', texture: '/img/Minecraft/item/netherite_ingot.png'},
   'logitech_configure': {name: '逻辑通用配置器', texture: '/img/Minecraft/item/blaze_rod.png'},
   'logitech_amplify_base': {
@@ -127,7 +138,10 @@ export const items: Record<string, ItemDef> = {
   'logitech_multiblockbuilder': {name: '多方块构建器(管理专用版)', texture: '/img/Minecraft/item/book.png'},
   'logitech_display_fu_use': {name: '功能单元 安装说明', block: 'smithing_table'},
   'logitech_display_remove_fu': {name: '功能单元 卸载说明', block: 'grindstone'},
-  'logitech_fu_base': {name: '基础功能单元', texture: '/img/Minecraft/item/eye_armor_trim_smithing_template.png'},
+  'logitech_fu_base': {
+    name: '基础功能单元',
+    texture: '/img/Minecraft/item/eye_armor_trim_smithing_template.png',
+  },
   'logitech_demo_fu': {
     name: '样例功能单元',
     texture: '/img/Minecraft/item/netherite_upgrade_smithing_template.png',
@@ -191,12 +205,12 @@ export const items: Record<string, ItemDef> = {
   'logitech_item_op': {name: '物品操作台', block: 'smithing_table'},
   'logitech_chunk_charger': {name: '区块充能塔', block: 'sculk_shrieker'},
   'logitech_ingot_convertor': {name: '矿锭转换工厂', block: 'pink_glazed_terracotta'},
-  'logitech_line_charger': {name: '射电充能塔', block: 'deepslate_tile_wall'},
-  'logitech_line_charger_plus': {name: '高级射电充能塔', block: 'deepslate_tile_wall'},
+  'logitech_line_charger': {name: '射电充能塔', block: 'deepslate_tile_wall_inventory'},
+  'logitech_line_charger_plus': {name: '高级射电充能塔', block: 'deepslate_tile_wall_inventory'},
   'logitech_adj_collector': {name: '邻接发电机激发塔', block: 'red_nether_bricks'},
   'logitech_adj_collector_plus': {name: '高级邻接发电机激发塔', block: 'red_nether_bricks'},
-  'logitech_line_collector': {name: '射电发电机激发塔', block: 'red_nether_brick_wall'},
-  'logitech_line_collector_plus': {name: '高级射电发电机激发塔', block: 'red_nether_brick_wall'},
+  'logitech_line_collector': {name: '射电发电机激发塔', block: 'red_nether_brick_wall_inventory'},
+  'logitech_line_collector_plus': {name: '高级射电发电机激发塔', block: 'red_nether_brick_wall_inventory'},
   'logitech_energy_storage_none': {name: '储电塔 - None', block: 'cracked_deepslate_tiles'},
   'logitech_energy_storage_in': {name: '储电塔 - IN', block: 'chiseled_deepslate'},
   'logitech_energy_storage_io': {name: '储电塔 - IO', block: 'chiseled_polished_blackstone'},
@@ -230,7 +244,7 @@ export const items: Record<string, ItemDef> = {
   'logitech_composter': {name: '快捷搅拌机', block: 'cauldron'},
   'logitech_multimachine_manual': {name: '快捷综合机器', block: 'gray_stained_glass'},
   'logitech_mobdata_manual': {name: '快捷生物芯片注入器', block: 'lodestone'},
-  'logitech_infinity_manual': {name: '快捷无尽工作台', block: 'respawn_anchor'},
+  'logitech_infinity_manual': {name: '快捷无尽工作台', block: 'respawn_anchor_0'},
   'logitech_ntwworkbench_manual': {name: '快捷网络工作台', block: 'bamboo_block'},
   'logitech_multiblock_manual': {name: '快捷多方块结构模拟器', block: 'bricks'},
   'logitech_final_manual': {name: '终极快捷机器', block: 'reinforced_deepslate'},
@@ -329,7 +343,7 @@ export const items: Record<string, ItemDef> = {
   'logitech_transmutator': {name: '元素嬗变机', block: 'furnace'},
   'logitech_final_base': {name: '终极祭坛基石', block: 'polished_deepslate'},
   'logitech_final_altar': {name: '终极祭坛', block: 'chiseled_deepslate'},
-  'logitech_smith_workshop': {name: '锻铸工坊核心', block: 'respawn_anchor'},
+  'logitech_smith_workshop': {name: '锻铸工坊核心', block: 'respawn_anchor_0'},
   'logitech_smith_interface_none': {name: '锻铸工坊接口 - None', block: 'sea_lantern'},
   'logitech_smith_interface_craft': {name: '锻铸工坊接口 - 锻造合成端口', block: 'target'},
   'logitech_final_special_crafter': {name: 'FINAL_SPECIAL_CRAFTER', block: 'loom'},
