@@ -1,0 +1,35 @@
+.spoiler {
+  /* 遮罩色块：亮色主题用近黑，暗色主题用中灰（见底部 [data-theme='dark'] 覆盖） */
+  --spoiler-block: #1a1a1a;
+  display: inline-block;
+  max-width: 100%;
+  background: var(--spoiler-block);
+  color: var(--spoiler-block);
+  border-radius: 4px;
+  padding: 1px 5px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s ease, color 0.15s ease;
+  line-height: 1.45;
+}
+
+/* 悬停 / 键盘聚焦时露出文字 */
+.spoiler:hover,
+.spoiler:focus-visible {
+  background: transparent;
+  color: inherit;
+  user-select: text;
+}
+
+/* 块级整段遮罩 */
+.block {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  margin: 0.4rem 0;
+}
+
+/* 暗色模式：黑块在深底上不可见，改用中灰，仍然是“一块有色区” */
+:global([data-theme='dark']) .spoiler {
+  --spoiler-block: #4a4a4a;
+}

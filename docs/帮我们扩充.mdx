@@ -364,6 +364,26 @@ import Term from '@site/src/components/Term';
 | `tip` | `string` | 悬停时浮现的提示内容 |
 | `children` | `ReactNode` | 正文中被解释的词 |
 
+### Spoiler：遮罩文字（参考 MCMod 的「俺寻思之力」）
+
+默认显示为一块色块（亮色主题是黑块，暗色主题是灰块），鼠标悬停或键盘聚焦时才露出文字。
+
+```mdx
+import Spoiler from '@site/src/components/Spoiler';
+
+……使得玩家可以轻松掌握玩法。<Spoiler>俺寻思之力！</Spoiler>
+
+<Spoiler block>
+整段被遮罩的说明文字，鼠标悬停或 Tab 聚焦后才显示……
+</Spoiler>
+```
+
+| 参数 | 类型 | 说明 |
+| --- | --- | --- |
+| `children` | `ReactNode` | 要遮罩的文字 |
+| `block` | `boolean` | 整行块级（适合一整段） |
+| `maskColor` | `string` | 自定义遮罩色，覆盖主题色 |
+
 ### 物品库数据
 
 组件里用到的 `item` / `id` 都来自 `src/data/items/`。新增物品时按下表字段书写：
