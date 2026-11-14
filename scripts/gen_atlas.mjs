@@ -8,6 +8,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import crypto from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import {PNG} from 'pngjs';
 
@@ -21,6 +22,8 @@ const outDir = path.resolve(process.argv[2] ?? path.join(REPO_ROOT, 'build'));
 const outMinecraft = path.join(outDir, 'img', 'Minecraft');
 const ATLAS_PNG = '_atlas.png';
 const ATLAS_JSON = '_atlas.json';
+// 产物文件名里带内容 hash（见文末），这里只用于排除旧产物
+const ATLAS_PNG_RE = /^_atlas(?:\.[0-9a-f]+)?\.png$/i;
 const MAX_ATLAS_SIZE = 2048;   // 最大 atlas 边长（PNG 压缩效率在 1024~2048 最佳）
 
 if (!fs.existsSync(outMinecraft)) {
@@ -45,7 +48,7 @@ function* walkPngs(root) {
       } else if (entry.isFile() && path.extname(entry.name).toLowerCase() === '.png') {
         // 注意：rel 必须相对固定 root 计算，递归时不能把 root 换成子目录
         const rel = path.relative(root, p).replace(/\\/g, '/');
-        if (rel === ATLAS_PNG) continue;
+        if (ATLAS_PNG_RE.test(entry.name)) continue;
         yield {rel, full: p};
       }
     }
@@ -153,11 +156,25 @@ for (const row of rows) {
 }
 
 const atlasBuf = PNG.sync.write(canvas);
-const atlasPngPath = path.join(outMinecraft, ATLAS_PNG);
+// 文件名带内容 hash：_atlas.png 是固定 URL，部署后浏览器/CDN 可能仍拿着上一版，
+// 而 _atlas.json 已经更新，两边布局不一致就会表现为「atlas 切割错位」。
+// 把内容 hash 写进文件名后，新 atlas 一定是新 URL，旧缓存只会拿到旧文件名。
+const atlasHash = crypto.createHash('sha1').update(atlasBuf).digest('hex').slice(0, 8);
+const atlasPngName = ATLAS_PNG.replace(/\.png$/, `.${atlasHash}.png`);
+const atlasPngPath = path.join(outMinecraft, atlasPngName);
 fs.writeFileSync(atlasPngPath, atlasBuf);
-console.log(`[gen-atlas] Wrote ${ATLAS_PNG}: ${(atlasBuf.length / 1024).toFixed(1)} KB`);
+// 清掉上次构建留下的旧 hash 文件
+for (const name of fs.readdirSync(outMinecraft)) {
+  if (name !== atlasPngName && ATLAS_PNG_RE.test(name)) {
+    try {
+      fs.unlinkSync(path.join(outMinecraft, name));
+    } catch {}
+  }
+}
+console.log(`[gen-atlas] Wrote ${atlasPngName}: ${(atlasBuf.length / 1024).toFixed(1)} KB`);
 
 const meta = {
+  file: atlasPngName,
   _atlas: {w: atlasW, h: atlasH},
   entries: hashMap,
 };

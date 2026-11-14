@@ -13,6 +13,8 @@
 let _metaPromise: Promise<Meta | null> | null = null;
 
 export interface Meta {
+  /** atlas.png 的实际文件名（带内容 hash，如 _atlas.1a2b3c4d.png） */
+  file?: string;
   _atlas: {w: number; h: number};
   entries: Record<string, Region>;
 }
@@ -53,7 +55,9 @@ export function loadAtlasMeta(
 ): Promise<Meta | null> {
   if (_metaPromise) return _metaPromise;
   const url = urlOverride ?? joinBase(baseUrl, '/img/Minecraft/_atlas.json');
-  _metaPromise = fetch(url)
+  // no-cache：每次都向服务器确认（命中 ETag 时只回 304），
+  // 避免部署后仍用旧 JSON 去裁新 atlas
+  _metaPromise = fetch(url, {cache: 'no-cache'})
     .then((r) => (r.ok ? (r.json() as Promise<Meta>) : null))
     .catch(() => null);
   return _metaPromise;
@@ -82,7 +86,7 @@ export function resolveTex(
   if (!region) return {src: url};
 
   return {
-    src: joinBase(atlasBaseUrl, '/img/Minecraft/_atlas.png'),
+    src: joinBase(atlasBaseUrl, `/img/Minecraft/${meta.file ?? '_atlas.png'}`),
     region,
     atlasW: meta._atlas.w,
     atlasH: meta._atlas.h,
