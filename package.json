@@ -9,6 +9,7 @@
     "build:raw": "docusaurus build",
     "prune": "node scripts/prune_out.mjs",
     "gen-atlas": "node scripts/gen_atlas.mjs",
+    "compress-images": "node scripts/compress_images.mjs",
     "preview": "node scripts/preview.mjs",
     "swizzle": "docusaurus swizzle",
     "deploy": "node scripts/deploy.mjs",
@@ -37,6 +38,7 @@
     "@types/react": "^19.0.0",
     "gif-encoder-2": "^1.0.5",
     "pngjs": "^7.0.0",
+    "sharp": "^0.35.5",
     "three": "^0.187.0",
     "typescript": "~6.0.2"
   },
