@@ -7,6 +7,7 @@ import useBaseUrl, {useBaseUrlUtils} from '@docusaurus/useBaseUrl';
 import {
   resolveBlockQuads,
   resolveBlockRotation,
+  rotateBlockFace,
   rotateFaceUv,
   quadUvPoints,
   skullQuads,
@@ -716,15 +717,32 @@ export default function Structure3D({
       return v;
     };
 
+    // 每个方块的朝向旋转（与 blockQuaternion 同源，缓存避免重复计算）。
+    // quads 是未旋转的模型面，而渲染时整个 group 会按 facing/axis 旋转，
+    // 所以面剔除必须先把面方向转过去，再查邻格。
+    const rotsCache = new Map<number, ReturnType<typeof resolveBlockRotation>>();
+    const rotsOf = (b: StructureBlock, i: number) => {
+      let r = rotsCache.get(i);
+      if (r === undefined) {
+        r = b.block ? resolveBlockRotation(b.block, b.facing, b.axis) : [];
+        rotsCache.set(i, r);
+      }
+      return r;
+    };
+
     const entries = shown.map(({b, i}) => {
       const quads = quadLists[i] ?? [];
       const transparent = isTransparentBlock(b);
+      const rots = rotsOf(b, i);
       const kept = quads.filter((q) => {
         // 只有铺满整面、且没有元素旋转的面才可能被邻格完全挡住
         if (!coversFullFace(q)) return true;
+        // 用旋转后的实际朝向查邻格：否则像 furnace facing=west 这样，
+        // 会把「原始 east、旋转后朝北」的面按东侧邻格剔掉，露出一个洞。
+        const face = rotateBlockFace(q.face, rots);
         // 严格只看六个正交方向：occupancy 只按 ±1 的坐标键索引，
         // 斜对角 / 棱相邻的格子根本查不到，天然不会被剔除。
-        const [dx, dy, dz] = FACE_OFFSET[q.face];
+        const [dx, dy, dz] = FACE_OFFSET[face];
         const nb = occupancy.get(`${b.x + dx},${b.y + dy},${b.z + dz}`);
         // 邻格必须是完整立方体，否则它的面只遮住一部分，不能整面剔除
         if (!nb || !isFull(nb.i)) return true;
@@ -742,9 +760,13 @@ export default function Structure3D({
         if (!isTransparentBlock(nb.b)) return true;
         const kind = transparentKind(b);
         if (!kind || kind !== transparentKind(nb.b)) return true;
-        // 再核对邻格反方向那面的贴图：模型相同但朝向/UV 不同时也保守保留
+        // 再核对邻格反方向那面的贴图：模型相同但朝向/UV 不同时也保守保留。
+        // 邻格同样可能带 facing，反方向要按它自己的旋转后的面来匹配。
+        const nbRots = rotsOf(nb.b, nb.i);
         const nbQuad = (quadLists[nb.i] ?? []).find(
-          (x) => x.face === OPPOSITE_FACE[q.face] && coversFullFace(x),
+          (x) =>
+            coversFullFace(x) &&
+            rotateBlockFace(x.face, nbRots) === OPPOSITE_FACE[face],
         );
         if (!nbQuad || nbQuad.texture !== q.texture) return true;
         return false;

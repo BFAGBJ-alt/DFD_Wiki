@@ -1,0 +1,94 @@
+---
+sidebar_position: 4
+contributors:
+  - BFAGBJ
+---
+
+import Term from '@site/src/components/Term';
+import StructureViewer from '@site/src/components/StructureViewer';
+import BlockDisplay from '@site/src/components/BlockDisplay';
+import ItemIcon from '@site/src/components/ItemIcon';
+
+
+元素嬗变机是进入终局阶段必须的一层，你需要使用它来获取制造激光器的稀有元素。
+<div style={{display: 'flex', gap: 12, alignItems: 'center'}}>
+<ItemIcon item="logitech_molybdenum" size={30} />
+<ItemIcon item="logitech_cerium" size={30} />
+<ItemIcon item="logitech_mendelevium" size={30} />
+<ItemIcon item="logitech_dysprosium" size={30} />
+<ItemIcon item="logitech_antimony_ingot" size={30} />
+<ItemIcon item="logitech_thallium" size={30} />
+<ItemIcon item="logitech_hydragyrum" size={30} />
+<ItemIcon item="logitech_boron" size={30} />
+</div>
+
+### 多方块结构材料
+
+| 方块类型 | 最大所需 | 最小所需 |
+| --- | --- | --- |
+| <ItemIcon id="logitech_transmutator" size={24} /> 元素嬗变机 | 1 | 1 |
+| <ItemIcon id="logitech_transmutator_glass" size={24} /> 元素嬗变机防护罩 | 158 | 58 |
+| <ItemIcon id="logitech_transmutator_rod" size={24} /> 原子合金核燃料棒 | 96 | 36 |
+| <ItemIcon id="logitech_transmutator_frame" size={24} /> 元素嬗变机框架 | 109 | 89 |
+
+制作好了以上的方块，便可以放置多方块结构了。建议直接制作最大。每多一层，消耗时间减半。
+
+可以在这里下载[最大](/file/litematica/元素嬗变-最大.litematic)和[最小](/file/litematica/元素嬗变-最小.litematic)的原理图。
+
+<Details>
+<summary>以下是最大和最小元素嬗变机的样式</summary>
+<StructureViewer name="Logi/元素嬗变-最大" />
+<StructureViewer name="Logi/元素嬗变-最小" />
+</Details>
+
+多方块搭建完毕之后，需要在机器内手动激活。
+
+<Details>
+<summary>以下是元素嬗变机激活的样式</summary>
+<StructureViewer name="Logi/元素嬗变-最大-激活" />
+<StructureViewer name="Logi/元素嬗变-最小-激活" />
+</Details>
+
+
+或者你也可以制作冷殇和DFD的。多方块的必须时刻提供电力，工作中还需要提供两种冷却剂（建议通过起源-维度工艺-超低温冷冻处理器获取），每2s消耗一个（两种同时消耗，记得补充）
+
+多方块被破坏或者工作中未提供充足电力、冷却剂，工作中关闭多方块结构会导致融毁：空隙处被哭泣的黑曜石填满，所有的燃料棒变成原版的强化深板岩，同时释放40范围的辐射（会导致黑暗，反胃，凋零，中毒，饥饿，可以在系统商店内购买辐射清除器）
+
+<Details>
+<summary>以下是元素嬗变机融毁的样式</summary>
+<StructureViewer name="Logi/元素嬗变-最大-融毁" />
+</Details>
+
+强烈建议制作最大的元素嬗变机，可以节省很多时间。
+
+### 配方时间
+
+以下是实测时间，可能与理论时间不同（理论初始8000s/10000s 每有一层则并行x2(时间减半)）
+
+| 配方类型 | 最大所需时间 | 最小所需时间 |
+| --- | --- | --- |
+| 充能原子合金 | 124s | 4000s |
+| 其他合金 <br /> 钯金、铋银等 <br /> 或者稀有元素 | 156s | 5000s |
+
+它们都将输出稀有金属，但概率较低，时间较长，建议堆量。
+
+### 需准备的材料
+
+Bi,Pd,Pt,Cd 以及充能原子合金需要使用超新星获得。
+
+| 材料 | 最大所需 | 最小所需 |
+| --- | --- | --- |
+| <ItemIcon id='logitech_paradox' size={24} /> 悖论 | 32864 | 20384 |
+| <ItemIcon id='logitech_atom_ingot' size={24} /> 充能原子合金 | 18816 | 12096 |
+| <ItemIcon id='logitech_star_gold_ingot' size={24} /> 星辰金 | 17248 | 11088 |
+| <ItemIcon id='logitech_lfield' size={24} /> 逻辑引擎力场 | 6272 | 4032 |
+| <ItemIcon id='GOLD_22K' size={24} /> 22K金 | 5600 | 3640 |
+| <ItemIcon id='logitech_chip_ingot' size={24} /> 薯片合金 | 3136 | 2016 |
+| <ItemIcon id='SILVER_INGOT' size={24} /> 银锭 | 2432 | 1392 |
+| <ItemIcon id='BILLON_INGOT' size={24} /> 银铜合金锭 | 2432 | 1392 |
+| <ItemIcon id='logitech_bismuth_ingot' size={24} /> 铋 (bi) | 2432 | 1392 |
+| <ItemIcon id='logitech_palladium_ingot' size={24} /> 钯 (pd) | 1600 | 1040 |
+| <ItemIcon id='logitech_platinum_ingot' size={24} /> 铂 (pt) | 1600 | 1040 |
+| <ItemIcon id='logitech_cadmium_ingot' size={24} /> 镉 (cd) | 1568 | 1008 |
+
+建议制作大量元素嬗变机或者制作冷殇/dfd的元素嬗变并放入堆叠以加快进入终局的进程。
