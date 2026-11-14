@@ -110,3 +110,77 @@
   text-shadow: 0 0 3px rgba(0, 0, 0, 0.8);
   pointer-events: none;
 }
+
+/* 任意尺寸有序合成：左侧机器与输出，右侧输入网格 */
+.shapedRecipe {
+  display: grid;
+  grid-template-columns: minmax(180px, auto) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+  margin: 0.75rem 0;
+}
+
+.shapedInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  padding: 12px;
+  background: var(--ifm-color-emphasis-100);
+  border-radius: 6px;
+}
+
+.shapedMachine,
+.shapedOutput {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.shapedMeta {
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.shapedGridArea {
+  min-width: 0;
+}
+
+.gridScroll {
+  max-width: 100%;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.dynamicGrid {
+  width: max-content;
+}
+
+.materialSummary {
+  margin-top: 12px;
+}
+
+.materialTitle {
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.materialList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+
+.materialItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 160px;
+}
+
+@media (max-width: 768px) {
+  .shapedRecipe {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
