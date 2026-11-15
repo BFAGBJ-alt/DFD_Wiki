@@ -154,6 +154,50 @@ import StructureViewer from '@site/src/components/StructureViewer';
 | `link` | `string` | — | 点击方块跳转的 wiki 链接 |
 | `color` | `string` | `#888888` | 无模型、无贴图时的纯色回退 |
 | `size` | `'sm' \| 'md' \| 'lg' \| number` | 结构 `md`，单方块 `sm` | 画布高度：`sm`=280、`md`=480、`lg`=600，或直接给像素数 |
+| `axes` | `ViewerAxis[]` | — | 多轴切换，可多于两条：列表轴用 `options`，数字轴用 `min`/`max` |
+| `order` | `string` | — | 后缀顺序模板，如 `"-{b}-{c}-{a}"`；省略时按 `axes` 顺序直接相连 |
+
+`ViewerAxis` 有两种：
+
+```ts
+// 列表选择器
+{key: 'a', label: '等级', options: [{label: '最大', suffix: '-最大'}, {label: '最小', suffix: '-最小'}]}
+
+// 数字选择器：下拉框列出 min..max（按 step），{value} 会替换为当前值
+{key: 'c', label: '阶段', type: 'number', min: 1, max: 3, suffix: '-阶段{value}'}
+```
+
+列表选项可以写 `availableWhen` 限制在其他轴某些取值下才出现：
+
+```mdx
+<StructureViewer
+  name="Logi/元素嬗变"
+  axes={[
+    {
+      key: 'a',
+      label: '等级',
+      options: [
+        {label: '最大', suffix: '-最大'},
+        {label: '最小', suffix: '-最小'},
+      ],
+    },
+    {
+      key: 'b',
+      label: '状态',
+      options: [
+        {label: '正常', suffix: ''},
+        {label: '激活', suffix: '-激活'},
+        {label: '融毁', suffix: '-融毁', availableWhen: {a: ['最大']}},
+      ],
+    },
+  ]}
+  order="{a}{b}"
+/>
+```
+
+- `availableWhen` 的键是其他轴的 `key`，值是允许的选项名称（列表轴）或数字（数字轴），可写数组；
+- 不满足条件的选项不显示；如果切换其他轴导致已选项失效，会自动跳到该轴第一个可用项（如「最小 + 融毁」会自动变成「最小 + 正常」）。
+- `order` 中的 `{key}` 会替换为该轴当前的完整 `suffix`（连字符包含在 suffix 里），不要在模板中重复添加。
 
 结构文件放在 `static/structures/<分类>/<name>.json`（如 `static/structures/AE/me-craft.json`），坐标单位为格，格式如下：
 
@@ -182,6 +226,46 @@ import StructureViewer from '@site/src/components/StructureViewer';
 - `blocks[].item` 引用物品库（`src/data/items`），方块内的内联字段优先于预设与数据库；
 - 每个方块可填 `block` / `skull` / `face` / `facing` / `axis` / `color` / `label` / `link`；
 - 桌面端结构查看器顶部有分层控制条：可切到单层（按实际存在的 Y 层逐层切换）或回到全部层；移动端在全屏 3D 浮层里同样可用。
+
+#### 一个位置多个候选方块
+
+方块可额外填 `candidates`（候选数组，第一项为默认）和 `interval`（轮换间隔，单位 tick，1 tick = 0.05 秒）：
+
+```json
+{
+  "pattern": {
+    "reactor": {
+      "block": "iron_block",
+      "interval": 20,
+      "candidates": [
+        {"block": "iron_block", "label": "待机"},
+        {"block": "gold_block", "label": "运行"},
+        {"block": "redstone_block", "label": "故障"}
+      ]
+    },
+    "unknown": {
+      "block": "stone",
+      "interval": 0,
+      "candidates": [
+        {"block": "stone", "label": "石头"},
+        {"block": "cobblestone", "label": "圆石"},
+        {"item": "me_drive"}
+      ]
+    }
+  },
+  "blocks": [
+    {"x": 0, "y": 0, "z": 0, "type": "reactor"},
+    {"x": 2, "y": 0, "z": 0, "type": "unknown"}
+  ]
+}
+```
+
+- `interval > 0`：按该间隔在候选之间自动轮换（上面的例子是 20 tick，即 1 秒）；
+- `interval` 为 `0` 或 `-1`（或不填）：不轮换，固定显示第一项；鼠标悬停时在画布左上角列出该位置的全部候选；
+- 候选数量大于 1 的方块不参与面剔除和合并渲染，由独立组件按当前候选渲染；
+- 每个候选与普通方块字段一致，可以写 `block` / `skull` / `item` / `label` / `link` 等；写 `item` 时自动展开物品库里的模型、名称与链接；
+- 左上角面板会显示每个候选的图标与名称；点击多候选方块会选中它，暂停自动旋转并让面板常驻，
+  点击面板中有 `link` 的名称/图标即可跳转；点击画布其他位置取消选中并恢复旋转。
 
 ### 从 litematic 生成结构 JSON
 
@@ -320,6 +404,46 @@ import RecipeViewer from '@site/src/components/RecipeViewer';
 | `texture` | `string` | 覆盖贴图路径 |
 | `count` | `number` | 数量，默认 1 |
 
+### ShapedRecipeViewer：任意尺寸有序合成
+
+与 `RecipeViewer` 的 `shaped` 相同，但格数不限于 3×3：`pattern` 可以任意行列，省略时按 3×3 空网格处理。
+非 3×3 时会在网格下方按物品 id 汇总每种材料的总量（自动乘以 `count`）。
+
+```mdx
+import {ShapedRecipeViewer} from '@site/src/components/RecipeViewer';
+
+<ShapedRecipeViewer
+  recipe={{
+    type: 'shaped',
+    pattern: ['ABCCBD', 'BEFFEB', 'CGHHGC', 'CGHHGC', 'BEIIEB', 'JBCCBK'],
+    materials: {
+      A: {id: 'logitech_tech_core', count: 64},
+      B: {id: 'logitech_transmutator_rod'},
+      C: {id: 'logitech_space_plate'},
+      D: {id: 'logitech_mass_core', count: 64},
+      E: {id: 'logitech_chip_core', count: 4},
+      F: {id: 'logitech_lsingularity', count: 4},
+      G: {id: 'logitech_pagold', count: 4},
+      H: {id: 'NUCLEAR_REACTOR', count: 16},
+      I: {id: 'logitech_bisilver', count: 4},
+      J: {id: 'logitech_metal_core', count: 64},
+      K: {id: 'logitech_smelery_core', count: 64},
+    },
+    result: {id: 'logitech_transmutator'},
+    machine: 'logitech_bug_crafter',
+  }}
+/>
+```
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `recipe.type` | `'shaped'` | 固定为有序合成 |
+| `recipe.pattern` | `string[]` | 可选。任意行列，空格表示空槽；省略时按 3×3 空网格 |
+| `recipe.materials` | `Record<string, ItemStack>` | 字符到材料的映射，`ItemStack` 字段同 `RecipeViewer` |
+| `recipe.result` | `ItemStack` | 产出物 |
+| `recipe.machine` | `ItemStack \| string` | 所需机器，显示在左侧 |
+| `recipe.time` / `recipe.energy` | `number \| string` | 耗时 / 耗电，规则同 `RecipeViewer` |
+
 ### Columns：左右分栏
 
 适合「左边文字、右边结构图」的排版。
@@ -364,7 +488,7 @@ import Term from '@site/src/components/Term';
 | `tip` | `string` | 悬停时浮现的提示内容 |
 | `children` | `ReactNode` | 正文中被解释的词 |
 
-### Spoiler：遮罩文字（参考 MCMod 的「俺寻思之力」）
+### Spoiler：遮罩文字
 
 默认显示为一块色块（亮色主题是黑块，暗色主题是灰块），鼠标悬停或键盘聚焦时才露出文字。
 

@@ -1,0 +1,63 @@
+---
+sidebar_position: 9999
+title: 结构多状态与多候选方块（测试页）
+sidebar_label: 结构多状态测试
+draft: true
+---
+
+import StructureViewer from '@site/src/components/StructureViewer';
+
+:::warning[测试页]
+本页面仅用于验证 `StructureViewer` 的多轴切换、可用性限制和多候选方块交互，不属于正式 Wiki 内容。
+:::
+
+## 多轴切换与后缀顺序
+
+`name` 作为基础名，后缀按 `order` 模板拼接：`{a}` 是等级，`{b}` 是状态。这里 `order="{a}{b}"`，因此「最大 + 激活」加载 `Logi/元素嬗变-最大-激活`。
+
+<StructureViewer
+  name="Logi/元素嬗变"
+  axes={[
+    {
+      key: 'a',
+      label: '等级',
+      options: [
+        {label: '最大', suffix: '-最大'},
+        {label: '最小', suffix: '-最小'},
+      ],
+    },
+    {
+      key: 'b',
+      label: '状态',
+      options: [
+        {label: '正常', suffix: ''},
+        {label: '激活', suffix: '-激活'},
+        {label: '融毁', suffix: '-融毁', availableWhen: {a: ['最大']}},
+      ],
+    },
+  ]}
+  order="{a}{b}"
+/>
+
+「融毁」只在等级为「最大」时可用：切到「最小」后该按钮消失；如果之前停在「融毁」，会自动回到「正常」。
+
+## 数字选择器
+
+`type: 'number'` 的轴用下拉框列出 `min..max` 的每个数字，后缀模板里的 `{value}` 会替换为当前值。下面的 `name="Test/candidates"` 配合 `suffix="-{value}"` 会加载 `Test/candidates-1` 与 `Test/candidates-2`。
+
+<StructureViewer
+  name="Test/candidates"
+  axes={[
+    {key: 'n', label: '编号', type: 'number', min: 1, max: 2, suffix: '-{value}'},
+  ]}
+/>
+
+## 多候选方块
+
+左侧铁块每 20 tick（1 秒）在铁块 / 金块 / 钻石块之间轮换；右侧石头 `interval: 0`，固定显示第一项，鼠标悬停时在画布左上角列出全部候选（第三项来自物品库 id，带图标与链接）。
+
+- 点击多候选方块：选中并暂停自动旋转，左上角面板常驻；
+- 点击面板里带链接的名称/图标：跳转到对应 Wiki 条目；
+- 点击画布其他位置：取消选中并恢复旋转。
+
+<StructureViewer name="Test/candidates" />

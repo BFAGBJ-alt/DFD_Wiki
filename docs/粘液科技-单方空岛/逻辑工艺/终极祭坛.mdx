@@ -1,0 +1,221 @@
+---
+sidebar_position: 4
+title: 踏入终极！
+contributors:
+  - BFAGBJ
+---
+
+import Term from '@site/src/components/Term';
+import StructureViewer from '@site/src/components/StructureViewer';
+import BlockDisplay from '@site/src/components/BlockDisplay';
+import ItemIcon from '@site/src/components/ItemIcon';
+import Spoiler from '@site/src/components/Spoiler'
+
+# 踏入终极！
+
+在漫长的挂机后，你终于到达了这一阶段。
+
+终极祭坛是这一阶段需要制作的多方块结构，它可以用来激活宏激光发射器，物质量化重塑器，属性量化增幅器<Spoiler>(孩子们，我被ban了)</Spoiler>。  
+
+## 逻辑核心的生产
+
+在做终极祭坛之前，你需要先做一个东西：反概念物质。毕竟祭坛需要几千个逻辑核心，你不可能指望用机器去做。
+
+<ItemIcon item="logitech_antimass" size={50} />
+
+**反概念物质合成材料**
+
+| 材料 | 数量 |
+| --- | ---: |
+| <ItemIcon id='logitech_logic_core' size={24} /> 逻辑核心 | 9 |
+| <ItemIcon id='logitech_virtual_space' size={24} /> 虚拟空间 | 64 |
+| <ItemIcon id='ENERGIZED_CAPACITOR' size={24} /> 终极电容储能 | 64 |
+| <ItemIcon id='logitech_pdcecdmd' size={24} /> 钚铈镉钔合金 | 16 |
+| <ItemIcon id='logitech_final_frame' size={24} /> 终极逻辑框架 | 1 |
+
+前面几个逻辑核心必须要用到量子纠缠奇点,在终极概念凝聚者中制作。<Spoiler>(不然光靠一组一组输入要输入到猴年马月啊0.o)</Spoiler>
+
+做好之后，找一块风水宝地，把他放下来（离你机器远一点，或者干脆放在空中），反概念物质会尝试向四周蔓延，然后变成逻辑核心。准备一把无法破坏的效率锄头，挖掉逻辑核心，大概能获得解决2w个。
+
+如果你怕给你机器吞了，那么做个冷殇的`反概念物质同化机`。产的慢是慢了点，起码没有风险。
+
+## 开始建造终极祭坛！
+
+这是最后一个多方块结构了，你需要用他来获取虚拟世界，制作终极机器。
+<ItemIcon item="logitech_virtualworld" size={50} />
+
+## 多方块结构材料
+
+| 方块类型 | 一级所需 | 二级所需 |
+| --- | ---: | ---: |
+| <ItemIcon id='logitech_final_base' size={24} /> 终极祭坛基石 | 44 | 268 |
+| <ItemIcon id='logitech_final_frame' size={24} /> 终极逻辑框架 | 3 | 15 |
+| <ItemIcon id='logitech_final_altar' size={24} /> 终极祭坛（核心） | 1 | 5 |
+| <ItemIcon id='logitech_final_laser' size={24} /> 宏激光发射器 | 0 | 4 |
+| **固定方块合计** | **48** | **292** |
+
+制作好以上方块，就可以开始搭建了。二级祭坛会要求在特定位置有一级祭坛，用来向二级祭坛的机器充能。
+
+部分终极机器要求在二级或者一级祭坛上才能正常激活。
+
+可以在这里下载[一级祭坛](/file/litematica/终极祭坛-1.litematic)和[二级祭坛](/file/litematica/终极祭坛-2.litematic)的原理图。
+
+或者你也可以制作冷殇的。这台多方块机器没有严苛的要求。
+
+<StructureViewer
+  name="Logi/终极祭坛"
+  axes={[
+    {
+      key: 'a',
+      label: '等级',
+      options: [
+        {label: '一级', suffix: '-1'},
+        {label: '二级', suffix: '-2'},
+      ],
+    },
+  ]}
+  order="{a}"
+/>
+
+## 机制
+
+该多方块结构没有配方时间，取而代之的是特殊的机制。
+
+### 特殊要求
+
+位于二级祭坛上的机器，四周的激光不可被方块阻挡。
+
+这意味着二级祭坛机器只有上面能用于物流传输。
+
+### 可用机器
+
+#### 宏激光发射器
+
+**合成材料**
+
+| 材料 | 数量 |
+| --- | ---: |
+| <ItemIcon id='logitech_space_plate' size={24} /> 空间强化板 | 16 |
+| <ItemIcon id='logitech_hgtlpbbi' size={24} /> 汞铊铅铋合金 | 4 |
+| <ItemIcon id='logitech_tech_core' size={24} /> 科技核心 | 16 |
+| <ItemIcon id='logitech_lsingularity' size={24} /> 逻辑奇点 | 10 |
+| <ItemIcon id='logitech_laser' size={24} /> 纳米级激光发生器 | 12 |
+| <ItemIcon id='logitech_virtual_space' size={24} /> 虚拟空间 | 4 |
+| <ItemIcon id='logitech_pagold' size={24} /> 钯金 | 16 |
+| <ItemIcon id='logitech_pdcecdmd' size={24} /> 钚铈镉钔合金 | 2 |
+
+**机制**
+
+| 项目 | 说明 |
+| --- | --- |
+| 激活条件 | 放置在一级或二级终极祭坛上并充能，或者使用红石激活。 |
+| 激光 | 激活后自动开启，发射一道最长 32 格、会被方块阻挡的激光。 |
+| 激光等级 | `lvl = 3 + 祭坛等级 × 6`。 |
+| 激光伤害 | 生物每次判定受到 `0.5 × lvl²` 点真实伤害。 |
+| 末端充能 | 在终极祭坛上时，会尝试对激光末端的机器充能，是部分终极机器的激活条件。 |
+
+#### 物质量化重塑器
+
+**合成材料**
+
+| 材料 | 数量 |
+| --- | ---: |
+| <ItemIcon id='logitech_space_plate' size={24} /> 空间强化板 | 96 |
+| <ItemIcon id='logitech_logic_core' size={24} /> 逻辑核心 | 8 |
+| <ItemIcon id='logitech_pdcecdmd' size={24} /> 钚铈镉钔合金 | 8 |
+| <ItemIcon id='logitech_world_feat' size={24} /> 世界特征 - 主世界 | 2 |
+| <ItemIcon id='logitech_nether_feat' size={24} /> 世界特征 - 下界 | 2 |
+| <ItemIcon id='logitech_end_feat' size={24} /> 世界特征 - 末地 | 2 |
+| <ItemIcon id='logitech_final_frame' size={24} /> 终极逻辑框架 | 2 |
+
+**机制**
+
+| 项目 | 说明 |
+| --- | --- |
+| 激活条件 | 放置在二级终极祭坛上，并被结构中全部 4 个宏激光发射器充能。 |
+| 物质重塑 | 随机波动若干次输入物品的材质 ID，尝试转换为其他原版物品，并赋予随机数量。 |
+| 转换失败 | 无法得到可用的原版物品时，从下方失败输出表中随机抽取一项。 |
+
+<Spoiler>但是这个服的逻辑有bug，你永远不可能转换成功，所以出以下物品的速度巨快</Spoiler>。
+
+**失败输出及概率**
+
+| 输出物品 | 单次数量 | 概率 |
+| --- | ---: | ---: |
+| <ItemIcon id='logitech_virtualworld' size={24} /> 虚拟世界 | 1 | 43.86% |
+| <ItemIcon id='logitech_virtual_space' size={24} /> 虚拟空间 | 1 | 21.93% |
+| <ItemIcon id='logitech_hgtlpbbi' size={24} /> 汞铊铅铋合金 | 1 | 15.59% |
+| <ItemIcon id='logitech_pdcecdmd' size={24} /> 钚铈镉钔合金 | 1 | 15.59% |
+| <ItemIcon id='logitech_star_gold_ingot' size={24} /> 星辰金 | 32 | 0.88% |
+| <ItemIcon id='logitech_atom_ingot' size={24} /> 充能原子合金 | 32 | 0.88% |
+| <ItemIcon id='logitech_lsingularity' size={24} /> 逻辑奇点 | 16 | 0.88% |
+| <ItemIcon id='logitech_antimass' size={24} /> 反概念物质 | 1 | 0.39% |
+
+以上概率以转换失败为前提。第一层随机总权重为 114：虚拟世界 50、虚拟空间 25、合金组 36，其余三项各 1；合金组内部再按汞铊铅铋合金、钚铈镉钔合金、反概念物质 `40:40:1` 抽取。
+
+#### 属性量化增幅器
+
+**合成材料**
+
+| 材料 | 数量 |
+| --- | ---: |
+| <ItemIcon id='logitech_space_plate' size={24} /> 空间强化板 | 96 |
+| <ItemIcon id='logitech_final_frame' size={24} /> 终极逻辑框架 | 4 |
+| <ItemIcon id='logitech_hgtlpbbi' size={24} /> 汞铊铅铋合金 | 8 |
+| <ItemIcon id='logitech_attr_op' size={24} /> 锻铸工坊接口 - 属性操作仪 | 2 |
+| <ItemIcon id='logitech_logic_core' size={24} /> 逻辑核心 | 4 |
+| <ItemIcon id='logitech_pdcecdmd' size={24} /> 钚铈镉钔合金 | 2 |
+| <ItemIcon id='logitech_antimass' size={24} /> 反概念物质 | 2 |
+| <ItemIcon id='logitech_final_convertor' size={24} /> 物质量化重塑器 | 2 |
+
+**机制**
+
+| 项目 | 说明 |
+| --- | --- |
+| 激活条件 | 放置在二级终极祭坛上，并被结构中全部 4 个宏激光发射器充能；这 4 个发射器分别位于一级或二级祭坛上。 |
+| 处理槽位 | 共有 9 个物品槽，每次运行会处理所有符合条件的槽位；每格物品数量必须恰好为 1，否则跳过。 |
+| 随机项目 | 在所有已注册附魔与属性中均匀随机选择一项。 |
+| 增幅数值 | 每次随机增加 1～3。 |
+| 附魔增幅 | 在原有等级上累加；若增加后会超过 255 级，则本次不改变该附魔。 |
+| 属性增幅 | 随机选择装备槽，盔甲按对应部位，其余物品随机选择主手或副手；以加法（`ADD_NUMBER`）添加属性，同属性、同槽位的增幅可累加，基值上限为 1024。 |
+| 堆叠限制 | 默认允许强化可堆叠物品，但每格仍只能放 1 个；若关闭 `enable-stackable-item`，则只允许最大堆叠数为 1 的物品。 |
+| 高版本注意 | 1.20.5+ 可能因原版属性等级限制导致属性重置，强化前请谨慎备份装备。 |
+
+## 需准备的材料
+
+下表将铋银、钯金、两种终极合金、空间强化板、强化薯片合金、纳米级激光发生器、虚拟空间与终极逻辑框架完全展开；逻辑核心、核心、逻辑奇点及机器组件不再向下展开。
+
+| 材料 | 一级所需 | 二级所需 |
+| --- | ---: | ---: |
+| <ItemIcon id='logitech_logic_core' size={24} /> 逻辑核心 | 360 | 2184 |
+| <ItemIcon id='logitech_paradox' size={24} /> 悖论 | 239428 | 985876 |
+| <ItemIcon id='logitech_atom_ingot' size={24} /> 充能原子合金 | 50176 | 209984 |
+| <ItemIcon id='logitech_star_gold_ingot' size={24} /> 星辰金 | 45056 | 188672 |
+| <ItemIcon id='logitech_lfield' size={24} /> 逻辑引擎力场 | 16384 | 68608 |
+| <ItemIcon id='logitech_chip_ingot' size={24} /> 薯片合金 | 8192 | 34304 |
+| <ItemIcon id='logitech_lsingularity' size={24} /> 逻辑奇点 | 2056 | 8536 |
+| <ItemIcon id='logitech_mass_core' size={24} /> 物质核心 | 512 | 2048 |
+| <ItemIcon id='logitech_smelery_core' size={24} /> 精炼核心 | 512 | 2048 |
+| <ItemIcon id='logitech_tech_core' size={24} /> 科技核心 | 512 | 2112 |
+| <ItemIcon id='logitech_metal_core' size={24} /> 重金核心 | 512 | 2048 |
+| <ItemIcon id='logitech_chip_core' size={24} /> 智能控制核心 | 512 | 2080 |
+| <ItemIcon id='logitech_lmotor' size={24} /> 逻辑动力马达 | 128 | 520 |
+| <ItemIcon id='logitech_ldigitizer' size={24} /> 数字化核心 | 256 | 1040 |
+| <ItemIcon id='logitech_lioport' size={24} /> IO组件 | 128 | 520 |
+| <ItemIcon id='GPS_TRANSMITTER_4' size={24} /> GPS 发射器 IV | 512 | 2080 |
+| <ItemIcon id='logitech_bismuth_ingot' size={24} /> 铋 (Bi) | 33140 | 134916 |
+| <ItemIcon id='SILVER_INGOT' size={24} /> 银锭 | 33140 | 134916 |
+| <ItemIcon id='BILLON_INGOT' size={24} /> 银铜合金锭 | 33140 | 134916 |
+| <ItemIcon id='logitech_palladium_ingot' size={24} /> 钯 (Pd) | 6144 | 25984 |
+| <ItemIcon id='logitech_platinum_ingot' size={24} /> 铂 (Pt) | 6144 | 25984 |
+| <ItemIcon id='GOLD_22K' size={24} /> 22K金 | 21504 | 90944 |
+| <ItemIcon id='logitech_hydragyrum' size={24} /> 汞 (Hg) | 33024 | 133568 |
+| <ItemIcon id='logitech_thallium' size={24} /> 铊 (Tl) | 33024 | 133376 |
+| <ItemIcon id='LEAD_INGOT' size={24} /> 铅锭 | 33024 | 133376 |
+| <ItemIcon id='PLUTONIUM' size={24} /> 钚 | 16512 | 66432 |
+| <ItemIcon id='logitech_cerium' size={24} /> 铈 (Ce) | 33024 | 132864 |
+| <ItemIcon id='logitech_cadmium_ingot' size={24} /> 镉 (Cd) | 37120 | 150016 |
+| <ItemIcon id='logitech_mendelevium' size={24} /> 钔 (Md) | 24768 | 99648 |
+| <ItemIcon id='logitech_molybdenum' size={24} /> 钼 (Mo) | 0 | 384 |
+| <ItemIcon id='logitech_boron' size={24} /> 硼 (B) | 0 | 576 |
+| <ItemIcon id='logitech_antimony_ingot' size={24} /> 锑 (Sb) | 0 | 192 |

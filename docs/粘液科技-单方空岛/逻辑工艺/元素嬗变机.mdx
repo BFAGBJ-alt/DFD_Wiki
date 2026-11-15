@@ -35,29 +35,35 @@ import ItemIcon from '@site/src/components/ItemIcon';
 
 可以在这里下载[最大](/file/litematica/元素嬗变-最大.litematic)和[最小](/file/litematica/元素嬗变-最小.litematic)的原理图。
 
-<Details>
-<summary>以下是最大和最小元素嬗变机的样式</summary>
-<StructureViewer name="Logi/元素嬗变-最大" />
-<StructureViewer name="Logi/元素嬗变-最小" />
-</Details>
-
 多方块搭建完毕之后，需要在机器内手动激活。
-
-<Details>
-<summary>以下是元素嬗变机激活的样式</summary>
-<StructureViewer name="Logi/元素嬗变-最大-激活" />
-<StructureViewer name="Logi/元素嬗变-最小-激活" />
-</Details>
-
 
 或者你也可以制作冷殇和DFD的。多方块的必须时刻提供电力，工作中还需要提供两种冷却剂（建议通过起源-维度工艺-超低温冷冻处理器获取），每2s消耗一个（两种同时消耗，记得补充）
 
 多方块被破坏或者工作中未提供充足电力、冷却剂，工作中关闭多方块结构会导致融毁：空隙处被哭泣的黑曜石填满，所有的燃料棒变成原版的强化深板岩，同时释放40范围的辐射（会导致黑暗，反胃，凋零，中毒，饥饿，可以在系统商店内购买辐射清除器）
 
-<Details>
-<summary>以下是元素嬗变机融毁的样式</summary>
-<StructureViewer name="Logi/元素嬗变-最大-融毁" />
-</Details>
+<StructureViewer
+  name="Logi/元素嬗变"
+  axes={[
+    {
+      key: 'a',
+      label: '等级',
+      options: [
+        {label: '最大', suffix: '-最大'},
+        {label: '最小', suffix: '-最小'},
+      ],
+    },
+    {
+      key: 'b',
+      label: '状态',
+      options: [
+        {label: '正常', suffix: ''},
+        {label: '激活', suffix: '-激活'},
+        {label: '融毁', suffix: '-融毁', availableWhen: {a: ['最大']}},
+      ],
+    },
+  ]}
+  order="{a}{b}"
+/>
 
 强烈建议制作最大的元素嬗变机，可以节省很多时间。
 

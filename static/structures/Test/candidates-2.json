@@ -1,0 +1,11 @@
+{
+  "name": "数字轴测试 2",
+  "pattern": {
+    "diamond": {"block": "diamond_block", "label": "钻石块"},
+    "emerald": {"block": "emerald_block", "label": "绿宝石块"}
+  },
+  "blocks": [
+    {"x": 0, "y": 0, "z": 0, "type": "diamond"},
+    {"x": 1, "y": 0, "z": 0, "type": "emerald"}
+  ]
+}

@@ -27,6 +27,17 @@ export type BlockDef = {
   label?: string;
   /** 可选。标记后方块可点击，跳转到对应 wiki 条目 */
   link?: string;
+  /**
+   * 同一位置可选的多个方块，第一项为默认显示。
+   * 数量大于 1 时该方块不再合并渲染，由 MultiBlock 单独处理。
+   */
+  candidates?: BlockDef[];
+  /**
+   * 候选轮换间隔，单位 tick（1 tick = 0.05s）。
+   * 大于 0：按该间隔自动轮换；0 或 -1：不轮换，默认显示第一项，
+   * 悬停时在画布左上角列出全部候选。
+   */
+  interval?: number;
 };
 
 export type StructureBlock = BlockDef & {
@@ -59,9 +70,12 @@ export function resolveStructure(
     link?: string;
   } = () => ({}),
 ): Structure {
-  const applyItem = <T extends BlockDef>(b: T): T => {
-    if (!b.item) return b;
-    const db = resolveItemFn(b.item);
+  function applyItem<T extends BlockDef>(b: T): T {
+    const withCandidates = (b.candidates
+      ? {...b, candidates: b.candidates.map((c) => applyItem(c))}
+      : b) as T;
+    if (!withCandidates.item) return withCandidates;
+    const db = resolveItemFn(withCandidates.item);
     return {
       block: db.block,
       facing: db.facing,
@@ -70,9 +84,9 @@ export function resolveStructure(
       color: db.color,
       label: db.name,
       link: db.link,
-      ...b,
+      ...withCandidates,
     };
-  };
+  }
   const presets = s.palette ?? s.pattern;
   const palette = presets
     ? Object.fromEntries(

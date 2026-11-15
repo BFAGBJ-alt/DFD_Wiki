@@ -1,0 +1,11 @@
+{
+  "name": "数字轴测试 1",
+  "pattern": {
+    "stone": {"block": "stone", "label": "石头"},
+    "gold": {"block": "gold_block", "label": "金块"}
+  },
+  "blocks": [
+    {"x": 0, "y": 0, "z": 0, "type": "stone"},
+    {"x": 1, "y": 0, "z": 0, "type": "gold"}
+  ]
+}

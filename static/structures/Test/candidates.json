@@ -1,0 +1,30 @@
+{
+  "name": "多候选方块测试",
+  "pattern": {
+    "auto": {
+      "label": "自动轮换（铁块/金块/钻石块）",
+      "block": "iron_block",
+      "interval": 20,
+      "candidates": [
+        {"block": "iron_block", "label": "铁块"},
+        {"block": "gold_block", "label": "金块"},
+        {"block": "diamond_block", "label": "钻石块"}
+      ]
+    },
+    "hover": {
+      "label": "悬停查看（石头/圆石/苔石）",
+      "block": "stone",
+      "interval": 0,
+      "candidates": [
+        {"block": "stone", "label": "石头"},
+        {"block": "cobblestone", "label": "圆石"},
+        {"item": "me_drive"}
+      ]
+    }
+  },
+  "blocks": [
+    {"x": 0, "y": 0, "z": 0, "type": "auto"},
+    {"x": 1, "y": 0, "z": 0, "type": "hover"},
+    {"x": 2, "y": 0, "z": 0, "type": "auto"}
+  ]
+}

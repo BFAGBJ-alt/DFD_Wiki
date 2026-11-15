@@ -17,6 +17,22 @@ export const items: Record<string, ItemDef> = {
     name: '核反应堆',
     texture: '/img/Minecraft/SlimeFun/assets/slimefun/textures/slimefun/energy/nuclear_reactor.png',
   },
+  'ENERGIZED_CAPACITOR': {
+    name: '终极电容储能',
+    texture: '/img/Minecraft/SlimeFun/assets/slimefun/textures/slimefun/energy/energized_capacitor.png',
+  },
+  'GPS_TRANSMITTER_4': {
+    name: 'GPS 发射器 IV',
+    texture: '/img/Minecraft/SlimeFun/assets/slimefun/textures/slimefun/gps/gps_transmitter_4.png',
+  },
+  'LEAD_INGOT': {
+    name: '铅锭',
+    texture: '/img/Minecraft/SlimeFun/assets/slimefun/textures/slimefun/resources/ingots/lead_ingot.png',
+  },
+  'PLUTONIUM': {
+    name: '钚',
+    texture: '/img/Minecraft/SlimeFun/assets/slimefun/textures/slimefun/resources/radioactive_materials/plutonium.png',
+  },
   'GOLD_22K': {
     name: '22K金',
     texture: '/img/Minecraft/SlimeFun/assets/slimefun/textures/slimefun/resources/gold_ingots/gold_22k.png',

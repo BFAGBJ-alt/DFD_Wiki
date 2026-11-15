@@ -9,6 +9,62 @@
 .canvas {
   height: 480px;
   cursor: grab;
+  position: relative;
+}
+
+/* 多候选方块：悬停时在画布左上角列出该位置可能出现的方块 */
+.candidatePanel {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 4;
+  max-width: 60%;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.78);
+  color: #fff;
+  font-size: 13px;
+  line-height: 1.5;
+  pointer-events: none;
+}
+
+/* 点击选中后允许在面板里点名称/图标跳转 */
+.candidatePanelActive {
+  pointer-events: auto;
+}
+
+.candidateTitle {
+  margin-bottom: 2px;
+  opacity: 0.75;
+}
+
+.candidateList {
+  margin: 4px 0 0;
+  padding-left: 1.1em;
+}
+
+.candidateItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: inherit;
+  text-decoration: none;
+}
+
+a.candidateItem:hover {
+  color: #8fd3ff;
+  text-decoration: none;
+}
+
+.candidateSwatch {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border-radius: 3px;
+}
+
+.candidateActive {
+  color: #8fd3ff;
 }
 
 .canvas:active {
@@ -197,6 +253,37 @@
 .panelBtn:disabled {
   opacity: 0.45;
   cursor: default;
+}
+
+.panelBtnActive {
+  border-color: var(--ifm-color-primary);
+  color: var(--ifm-color-primary);
+}
+
+/* 画布上方的多条控制条：项少时自动排成一行，项多时换行 */
+.controlBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0 4px;
+  border-bottom: 1px solid var(--ifm-color-emphasis-200);
+  background: var(--ifm-background-surface-color);
+}
+
+/* 控制条放进 controlBar 后不再各自画分隔线 */
+.controlBar .layerBar {
+  border-bottom: 0;
+  flex: 0 1 auto;
+}
+
+.axisSelect {
+  padding: 2px 6px;
+  border: 1px solid var(--ifm-color-emphasis-400);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ifm-font-color-base);
+  font-size: 0.85rem;
 }
 
 /* 结构分层控制条：桌面画布上方 / 移动端浮层标题栏下方 */

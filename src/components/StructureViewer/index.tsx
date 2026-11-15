@@ -9,6 +9,7 @@ import BlockDisplay from '../BlockDisplay';
 import ErrorBoundary from '../ErrorBoundary';
 import Mobile3DOverlay from './Mobile3DOverlay';
 import LayerControls from './LayerControls';
+import OptionControls, {type ViewerAxis} from './OptionControls';
 import LazyStructure3D from './lazyStructure3D';
 import styles from './styles.module.css';
 
@@ -79,6 +80,90 @@ function sizeHeight(size: ViewerSize): number {
   return size === 'sm' ? 280 : size === 'lg' ? 600 : 480;
 }
 
+type AxisValues = Record<string, number>;
+
+/** 把轴的值夹到合法范围：列表轴为下标，数字轴为 min..max */
+function clampAxisValue(axis: ViewerAxis, raw?: number): number {
+  if (axis.type === 'number') {
+    const value = Number.isFinite(raw) ? (raw as number) : axis.min;
+    return Math.min(axis.max, Math.max(axis.min, value));
+  }
+  const index = Number.isFinite(raw) ? Math.round(raw as number) : 0;
+  return Math.max(
+    0,
+    Math.min(axis.options.length - 1, Math.max(0, index)),
+  );
+}
+
+/** 按其他轴的当前值计算每个列表选项是否可用 */
+function axisAvailability(
+  axes: ViewerAxis[],
+  values: AxisValues,
+): Record<string, boolean[]> {
+  const result: Record<string, boolean[]> = {};
+  for (const axis of axes) {
+    if (axis.type === 'number') continue;
+    result[axis.key] = axis.options.map((option) => {
+      if (!option.availableWhen) return true;
+      return Object.entries(option.availableWhen).every(([key, allowed]) => {
+        const other = axes.find((a) => a.key === key);
+        if (!other) return true;
+        const allowedList = Array.isArray(allowed) ? allowed : [allowed];
+        if (other.type === 'number') {
+          const value = clampAxisValue(other, values[other.key]);
+          return allowedList.some((v) => Number(v) === value);
+        }
+        const label = other.options[clampAxisValue(other, values[other.key])]?.label;
+        return allowedList.some((v) => String(v) === label);
+      });
+    });
+  }
+  return result;
+}
+
+/**
+ * 某个选项因其他轴变化而不可用时，自动切到该轴第一个可用项。
+ * 返回新对象表示有改动；没有改动时原样返回，避免多余的 setState。
+ */
+function normaliseAxisValues(
+  axes: ViewerAxis[],
+  values: AxisValues,
+  availability: Record<string, boolean[]>,
+): AxisValues {
+  let next: AxisValues | null = null;
+  for (const axis of axes) {
+    if (axis.type === 'number') continue;
+    const list = availability[axis.key];
+    const current = clampAxisValue(axis, values[axis.key]);
+    if (list?.[current] !== false) continue;
+    const first = list.findIndex(Boolean);
+    if (first < 0) continue;
+    next ??= {...values};
+    next[axis.key] = first;
+  }
+  return next ?? values;
+}
+
+function axisSuffix(axis: ViewerAxis, value: number): string {
+  if (axis.type === 'number') {
+    return (axis.suffix ?? '-{value}').replace(/\{value\}/g, String(value));
+  }
+  return axis.options[value]?.suffix ?? '';
+}
+
+/** 按 order 模板拼接各轴后缀；没有 order 时按轴顺序直接相连 */
+function composeSuffix(
+  axes: ViewerAxis[],
+  values: AxisValues,
+  order?: string,
+): string {
+  const parts = new Map(
+    axes.map((axis) => [axis.key, axisSuffix(axis, values[axis.key])]),
+  );
+  if (!order) return [...parts.values()].join('');
+  return order.replace(/\{(\w+)\}/g, (_, key: string) => parts.get(key) ?? '');
+}
+
 type StructureViewerProps = {
   /** 结构模式：加载 static/structures/<name>.json */
   name?: string;
@@ -104,6 +189,16 @@ type StructureViewerProps = {
   color?: string;
   /** 画布高度：sm=280 md=480 lg=600，或数字像素。结构模式默认 md，单方块默认 sm */
   size?: ViewerSize;
+  /**
+   * 多轴切换，可多于两条。列表轴用 options，数字轴用 min/max（下拉选择具体数字）。
+   * 每个列表选项可写 availableWhen 限制在其他轴某些取值下才出现。
+   */
+  axes?: ViewerAxis[];
+  /**
+   * 结构名后缀顺序模板，如 "-{b}-{c}-{a}"。
+   * {key} 替换为对应轴的当前后缀；省略时按 axes 顺序直接相连。
+   */
+  order?: string;
 };
 
 /**
@@ -128,17 +223,55 @@ export default function StructureViewer({
   link,
   color,
   size,
+  axes,
+  order,
 }: StructureViewerProps): ReactNode {
   const [structure, setStructure] = useState<Structure | null>(null);
   const [error, setError] = useState(false);
   const [overlayOpen, setOverlayOpen] = useState(false);
+  const [axisValues, setAxisValues] = useState<AxisValues>({});
   const isMobile = useIsMobile();
   // three 只支持 WebGL2；桌面端少数精简浏览器 / 关闭硬件加速时也会拿不到上下文
   const [webgl2, setWebgl2] = useState<boolean | null>(null);
   useEffect(() => {
     setWebgl2(supportsWebGL2());
   }, []);
-  const jsonUrl = useBaseUrl(`/structures/${name ?? ''}.json`);
+  const axisList: ViewerAxis[] = axes ?? [];
+
+  // 当前值：列表轴存下标、数字轴存数值，统一夹到合法范围
+  const effectiveValues: AxisValues = {};
+  for (const axis of axisList) {
+    effectiveValues[axis.key] = clampAxisValue(axis, axisValues[axis.key]);
+  }
+  // availableWhen 不满足的选项不显示；已选中的选项失效时自动跳到第一个可用项
+  const availability = axisAvailability(axisList, effectiveValues);
+  const safeValues = normaliseAxisValues(axisList, effectiveValues, availability);
+  const axisSignature = axisList
+    .map((axis) => `${axis.key}:${safeValues[axis.key]}`)
+    .join('|');
+
+  useEffect(() => {
+    setAxisValues((prev) => {
+      let changed = false;
+      const next: AxisValues = {};
+      for (const axis of axisList) {
+        const desired = clampAxisValue(axis, safeValues[axis.key]);
+        next[axis.key] = desired;
+        if (!Number.isFinite(prev[axis.key]) || prev[axis.key] !== desired) {
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+    // 只在“安全值签名”变化时写回，避免每次渲染都 setState
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [axisSignature]);
+
+  // 多轴时 name 作为基础名，按 order 模板拼接各轴后缀
+  const structureName = name
+    ? `${name}${composeSuffix(axisList, safeValues, order)}`
+    : undefined;
+  const jsonUrl = useBaseUrl(`/structures/${structureName ?? ''}.json`);
   const texBase = useBaseUrl('/img/Minecraft/block');
 
   // 单方块模式下从物品数据库展开字段（内联 props 优先）
@@ -186,10 +319,11 @@ export default function StructureViewer({
       });
       return;
     }
-    if (!name) {
+    if (!structureName) {
       setError(true);
       return;
     }
+    setError(false);
     let cancelled = false;
     fetch(jsonUrl)
       .then((r) => {
@@ -205,7 +339,7 @@ export default function StructureViewer({
     return () => {
       cancelled = true;
     };
-  }, [name, singleBlock, item, jsonUrl]);
+  }, [structureName, singleBlock, item, jsonUrl]);
 
   const layers = useMemo(() => {
     if (!structure) return [];
@@ -217,7 +351,7 @@ export default function StructureViewer({
   }, [structure]);
 
   if (error) {
-    return <div className={styles.box}>结构「{name ?? item ?? block}」加载失败</div>;
+    return <div className={styles.box}>结构「{structureName ?? item ?? block}」加载失败</div>;
   }
   if (!structure || isMobile === null) {
     return <div className={styles.box} aria-busy="true" />;
@@ -225,7 +359,7 @@ export default function StructureViewer({
 
   if (isMobile) {
     const title =
-      singleBlock?.label ?? (name ? `结构「${name}」` : undefined);
+      singleBlock?.label ?? (structureName ? `结构「${structureName}」` : undefined);
     return (
       <>
         <MobilePreview
@@ -251,11 +385,50 @@ export default function StructureViewer({
 
   const isSingle = !!singleBlock;
   const showLayers = !isSingle && layers.length > 1;
+  const visibleAxes = isSingle
+    ? []
+    : axisList.filter((axis) =>
+        axis.type === 'number'
+          ? axis.max > axis.min
+          : axis.options.length > 1,
+      );
+  const showControls = visibleAxes.length > 0 || showLayers;
 
   return (
-    <div className={styles.box} style={{height: canvasHeight + (isSingle ? 0 : 32) + (showLayers ? 40 : 0)}}>
-      {showLayers && (
-        <LayerControls layers={layers} value={layer} onChange={setLayer} />
+    <div className={styles.box}>
+      {showControls && (
+        <div className={styles.controlBar}>
+          {visibleAxes.map((axis) =>
+            axis.type === 'number' ? (
+              <OptionControls
+                key={axis.key}
+                kind="number"
+                title={axis.label}
+                min={axis.min}
+                max={axis.max}
+                step={axis.step}
+                value={safeValues[axis.key]}
+                onChange={(value) =>
+                  setAxisValues((prev) => ({...prev, [axis.key]: value}))
+                }
+              />
+            ) : (
+              <OptionControls
+                key={axis.key}
+                title={axis.label}
+                options={axis.options}
+                available={availability[axis.key]}
+                value={safeValues[axis.key]}
+                onChange={(index) =>
+                  setAxisValues((prev) => ({...prev, [axis.key]: index}))
+                }
+              />
+            ),
+          )}
+          {showLayers && (
+            <LayerControls layers={layers} value={layer} onChange={setLayer} />
+          )}
+        </div>
       )}
       <BrowserOnly fallback={<div className={styles.canvasPlaceholder} style={{height: canvasHeight}} />}>
         {() =>

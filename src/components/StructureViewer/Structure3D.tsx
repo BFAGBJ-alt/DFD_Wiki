@@ -1,9 +1,12 @@
-import React, {useEffect, useLayoutEffect, useMemo, useState, type ReactNode} from 'react';
+import React, {useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode} from 'react';
 import {Canvas, useThree} from '@react-three/fiber';
 import {Html, OrbitControls} from '@react-three/drei';
+import Link from '@docusaurus/Link';
 import * as THREE from 'three';
 import {useHistory} from '@docusaurus/router';
 import useBaseUrl, {useBaseUrlUtils} from '@docusaurus/useBaseUrl';
+import BlockDisplay from '../BlockDisplay';
+import ItemIcon from '../ItemIcon';
 import {
   resolveBlockQuads,
   resolveBlockRotation,
@@ -14,7 +17,7 @@ import {
   type Quad,
 } from './modelResolver';
 import {loadAtlasMeta, resolveTex, type Meta} from '@site/src/utils/minecraftAtlas';
-import type {Structure, StructureBlock} from './types';
+import type {BlockDef, Structure, StructureBlock} from './types';
 import styles from './styles.module.css';
 
 // 方块渲染尺寸：1 = 严格贴合，方块之间不留缝。
@@ -419,12 +422,18 @@ function Block({
   materials,
   dims,
   labelDistance,
+  onHoverChange,
+  onSelect,
 }: {
   block: StructureBlock;
   quads: Quad[] | null;
   materials: Map<string, THREE.MeshBasicMaterial>;
   dims: Map<string, [number, number]>;
   labelDistance: number;
+  /** 悬停状态回调（多候选方块据此上报候选列表） */
+  onHoverChange?: (hovered: boolean) => void;
+  /** 点击回调（多候选方块用来选中，优先于 link 跳转） */
+  onSelect?: () => void;
 }): ReactNode {
   const history = useHistory();
   // 数据里的 link 是站内绝对路径（/docs/...），子路径部署（/wiki_page/）要补前缀。
@@ -485,7 +494,7 @@ function Block({
     });
   }, [hovered, ownMaterials, fallbackMaterial, block.link]);
 
-  const clickable = !!block.link;
+  const clickable = !!block.link || !!onSelect;
 
   // 方块级朝向：绕方块中心旋转整个 group（贴图随几何体一起转）
   const rotation = useMemo(
@@ -501,6 +510,10 @@ function Block({
         clickable
           ? (e) => {
               e.stopPropagation();
+              if (onSelect) {
+                onSelect();
+                return;
+              }
               history.push(withBaseUrl(block.link!));
             }
           : undefined
@@ -508,10 +521,12 @@ function Block({
       onPointerOver={(e) => {
         e.stopPropagation();
         setHovered(true);
+        onHoverChange?.(true);
         if (clickable) document.body.style.cursor = 'pointer';
       }}
       onPointerOut={() => {
         setHovered(false);
+        onHoverChange?.(false);
         document.body.style.cursor = '';
       }}>
       {geometries.length > 0 ? (
@@ -535,11 +550,81 @@ function Block({
           wrapperClass={styles.labelWrap}>
           <div className={styles.label}>
             {block.label}
-            {clickable && <span className={styles.labelArrow}>↗</span>}
+            {clickable && !onSelect && (
+              <span className={styles.labelArrow}>↗</span>
+            )}
           </div>
         </Html>
       )}
     </group>
+  );
+}
+
+type CandidateEntry = {def: StructureBlock; quads: Quad[] | null};
+
+// 多候选方块：按 interval（tick）轮换；interval <= 0 时固定第一个，
+// 悬停把完整候选列表上报给画布左上角的候选面板。
+function MultiBlock({
+  candidates,
+  materials,
+  dims,
+  labelDistance,
+  interval,
+  paused,
+  onCandidateHover,
+  onSelect,
+}: {
+  candidates: {def: StructureBlock; quads: Quad[] | null}[];
+  materials: Map<string, THREE.MeshBasicMaterial>;
+  dims: Map<string, [number, number]>;
+  labelDistance: number;
+  interval?: number;
+  /** 选中后暂停轮换，保持在当前候选 */
+  paused?: boolean;
+  onCandidateHover?: (
+    info: {labels: string[]; index: number} | null,
+  ) => void;
+  onSelect?: (index: number) => void;
+}): ReactNode {
+  const [index, setIndex] = useState(0);
+  const hoveredRef = useRef(false);
+
+  // 只有在间隔或候选数量变化时才回到第一项；暂停不能重置当前候选
+  useEffect(() => {
+    setIndex(0);
+  }, [interval, candidates.length]);
+
+  useEffect(() => {
+    if (paused || !interval || interval <= 0 || candidates.length < 2) return;
+    // interval 单位是 tick，1 tick = 0.05s
+    const id = window.setInterval(() => {
+      setIndex((i) => (i + 1) % candidates.length);
+    }, interval * 50);
+    return () => window.clearInterval(id);
+  }, [interval, candidates.length, paused]);
+
+  const labels = candidates.map((c) => c.def.label ?? '方块');
+  const current = candidates[index % candidates.length] ?? candidates[0];
+
+  // 悬停期间轮换也要刷新面板里的“当前项”
+  useEffect(() => {
+    if (hoveredRef.current) onCandidateHover?.({labels, index});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [index]);
+
+  return (
+    <Block
+      block={current.def}
+      quads={current.quads}
+      materials={materials}
+      dims={dims}
+      labelDistance={labelDistance}
+      onSelect={() => onSelect?.(index)}
+      onHoverChange={(hovered) => {
+        hoveredRef.current = hovered;
+        onCandidateHover?.(hovered ? {labels, index} : null);
+      }}
+    />
   );
 }
 
@@ -577,6 +662,33 @@ function CameraRig({radius, layer}: {radius: number; layer: number | null}): nul
   return null;
 }
 
+/** 左上角候选面板里的小图标：物品库 id 优先，其次方块/头颅模型，最后纯色 */
+function CandidateIcon({def}: {def: StructureBlock}): ReactNode {
+  if (def.block || def.skull) {
+    return (
+      <BlockDisplay
+        block={def.block}
+        skull={def.skull}
+        facing={def.facing}
+        axis={def.axis}
+        face={def.face}
+        size={20}
+        name={def.label}
+      />
+    );
+  }
+  if (def.item) {
+    // link="" 关闭 ItemIcon 自带的外层链接，避免与外层 Link 嵌套
+    return <ItemIcon id={def.item} size={20} link="" />;
+  }
+  return (
+    <span
+      className={styles.candidateSwatch}
+      style={{background: def.color ?? '#888888'}}
+    />
+  );
+}
+
 export default function Structure3D({
   structure,
   texBase,
@@ -595,20 +707,59 @@ export default function Structure3D({
   /** 只渲染该 Y 层；null/undefined 表示全部层 */
   layer?: number | null;
 }): ReactNode {
-  const [quadLists, setQuadLists] = useState<(Quad[] | null)[] | null>(null);
+  const [candidateLists, setCandidateLists] = useState<
+    CandidateEntry[][] | null
+  >(null);
+  /** 悬停多候选方块时，左上角面板显示该位置的候选列表 */
+  const [hoverCandidates, setHoverCandidates] = useState<{
+    block: number;
+    labels: string[];
+    index: number;
+  } | null>(null);
+  /** 点击选中的多候选方块：暂停旋转并常驻面板，点击空白处取消 */
+  const [selected, setSelected] = useState<{
+    block: number;
+    index: number;
+  } | null>(null);
+
+  // 切层或换结构后，选中的方块可能已不可见
+  useEffect(() => {
+    setSelected(null);
+    setHoverCandidates(null);
+  }, [layer, structure]);
 
   useEffect(() => {
     let cancelled = false;
+    const loadQuads = (d: BlockDef): Promise<Quad[] | null> =>
+      d.block
+        ? resolveBlockQuads(d.block, texBase)
+        : d.skull
+          ? Promise.resolve(skullQuads(d.skull, d.face))
+          : Promise.resolve(null);
     Promise.all(
-      structure.blocks.map((b) =>
-        b.block
-          ? resolveBlockQuads(b.block, texBase)
-          : b.skull
-            ? Promise.resolve(skullQuads(b.skull, b.face))
-            : Promise.resolve(null),
-      ),
+      structure.blocks.map((b) => {
+        // 没有 candidates 时只有默认方块一项，保持原有行为
+        const defs = b.candidates?.length ? b.candidates : [b];
+        return Promise.all(defs.map(loadQuads)).then((lists) =>
+          defs.map((d, k) => ({
+            def: {
+              ...b,
+              block: d.block,
+              skull: d.skull,
+              item: d.item ?? b.item,
+              facing: d.facing ?? b.facing,
+              axis: d.axis ?? b.axis,
+              face: d.face ?? b.face,
+              label: d.label ?? b.label,
+              link: d.link ?? b.link,
+              color: d.color ?? b.color,
+            } as StructureBlock,
+            quads: lists[k] ?? null,
+          })),
+        );
+      }),
     ).then((lists) => {
-      if (!cancelled) setQuadLists(lists);
+      if (!cancelled) setCandidateLists(lists);
     });
     return () => {
       cancelled = true;
@@ -623,10 +774,12 @@ export default function Structure3D({
   const allUrls = useMemo(
     () => [
       ...new Set(
-        (quadLists ?? []).flatMap((q) => (q ?? []).map((x) => x.texture)),
+        (candidateLists ?? []).flatMap((list) =>
+          list.flatMap((c) => (c.quads ?? []).map((x) => x.texture)),
+        ),
       ),
     ],
-    [quadLists],
+    [candidateLists],
   );
   const {texMap, dims} = useTextures(allUrls, atlasMeta, atlasBaseUrl, isProd);
 
@@ -680,7 +833,7 @@ export default function Structure3D({
 
   // 可见层 + 相机范围 + 面剔除
   const prepared = useMemo(() => {
-    if (!quadLists) return null;
+    if (!candidateLists) return null;
     const shown = structure.blocks
       .map((b, i) => ({b, i}))
       .filter(({b}) => layer == null || b.y === layer);
@@ -711,7 +864,7 @@ export default function Structure3D({
     const isFull = (i: number): boolean => {
       let v = fullCube.get(i);
       if (v === undefined) {
-        v = isFullCube(quadLists[i]);
+        v = isFullCube(candidateLists[i]?.[0]?.quads ?? null);
         fullCube.set(i, v);
       }
       return v;
@@ -731,7 +884,11 @@ export default function Structure3D({
     };
 
     const entries = shown.map(({b, i}) => {
-      const quads = quadLists[i] ?? [];
+      const multi = (b.candidates?.length ?? 0) > 1;
+      // 多候选方块的最终几何取决于当前候选，统一使用默认候选并跳过面剔除，
+      // 否则切换到其它候选后可能露出空洞。
+      const quads = candidateLists[i]?.[0]?.quads ?? [];
+      if (multi) return {b, i, quads, multi: true};
       const transparent = isTransparentBlock(b);
       const rots = rotsOf(b, i);
       const kept = quads.filter((q) => {
@@ -763,7 +920,7 @@ export default function Structure3D({
         // 再核对邻格反方向那面的贴图：模型相同但朝向/UV 不同时也保守保留。
         // 邻格同样可能带 facing，反方向要按它自己的旋转后的面来匹配。
         const nbRots = rotsOf(nb.b, nb.i);
-        const nbQuad = (quadLists[nb.i] ?? []).find(
+        const nbQuad = (candidateLists[nb.i]?.[0]?.quads ?? []).find(
           (x) =>
             coversFullFace(x) &&
             rotateBlockFace(x.face, nbRots) === OPPOSITE_FACE[face],
@@ -771,7 +928,7 @@ export default function Structure3D({
         if (!nbQuad || nbQuad.texture !== q.texture) return true;
         return false;
       });
-      return {b, i, quads: kept};
+      return {b, i, quads: kept, multi: false};
     });
 
     return {
@@ -779,14 +936,14 @@ export default function Structure3D({
       center: [(minX + maxX) / 2, (minY + maxY) / 2, (minZ + maxZ) / 2] as const,
       radius: Math.max(maxX - minX, maxY - minY, maxZ - minZ, 2) / 2 + 1,
     };
-  }, [structure, layer, quadLists]);
+  }, [structure, layer, candidateLists]);
 
   // 无交互的静态方块合并成按贴图分组的整体几何体，大幅减少 draw call
   const merged = useMemo(() => {
     if (!prepared) return [];
     const groups = new Map<string, QuadData>();
-    for (const {b, i, quads} of prepared.entries) {
-      if (b.link || b.label || quads.length === 0) continue;
+    for (const {b, quads, multi} of prepared.entries) {
+      if (multi || b.link || b.label || quads.length === 0) continue;
       const quat = blockQuaternion(b.block, b.facing, b.axis);
       for (const q of quads) {
         let data = groups.get(q.texture);
@@ -813,13 +970,19 @@ export default function Structure3D({
   if (!prepared) return <div className={styles.canvasPlaceholder} />;
 
   const individual = prepared.entries.filter(
-    ({b, quads}) => b.link || b.label || quads.length === 0,
+    ({b, quads, multi}) => multi || b.link || b.label || quads.length === 0,
   );
   const {center, radius} = prepared;
   const d = radius * 2.4;
+  // 选中优先于悬停：选中后面板常驻，直到点击画布空白处
+  const panel = selected ?? hoverCandidates;
+  const panelEntries =
+    panel && candidateLists ? candidateLists[panel.block] ?? null : null;
   return (
     <div className={styles.canvas} style={{height}}>
       <Canvas
+        // 点击没有 pointer 处理器的普通方块/空白处，退出选中并恢复旋转
+        onPointerMissed={() => setSelected(null)}
         // 首帧机位：真正的 near/far 与距离由 CameraRig 按当前层重算，
         // 这里只保证 Canvas 创建时相机不是默认的 z=5。
         camera={{position: [d, d * 0.8, d], fov: 40, near: 0.1, far: radius * 8}}
@@ -831,7 +994,7 @@ export default function Structure3D({
         <CameraRig radius={radius} layer={layer} />
         <OrbitControls
           makeDefault
-          autoRotate={autoRotate}
+          autoRotate={autoRotate && !selected}
           autoRotateSpeed={1.2}
           enablePan={false}
           enableRotate={interactive}
@@ -849,18 +1012,69 @@ export default function Structure3D({
               material={materials.get(texture) ?? fallbackMaterial}
             />
           ))}
-          {individual.map(({b, i, quads}) => (
-            <Block
-              key={i}
-              block={b}
-              quads={quads}
-              materials={materials}
-              dims={dims}
-              labelDistance={Math.max(5, height / 40)}
-            />
-          ))}
+          {individual.map(({b, i, quads, multi}) =>
+            multi && candidateLists?.[i] ? (
+              <MultiBlock
+                key={i}
+                candidates={candidateLists[i]}
+                materials={materials}
+                dims={dims}
+                labelDistance={Math.max(5, height / 40)}
+                interval={b.interval}
+                paused={selected?.block === i}
+                onSelect={(index) => setSelected({block: i, index})}
+                onCandidateHover={(info) =>
+                  setHoverCandidates(info ? {block: i, ...info} : null)
+                }
+              />
+            ) : (
+              <Block
+                key={i}
+                block={b}
+                quads={quads}
+                materials={materials}
+                dims={dims}
+                labelDistance={Math.max(5, height / 40)}
+              />
+            ),
+          )}
         </group>
       </Canvas>
+      {panel && panelEntries && panelEntries.length > 0 && (
+        <div
+          className={`${styles.candidatePanel} ${selected ? styles.candidatePanelActive : ''}`}>
+          <div className={styles.candidateTitle}>
+            {selected ? '该位置可能是（点击名称跳转）' : '该位置可能是'}
+          </div>
+          <ul className={styles.candidateList}>
+            {panelEntries.map((entry, k) => {
+              const label = entry.def.label ?? '方块';
+              // 候选下标可能因数据变化越界，高亮时夹取
+              const active =
+                k === Math.min(panel.index, panelEntries.length - 1);
+              const content = (
+                <>
+                  <CandidateIcon def={entry.def} />
+                  <span>{label}</span>
+                </>
+              );
+              return (
+                <li
+                  key={`${label}-${k}`}
+                  className={active ? styles.candidateActive : undefined}>
+                  {entry.def.link ? (
+                    <Link to={entry.def.link} className={styles.candidateItem}>
+                      {content}
+                    </Link>
+                  ) : (
+                    <span className={styles.candidateItem}>{content}</span>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
