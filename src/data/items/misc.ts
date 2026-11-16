@@ -1,5 +1,6 @@
 import type {ItemDef} from './types';
 
+// 原版方块等杂项；粘液科技（Slimefun4）物品见 Slimefun.ts。
 export const items: Record<string, ItemDef> = {
   'honeycomb_block': {name: '蜂蜜块', block: 'honeycomb_block'},
   'black_stained_glass': {name: '黑色染色玻璃', block: 'black_stained_glass'},
@@ -9,40 +10,4 @@ export const items: Record<string, ItemDef> = {
   'lava': {name: '岩浆', block: 'lava'},
   'reinforced_deepslate': {name: '强化深板岩', block: 'reinforced_deepslate'},
   'crying_obsidian': {name: '哭泣黑曜石', block: 'crying_obsidian'},
-  'CHARGED_GPS_TRANSMITTER': {
-    name: '充能GPS发射器',
-    texture: '/img/Minecraft/SlimeFun/assets/slimefun/textures/slimefun/gps/gps_transmitter_4.png',
-  },
-  'NUCLEAR_REACTOR': {
-    name: '核反应堆',
-    texture: '/img/Minecraft/SlimeFun/assets/slimefun/textures/slimefun/energy/nuclear_reactor.png',
-  },
-  'ENERGIZED_CAPACITOR': {
-    name: '终极电容储能',
-    texture: '/img/Minecraft/SlimeFun/assets/slimefun/textures/slimefun/energy/energized_capacitor.png',
-  },
-  'GPS_TRANSMITTER_4': {
-    name: 'GPS 发射器 IV',
-    texture: '/img/Minecraft/SlimeFun/assets/slimefun/textures/slimefun/gps/gps_transmitter_4.png',
-  },
-  'LEAD_INGOT': {
-    name: '铅锭',
-    texture: '/img/Minecraft/SlimeFun/assets/slimefun/textures/slimefun/resources/ingots/lead_ingot.png',
-  },
-  'PLUTONIUM': {
-    name: '钚',
-    texture: '/img/Minecraft/SlimeFun/assets/slimefun/textures/slimefun/resources/radioactive_materials/plutonium.png',
-  },
-  'GOLD_22K': {
-    name: '22K金',
-    texture: '/img/Minecraft/SlimeFun/assets/slimefun/textures/slimefun/resources/gold_ingots/gold_22k.png',
-  },
-  'SILVER_INGOT': {
-    name: '银锭',
-    texture: '/img/Minecraft/SlimeFun/assets/slimefun/textures/slimefun/resources/ingots/silver_ingot.png',
-  },
-  'BILLON_INGOT': {
-    name: '银铜合金锭',
-    texture: '/img/Minecraft/SlimeFun/assets/slimefun/textures/slimefun/resources/ingots/billon_ingot.png',
-  },
 };
