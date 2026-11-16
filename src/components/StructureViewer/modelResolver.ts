@@ -271,16 +271,21 @@ function fallbackQuads(
     ];
   }
 
-  // 其余方块实体：用 particle 贴图画满一个方块
+  // 其余方块实体：用 particle 贴图画满一个方块。
+  // 注意不能复用上面的 box 展开：那是箱子/潜影盒这类 64×32 实体贴图的
+  // 箱式 UV 布局，各面 u 会到 0…64；而 particle 是普通方块贴图，
+  // 六个面都应取整张 16×16（岩浆、水等流体没有 elements，只有 particle）。
   const particle = resolveRef(textures, 'particle');
   if (!particle) return [];
-  return box(
-    [0, 0, 0],
-    [16, 16, 16],
-    [0, 0],
-    `${base}/${normalizeId(particle)}.png`,
-    [16, 16],
-  );
+  const particleTex = `${base}/${normalizeId(particle)}.png`;
+  return FACES.map((face) => ({
+    face,
+    from: [0, 0, 0],
+    to: [16, 16, 16],
+    uv: [0, 0, 16, 16],
+    texture: particleTex,
+    texSize: [16, 16],
+  }));
 }
 
 // 资源包没有蜡化模型（waxed_*），渲染时退回同形状的未蜡化模型
