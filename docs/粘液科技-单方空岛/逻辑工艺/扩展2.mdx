@@ -1,0 +1,78 @@
+---
+sidebar_position: 5
+title: 扩展：逻辑货运-1
+contributors:
+  - BFAGBJ
+---
+import Term from '@site/src/components/Term';
+import StructureViewer from '@site/src/components/StructureViewer';
+import BlockDisplay from '@site/src/components/BlockDisplay';
+import ItemIcon from '@site/src/components/ItemIcon';
+import Spoiler from '@site/src/components/Spoiler'
+
+逻辑的货运分类有非常强大的机器，本篇将介绍一部分。
+
+## 垃圾桶
+
+顾名思义，会把所有放进去的物品全部销毁掉。
+
+逻辑添加了两种垃圾桶。
+
+一种有54格，用来参与冷殇的物质量化重塑器的合成。
+
+一种用来清空某个量子存储的物品（不过实际上乱码的物品重置器也可以做到）
+
+## 材料
+
+逻辑添加了两种材料。这两种材料发展出True和False就可以做了。
+
+分别是逻辑货运零件和通用货运机器配置卡，便宜耐用。
+
+## 配置器
+
+逻辑添加了通用货运配置台，逻辑通用配置器。
+
+其中，通用货运配置台用于编写通用货运机器配置卡，需要消耗True，False，还有货运零件。
+
+逻辑通用配置器则是可以复制逻辑机器的配置，例如方向，超频模式。并将其复制到别的机器中。
+
+## 存储单元
+
+用BUG将两个箱子粘起来，如果需要设置输入输出就用漏斗（确信）
+
+其实上面说的是合成配方，这三种存储单元都有54格的存储空间。
+
+<div style={{display: 'flex', gap: 12, alignItems: 'center'}}>
+<ItemIcon item='logitech_storage' size={50} />
+<ItemIcon item='logitech_storage_input' size={50} />
+<ItemIcon item='logitech_storage_output' size={50} />
+</div>
+
+纯输出和纯输入顾名思义，他们的54格槽位是只允许输出或者只允许输入的，你无法反着来。
+
+普通的存储单元可以输出也可以输入。但是不能用来被AE当作发配物品的存储，因为AE只识别输出槽。
+
+如果有让AE对存储方块进行流程配方的需求，可以看看魔法2的53格输入输出重叠箱。
+
+## 基础货运
+
+货运机器通常有源端和目标....如果没有特殊说明，就是从源端向目标传输。
+
+### 配置货运
+
+要配置机器配置卡，你需要逻辑货运零件和通用货运配置台。
+
+配置台中对于每一项都有详细的解释，不过你用到的一般就只有黑白名单和数量配置。
+
+按照配置台中文本放好之后，点击那块橙色玻璃板，就会消耗材料编码配置卡。
+
+### 货运管道
+
+很便宜的配方就能做两个管道，外观为末地烛。
+
+粗的那一端为源端，细的那一端为目标，一次传输一格。
+
+常用于复刻机的产物输出？或者你也可以用这个当飞线大师
+
+<Spoiler>是的真有这么一个成就，当你拿到64个货运管道时获得</Spoiler>
+
