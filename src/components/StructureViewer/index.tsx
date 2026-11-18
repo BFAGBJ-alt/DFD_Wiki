@@ -357,11 +357,56 @@ export default function StructureViewer({
     return <div className={styles.box} aria-busy="true" />;
   }
 
+  const isSingle = !!singleBlock;
+  const showLayers = !isSingle && layers.length > 1;
+  const visibleAxes = isSingle
+    ? []
+    : axisList.filter((axis) =>
+        axis.type === 'number'
+          ? axis.max > axis.min
+          : axis.options.length > 1,
+      );
+  const showControls = visibleAxes.length > 0 || showLayers;
+
+  // 轴选择器：桌面端排在画布上方，移动端排在预览卡上方（分层切换仍在 3D 浮层里）
+  const axisNodes = visibleAxes.map((axis) =>
+    axis.type === 'number' ? (
+      <OptionControls
+        key={axis.key}
+        kind="number"
+        title={axis.label}
+        min={axis.min}
+        max={axis.max}
+        step={axis.step}
+        value={safeValues[axis.key]}
+        onChange={(value) =>
+          setAxisValues((prev) => ({...prev, [axis.key]: value}))
+        }
+      />
+    ) : (
+      <OptionControls
+        key={axis.key}
+        title={axis.label}
+        options={axis.options}
+        available={availability[axis.key]}
+        value={safeValues[axis.key]}
+        onChange={(index) =>
+          setAxisValues((prev) => ({...prev, [axis.key]: index}))
+        }
+      />
+    ),
+  );
+
   if (isMobile) {
     const title =
       singleBlock?.label ?? (structureName ? `结构「${structureName}」` : undefined);
     return (
       <>
+        {visibleAxes.length > 0 && (
+          <div className={styles.mobileControls}>
+            <div className={styles.controlBar}>{axisNodes}</div>
+          </div>
+        )}
         <MobilePreview
           block={singleBlock?.block ?? (name ? structure.blocks[0]?.block : undefined)}
           facing={singleBlock?.facing ?? (name ? structure.blocks[0]?.facing : undefined)}
@@ -383,48 +428,11 @@ export default function StructureViewer({
     );
   }
 
-  const isSingle = !!singleBlock;
-  const showLayers = !isSingle && layers.length > 1;
-  const visibleAxes = isSingle
-    ? []
-    : axisList.filter((axis) =>
-        axis.type === 'number'
-          ? axis.max > axis.min
-          : axis.options.length > 1,
-      );
-  const showControls = visibleAxes.length > 0 || showLayers;
-
   return (
     <div className={styles.box}>
       {showControls && (
         <div className={styles.controlBar}>
-          {visibleAxes.map((axis) =>
-            axis.type === 'number' ? (
-              <OptionControls
-                key={axis.key}
-                kind="number"
-                title={axis.label}
-                min={axis.min}
-                max={axis.max}
-                step={axis.step}
-                value={safeValues[axis.key]}
-                onChange={(value) =>
-                  setAxisValues((prev) => ({...prev, [axis.key]: value}))
-                }
-              />
-            ) : (
-              <OptionControls
-                key={axis.key}
-                title={axis.label}
-                options={axis.options}
-                available={availability[axis.key]}
-                value={safeValues[axis.key]}
-                onChange={(index) =>
-                  setAxisValues((prev) => ({...prev, [axis.key]: index}))
-                }
-              />
-            ),
-          )}
+          {axisNodes}
           {showLayers && (
             <LayerControls layers={layers} value={layer} onChange={setLayer} />
           )}

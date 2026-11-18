@@ -277,6 +277,19 @@ a.candidateItem:hover {
   flex: 0 1 auto;
 }
 
+/* 移动端：轴选择器独立成一张卡片，放在 3D 预览卡上方 */
+.mobileControls {
+  margin: 1rem 0 0.25rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--ifm-background-surface-color);
+}
+
+.mobileControls .controlBar {
+  border-bottom: 0;
+}
+
 .axisSelect {
   padding: 2px 6px;
   border: 1px solid var(--ifm-color-emphasis-400);
@@ -289,6 +302,7 @@ a.candidateItem:hover {
 /* 结构分层控制条：桌面画布上方 / 移动端浮层标题栏下方 */
 .layerBar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
   gap: 8px;
