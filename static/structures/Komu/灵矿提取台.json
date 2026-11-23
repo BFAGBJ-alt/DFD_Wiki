@@ -1,0 +1,19 @@
+{
+  "name": "灵矿提取台",
+  "pattern": {
+    "amethyst_cluster": {"item": ""},
+    "blast_furnace": {"item": ""},
+    "dispenser": {"item": ""},
+    "grindstone": {"item": ""},
+    "smithing_table": {"item": ""}
+  },
+  "blocks": [
+    {"x": 0, "y": 0, "z": 0, "type": "blast_furnace", "block": "blast_furnace", "facing": "west"},
+    {"x": 0, "y": 0, "z": 1, "type": "dispenser", "block": "dispenser", "facing": "up"},
+    {"x": 0, "y": 0, "z": 2, "type": "blast_furnace", "block": "blast_furnace", "facing": "west"},
+    {"x": 0, "y": 1, "z": 0, "type": "grindstone", "block": "grindstone", "facing": "north"},
+    {"x": 0, "y": 1, "z": 1, "type": "smithing_table", "block": "smithing_table"},
+    {"x": 0, "y": 1, "z": 2, "type": "grindstone", "block": "grindstone", "facing": "north"},
+    {"x": 0, "y": 2, "z": 1, "type": "amethyst_cluster", "block": "amethyst_cluster", "facing": "up"}
+  ]
+}

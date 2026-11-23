@@ -1,6 +1,6 @@
 ---
 sidebar_position: 1
-title: 前言-获取紫水晶
+title: 前言-获取紫水晶，搭建前期多方块结构
 contributors:
   - BFAGBJ
 ---
@@ -15,3 +15,21 @@ import ItemIcon from '@site/src/components/ItemIcon';
 你可以通过精准采集的稿子去挖掘签到赠送的6个紫水晶母岩6面的紫水晶簇，也可以通过海鳗的洞穴环境模拟机来制作。
 
 记得保留4个母岩，你需要使用他们来搭建注灵台和制作电动注灵台。
+
+以下是三种多方块结构：
+
+<StructureViewer
+  name="Komu\"
+  axes={[
+    {
+      key: '1',
+      label: '结构',
+      options: [
+        {label: '工匠台', suffix: '工匠台'},
+        {label: '灵矿提取台', suffix: '灵矿提取台'},
+        {label: '注灵台', suffix: '注灵台'},
+      ],
+    }
+  ]}
+  order="{1}"
+/>

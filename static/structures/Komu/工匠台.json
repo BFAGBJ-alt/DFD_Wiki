@@ -1,0 +1,17 @@
+{
+  "name": "工匠台",
+  "pattern": {
+    "amethyst_cluster": {"item": ""},
+    "crafting_table": {"item": ""},
+    "dispenser": {"item": ""},
+    "smithing_table": {"item": ""}
+  },
+  "blocks": [
+    {"x": 0, "y": 0, "z": 0, "type": "smithing_table", "block": "smithing_table"},
+    {"x": 0, "y": 0, "z": 1, "type": "dispenser", "block": "dispenser", "facing": "up"},
+    {"x": 0, "y": 0, "z": 2, "type": "smithing_table", "block": "smithing_table"},
+    {"x": 0, "y": 1, "z": 0, "type": "amethyst_cluster", "block": "amethyst_cluster", "facing": "up"},
+    {"x": 0, "y": 1, "z": 1, "type": "crafting_table", "block": "crafting_table"},
+    {"x": 0, "y": 1, "z": 2, "type": "amethyst_cluster", "block": "amethyst_cluster", "facing": "up"}
+  ]
+}

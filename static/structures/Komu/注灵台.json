@@ -1,0 +1,17 @@
+{
+  "name": "注灵台",
+  "pattern": {
+    "amethyst_cluster": {"item": ""},
+    "budding_amethyst": {"item": ""},
+    "dispenser": {"item": ""},
+    "enchanting_table": {"item": ""}
+  },
+  "blocks": [
+    {"x": 0, "y": 0, "z": 0, "type": "budding_amethyst", "block": "budding_amethyst"},
+    {"x": 0, "y": 0, "z": 1, "type": "dispenser", "block": "dispenser", "facing": "up"},
+    {"x": 0, "y": 0, "z": 2, "type": "budding_amethyst", "block": "budding_amethyst"},
+    {"x": 0, "y": 1, "z": 0, "type": "amethyst_cluster", "block": "amethyst_cluster", "facing": "up"},
+    {"x": 0, "y": 1, "z": 1, "type": "enchanting_table", "block": "enchanting_table"},
+    {"x": 0, "y": 1, "z": 2, "type": "amethyst_cluster", "block": "amethyst_cluster", "facing": "up"}
+  ]
+}
