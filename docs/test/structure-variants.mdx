@@ -6,6 +6,7 @@ draft: true
 ---
 
 import StructureViewer from '@site/src/components/StructureViewer';
+import Structure2D from '@site/src/components/StructureViewer/Structure2D';
 
 :::warning[测试页]
 本页面仅用于验证 `StructureViewer` 的多轴切换、可用性限制和多候选方块交互，不属于正式 Wiki 内容。
@@ -61,3 +62,19 @@ import StructureViewer from '@site/src/components/StructureViewer';
 - 点击画布其他位置：取消选中并恢复旋转。
 
 <StructureViewer name="Test/candidates" />
+
+## 静态结构图（Structure2D）
+
+固定机位、不可拖动/缩放/点击，高度按容器宽度与结构投影自动计算。默认等距机位（方位角 45°、仰角 29.5°）：
+
+<Structure2D name="Logi/元素嬗变-最大" />
+
+自定义机位与距离倍率（方位角 120°、仰角 45°、拉远到 1.4 倍）：
+
+<Structure2D name="Logi/终极祭坛-1" azimuth={120} elevation={45} distance={1.4} />
+
+窄容器下的表现（高度自动跟随结构）：
+
+<div style={{maxWidth: 260}}>
+  <Structure2D name="Logi/元素嬗变-最小"  azimuth={320} elevation={24}/>
+</div>
